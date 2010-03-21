@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+	<body>
+	<div id="templates" class="templates">
+		<div id="templateSample1" class="test">
+			<h3>List of </h3>
+			{#
+				This segment will output the list of items 
+				if any are found.
+			#}
+			{% define itemLabel items.type.label|uppercase) %}
+			{% if items.count()==0 %}
+				{% render error %}
+					No {{ itemLabel }} found.
+				{% endrender %}
+			{% else %}
+				<p>
+					This list contains {{ items.count() }} {{ itemLabel }}.
+				</p>
+				<ul class="list">
+					{% for item in items) %}
+						<li class="{{ $.evenOdd }}" data-action="itemsListLink" data-param="{{ id }}">
+							<a href="#">{{ label }}</a>
+						</li>
+					{% endfor %}
+				</ul>
+			{% endif %}
+		</div>
+	</div>
+</body>
+</html>

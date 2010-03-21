@@ -1,0 +1,1172 @@
+<!DOCTYPE HTML>
+<html><head>
+
+
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>John Resig -   FireUnit: JavaScript Unit Testing Extension</title>
+  <link href="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/style.css" media="screen" rel="Stylesheet" type="text/css">
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="http://feeds.feedburner.com/JohnResig">
+  <link rel="openid.server" href="http://www.livejournal.com/openid/server.bml">
+  <link rel="openid.delegate" href="http://jeresig.livejournal.com/">
+  <script src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/retweet.js"></script>
+</head><body>
+
+<div id="head" class="other">
+	<div class="nav">
+		<ul>
+			<li><a href="http://ejohn.org/">Home</a></li>
+			<li><a href="http://ejohn.org/blog/">Blog</a></li>
+			<li><a href="http://ejohn.org/projects/">Projects</a></li>
+			<li><a href="http://ejohn.org/about/">About Me</a></li>
+		</ul>
+	</div>
+	<div class="side">
+		<a href="http://ejohn.org/about/"><img src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/short.jpg" class="logo" alt="John Resig"></a>
+		<div class="text">
+			<a href="http://ejohn.org/about/" class="name"><strong>John</strong> Resig</a><br>
+			<a href="http://ejohn.org/about/">Contact</a>,
+			<a href="http://feeds.feedburner.com/JohnResig">Subscribe</a>
+		</div>
+	</div>
+</div>
+<div class="drop"><img src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/ejohn-main-drop.gif"></div>
+<div id="wrap">
+	<div id="body"><div class="wrap">
+<h2>  FireUnit: JavaScript Unit Testing Extension</h2><br>
+
+		
+		
+  			
+				<div class="postentry">
+
+
+	<p>In my work with the Firebug team over the past couple months I've been working with <a href="http://www.softwareishard.com/">Jan Odvarko</a>
+on a way to provide some form of unit testing that we can build off of.
+The result of my work is a new Firefox/Firebug extension called <a href="http://fireunit.org/">FireUnit</a>.</p>
+	<blockquote><p>FireUnit provides a simple JavaScript API for doing simple test logging and viewing within a new tab of Firebug.</p></blockquote>
+	<p>For
+example, here's some of the API that you can use (we're starting with
+the basics and looking to expand with more methods, later).</p>
+	<div class="syntax_hilite">
+<div id="js-1">
+	<div><span style="color: rgb(0, 153, 0); font-style: italic;">// Simple true-like/false-like testing</span><br>
+fireunit.<span style="color: rgb(0, 102, 0);">ok</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span> <span style="color: rgb(0, 51, 102); font-weight: bold;">true</span>, <span style="color: rgb(51, 102, 204);">"I'm going to pass!"</span> <span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;<br>
+fireunit.<span style="color: rgb(0, 102, 0);">ok</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span> <span style="color: rgb(0, 51, 102); font-weight: bold;">false</span>, <span style="color: rgb(51, 102, 204);">"I'm going to fail!"</span> <span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;
+	<p><span style="color: rgb(0, 153, 0); font-style: italic;">// Compare two strings - shows a diff of the</span><br>
+<span style="color: rgb(0, 153, 0); font-style: italic;">// results if they're different</span><br>
+fireunit.<span style="color: rgb(0, 102, 0);">compare</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span><br>
+&nbsp; <span style="color: rgb(51, 102, 204);">"The lazy fox jumped over the log."</span>,<br>
+&nbsp; <span style="color: rgb(51, 102, 204);">"The lazy brown fox jumped the log."</span>,<br>
+&nbsp; <span style="color: rgb(51, 102, 204);">"Are these two strings the same?"</span><br>
+<span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;</p>
+	<p><span style="color: rgb(0, 153, 0); font-style: italic;">// Compare a string using a regular expression</span><br>
+fireunit.<span style="color: rgb(0, 102, 0);">reCompare</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span><br>
+&nbsp; <span style="color: rgb(0, 102, 255);">/The .* fox jumped the log./</span>,<br>
+&nbsp; <span style="color: rgb(51, 102, 204);">"The lazy brown fox jumped the log."</span>,<br>
+&nbsp; <span style="color: rgb(51, 102, 204);">"Compare a string using a RegExp."</span><br>
+<span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;</p>
+	<p><span style="color: rgb(0, 153, 0); font-style: italic;">// Display the total results</span><br>
+fireunit.<span style="color: rgb(0, 102, 0);">testDone</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span><span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;</p></div>
+	</div>
+</div>
+	<p>The results will appear in a 'Test' tab in Firebug (which
+must be installed in order for Fireunit to work). Each of the results
+can be expanded to show additional information including a full stack
+trace of where the test ran and a comparison with a <a href="http://ejohn.org/projects/javascript-diff-algorithm/">diff</a>.</p>
+	<p></p><center><img src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/fireunit-1.png"></center>
+	<p>FireUnit also provides a couple methods for simulating native browser events:</p>
+	<div class="syntax_hilite">
+<div id="js-2">
+	<div><span style="color: rgb(0, 153, 0); font-style: italic;">// You can also simulate browser events</span><br>
+<span style="color: rgb(0, 51, 102); font-weight: bold;">var</span> input = document.<span style="color: rgb(0, 102, 0);">getElementsByTagName</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span><span style="color: rgb(51, 102, 204);">"input"</span><span style="color: rgb(0, 136, 0); font-weight: bold;">)</span><span style="color: rgb(0, 136, 0); font-weight: bold;">[</span><span style="color: rgb(204, 0, 0);">0</span><span style="color: rgb(0, 136, 0); font-weight: bold;">]</span>;<br>
+fireunit.<span style="color: rgb(0, 102, 0);">mouseDown</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span> input <span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;<br>
+fireunit.<span style="color: rgb(0, 102, 0);">click</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span> input <span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;<br>
+fireunit.<span style="color: rgb(0, 102, 0);">focus</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span> input <span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;<br>
+fireunit.<span style="color: rgb(0, 102, 0);">key</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span> input, <span style="color: rgb(51, 102, 204);">"a"</span> <span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;</div>
+	</div>
+</div>
+	<p>And a way of running a batch of test files (each of which would contain a number of individual tests).</p>
+	<div class="syntax_hilite">
+<div id="js-3">
+	<div><span style="color: rgb(0, 153, 0); font-style: italic;">// Or run multiple pages of tests:</span><br>
+fireunit.<span style="color: rgb(0, 102, 0);">runTests</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span><span style="color: rgb(51, 102, 204);">"test2.html"</span>, <span style="color: rgb(51, 102, 204);">"test3.html"</span><span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;
+	<p><span style="color: rgb(0, 153, 0); font-style: italic;">// Place at the end of every test file in order to continue</span><br>
+fireunit.<span style="color: rgb(0, 102, 0);">testDone</span><span style="color: rgb(0, 136, 0); font-weight: bold;">(</span><span style="color: rgb(0, 136, 0); font-weight: bold;">)</span>;</p></div>
+	</div>
+</div>
+	<p>We've been using this test runner to run a number of Firebug tests, especially ones that are network based.</p>
+	<p></p><center><img src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/fireunit-ui-thumb.png"></center>
+	<p>Depending on the suite it's pretty easy to adapt existing test suites to display their results in FireUnit.</p>
+	<p>Running the <a href="http://fireunit.org/jquery/test/">jQuery selector test suite</a> that has the following snippet added:</p>
+	<div class="syntax_hilite">
+<div id="js-4">
+	<div><span style="color: rgb(0, 0, 102); font-weight: bold;">if</span> <span style="color: rgb(0, 136, 0); font-weight: bold;">(</span> <span style="color: rgb(0, 0, 102); font-weight: bold;">typeof</span> fireunit === <span style="color: rgb(51, 102, 204);">"object"</span> <span style="color: rgb(0, 136, 0); font-weight: bold;">)</span> <span style="color: rgb(0, 136, 0); font-weight: bold;">{</span><br>
+&nbsp; &nbsp; &nbsp; &nbsp; QUnit.<span style="color: rgb(0, 102, 0);">log</span> = fireunit.<span style="color: rgb(0, 102, 0);">ok</span>;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; QUnit.<span style="color: rgb(0, 102, 0);">done</span> = fireunit.<span style="color: rgb(0, 102, 0);">testDone</span>;<br>
+<span style="color: rgb(0, 136, 0); font-weight: bold;">}</span></div>
+	</div>
+</div>
+	<p>Yields the following results (which are completely navigable):</p>
+	<p></p><center><img src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/fireunit-2.png"></center>
+	<p>If you want to get started using FireUnit you can head on over to the <a href="http://fireunit.org/">Fireunit.org</a> site and download the latest extension.</p>
+	<p>You can also grab <a href="http://github.com/jeresig/fireunit">the source</a> off of the repository on Github.</p>
+	<p>Jan has also written <a href="http://www.softwareishard.com/blog/firebug/fireunit-testing-in-the-firebug-world/">a blog post</a> detailing a little bit more about what we're using FireUnit for in the Firebug Working Group.</p>
+	<p>This
+is still a very early release of our work - there's obviously a ton of
+room left to grow - so feedback is expected and appreciated.
+</p>
+ 
+
+				</div>
+
+		<p><small><strong>Posted:</strong> December 18th, 2008		· <strong>Tags:</strong> <a href="http://ejohn.org/blog/tags/extension/" target="_self">extension</a>, <a href="http://ejohn.org/blog/tags/firefox/" target="_self">firefox</a>, <a href="http://ejohn.org/blog/tags/firebug/" target="_self">firebug</a>, <a href="http://ejohn.org/blog/tags/javascript/" target="_self">javascript</a>, <a href="http://ejohn.org/blog/tags/testing/" target="_self">testing</a>				</small> · <a href="http://twitter.com/home?status=FireUnit%3A%20JavaScript%20Unit%20Testing%20Extension%20http%3A%2F%2Fbit.ly%2FNRafA" class="retweet" title=""><span>►&nbsp;Retweet</span></a></p>
+				<!--
+				<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+	    xmlns:dc="http://purl.org/dc/elements/1.1/"
+	    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+		<rdf:Description rdf:about="http://ejohn.org/blog/fireunit/"
+    dc:identifier="http://ejohn.org/blog/fireunit/"
+    dc:title="FireUnit: JavaScript Unit Testing Extension"
+    trackback:ping="http://ejohn.org/blog/fireunit/trackback/" />
+</rdf:RDF>				-->
+			
+
+<!-- You can start editing here. -->
+
+
+	<h4 id="comments">
+	44 Comments		<a href="#postcomment" title="Jump to the comments form" id="showcomment" onclick="document.getElementById('commentlist').style.display='block';">(Show Comments)</a>
+		</h4>
+
+	<ol id="commentlist" style="display: none;">
+
+	
+		<li class="alt " id="comment-326381">
+		
+		<h3 class="commenttitle"><b><a href="http://www.devluv.com/" rel="external nofollow">Ricardo Vega</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326381" title="Permanent link to this comment">12:24 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Whoa!
+Again, thanks John this is just a must! I'm in the middle of placing js
+unit testing to a code and well, it was being a pretty hardtime (I have
+a very basic java knowledge) so jsunit was being rude with me :)</p>
+	<p>Again, this is awesome.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326383">
+		
+		<h3 class="commenttitle"><b><a href="http://twitter.com/aaronmccall" rel="external nofollow">Aaron McCall</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326383" title="Permanent link to this comment">12:26 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>John,</p>
+	<p>A
+big thank you to both you and Jan for what looks to be a very helpful
+addition to the toolset of Javascript developers. And having it
+integrated with FireBug--icing on the cake!
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326385">
+		
+		<h3 class="commenttitle"><b><a href="http://lancefisher.com/blog" rel="external nofollow">Lance Fisher</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326385" title="Permanent link to this comment">12:36 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>This
+is really cool, John. I can think of more uses than just unit testing.
+This is nice. This can give you end-to-end automated integration
+testing.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326386">
+		
+		<h3 class="commenttitle"><b>Gregory</b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326386" title="Permanent link to this comment">12:37 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Nice work! This actually makes JS Unit testing possible without being a HUGE pain in the ass.</p>
+	<p>Love it. Will it get put into Firebug do you think?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326387">
+		
+		<h3 class="commenttitle"><b><a href="http://amiworks.co.in/talk" rel="external nofollow">thecancerus</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326387" title="Permanent link to this comment">12:37 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>thanks.. after jquery this is something i am going to use everyday :)
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326391">
+		
+		<h3 class="commenttitle"><b>Rock.yin</b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326391" title="Permanent link to this comment">12:42 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Great Work!<br>
+Tanks for sharing.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326392">
+		
+		<h3 class="commenttitle"><b>Paul Wilkins</b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326392" title="Permanent link to this comment">12:42 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>I
+would think that it's important for the test tab to be able to separate
+out the successful tests in some manner. The reason being that as
+projects grow, the number of tests will too.</p>
+	<p>Because nobody
+wants to scroll through hundreds of successful tests to find the one or
+two failed ones, I think that the successful and failed tests should be
+either grouped together in a separate tree, or have the ability to show
+only failed tests by default.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326394">
+		
+		<h3 class="commenttitle"><b><a href="http://gamemax.org/" rel="external nofollow">Mladen Mihajlovic</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326394" title="Permanent link to this comment">12:44 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Looking
+good, one question though: Why move away from using the good old
+"assert" keywork to something like "ok"? Everybody knows how asserts
+work so why change a good thing?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326396">
+		
+		<h3 class="commenttitle"><b><a href="http://manfre.net/" rel="external nofollow">Michael Manfre</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326396" title="Permanent link to this comment">12:54 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>This will be really useful for a project I'm working on.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326402">
+		
+		<h3 class="commenttitle"><b><a href="http://www.foobartastic.com/" rel="external nofollow">Tom</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326402" title="Permanent link to this comment">1:06 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Will this work for those of us writing extensions? is there a unit testing solution for extension developers?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326414">
+		
+		<h3 class="commenttitle"><b><a href="http://lazycoder.com/" rel="external nofollow">Scott</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326414" title="Permanent link to this comment">1:43 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Will
+we be able to easily add BDD style asserts, similar to the
+Scriptaculous unit test framework? Or are there plans to make FireUnit
+extensible?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326429">
+		
+		<h3 class="commenttitle"><b>V1</b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326429" title="Permanent link to this comment">3:09 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Seems like another must have addon for us developers :)
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326439">
+		
+		<h3 class="commenttitle"><b><a href="http://nyco.wordpress.com/" rel="external nofollow">Nÿco</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326439" title="Permanent link to this comment">4:11 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Small request: the source code lacks a LICENSE/COPYING file, saying what license the software is published under.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326445">
+		
+		<h3 class="commenttitle"><b><a href="http://patspam.com/" rel="external nofollow">Patrick Donelan</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326445" title="Permanent link to this comment">4:33 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>@Mladen:
+I'm guessing you're not a Perl programmer? Check out Test::More etc..
+on CPAN. Personally I'd love to see even more of those concise test
+methods being used, is() for euqality, like() for regex string
+comparison, etc.. but as John showed it's easy to create your own test
+API object if you don't like their choice of method names.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326482">
+		
+		<h3 class="commenttitle"><b><a href="http://www.onenaught.com/" rel="external nofollow">Anup</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326482" title="Permanent link to this comment">7:20 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Very interesting. Will be interested to see how this proceeds. </p>
+	<p>About
+QUnit: I tried the snippet you had above and nothing happened on some
+Unit tests I had. I found I needed to upgrade the version of QUnit
+testrunner.js I had. I got the latest from <a href="http://docs.jquery.com/QUnit" rel="nofollow">http://docs.jquery.com/QUnit</a>
+which is the same build number as the build number your selector tests
+uses, but still no luck. I eventually copied your actual testrunner
+file and it worked. I assume you made some edits to QUnit testrunner?
+Or, the build version has not been updated?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326483">
+		
+		<h3 class="commenttitle"><b><a href="http://www.broofa.com/" rel="external nofollow">Robert Kieffer</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326483" title="Permanent link to this comment">7:32 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>John,
+one of the main reasons for having a unit test suite is to make it easy
+to do cross-browser testing. Thus, the utility of a browser-specific
+solution like FireUnit seems a little questionable. Are there any plans
+to enable FireUnit support on other platforms? ... a "FireUnitLite"
+perhaps?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt author" id="comment-326486">
+		
+		<h3 class="commenttitle"><b><a href="http://ejohn.org/" rel="external nofollow">John Resig</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326486" title="Permanent link to this comment">8:00 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>@Paul Wilkins: In the test tab click 'Options' then de-select 'Passing Tests'. Now you'll only see tests that fail.</p>
+	<p>@Mladen
+Mihajlovic: It's totally up to you - but I've seen both assert and ok
+used, I don't really think the name is that big of a deal, in this case.</p>
+	<p>@Tom:
+This will be very useful for those creating extensions - we've been
+using it to test Firebug. I hope to have more written up on that soon.</p>
+	<p>@Nÿco: Just added a LICENSE file containing the MPL.</p>
+	<p>@Anup: Sorry about that, I still have one commit to do for QUnit - I should have it up today.</p>
+	<p>@Robert Kieffer: Sure thing, I'll see what we can do!
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326488">
+		
+		<h3 class="commenttitle"><b>lrbabe</b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326488" title="Permanent link to this comment">8:21 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Why did you added the "fireunit" object instead of extending console?<br>
+It would have enabled other browser which already implement console
+(webkit already, opera soon or later) to extend it as well. Thus,
+allowing us to build such unit test, but cross-browser.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326490">
+		
+		<h3 class="commenttitle"><b><a href="http://www.billyreisinger.com/" rel="external nofollow">Billy Reisinger</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326490" title="Permanent link to this comment">8:32 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>What
+is the problem that FireUnit is trying to solve that hasn't been solved
+already? I'm asking because I don't know, not because I'm trying to be
+a d***. I get the feeling that there was a specific thing you guys
+needed it to do, or obviously you would have chosen something that met
+your needs already.</p>
+	<p>I know a few people on this thread have
+pooped on JSUnit, but it is a great testing framework. One of the nice
+things about JSUnit is that it is relatively easy to integrate it into
+a build system and a continuous integration server. It provides a
+return value (i.e. 0, 1), can assuredly be run on any machine (that can
+run Java and a web browser), and can even be used to create JUnit-style
+reports. Also, like Robert mentioned, it can be used with all the major
+browsers. Lastly, it follows XUnit assertion conventions, so it looks
+familiar to people who have already used JUnit or NUnit (for example). </p>
+	<p>I could see if you needed to test javascript that runs outside of the DOM or something...
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" author" id="comment-326493">
+		
+		<h3 class="commenttitle"><b><a href="http://ejohn.org/" rel="external nofollow">John Resig</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326493" title="Permanent link to this comment">8:49 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>@lrbabe:
+We could look at that in the future - but for now we don't want to
+clutter up the console object with a ton of new methods - better to
+have it confined within its own object.</p>
+	<p>@Billy Reisinger:
+We've been using it to test Firebug - which isn't something that you
+can do with regular JSUnit (since you need to be able to dip into the
+browser chrome).
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326506">
+		
+		<h3 class="commenttitle"><b><a href="http://www.novoda.com/" rel="external nofollow">Kevin McDonagh</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326506" title="Permanent link to this comment">10:02 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>This
+is really cool. If I could just add though. Instead of FireUnit.ok(),
+FireUnit.false() have you considered the merits in just Assert.ok(),
+Assert.false() Assert.false? I ask because obviously the later is more
+immedietly self explanatory and abides by the convention. Would it pose
+problems in name spacing?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326545">
+		
+		<h3 class="commenttitle"><b><a href="http://www.subprint.com/" rel="external nofollow">Joe McCann</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326545" title="Permanent link to this comment">12:50 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Wicked John!  Congrats...again.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326550">
+		
+		<h3 class="commenttitle"><b>Adam Peller</b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326550" title="Permanent link to this comment">1:12 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Nice.
+Any thoughts on developing some sort of common API with what was
+learned from this exercise and QUnit, DOH, and any others in this
+space? It would be wonderful to eventually have some neutral API spread
+the way 'console' has.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326606">
+		
+		<h3 class="commenttitle"><b><a href="http://weblogs.asp.net/bleroy" rel="external nofollow">Bertrand Le Roy</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326606" title="Permanent link to this comment">4:57 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>+1
+to Robert: cross-browser is an absolute must. Being able to automate
+and log test passes in each browser is next. Still, pretty cool to have
+that integrated in FireBug.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326660">
+		
+		<h3 class="commenttitle"><b><a href="http://michiel.wordpress.com/" rel="external nofollow">Michiel van der Blonk</a></b>
+	
+		<small><small>
+			(December 18, 2008 
+			at <a href="#comment-326660" title="Permanent link to this comment">8:00 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Selenium
+already does it all (together with SeleniumRunner). Not that FireUnit
+is a bad thing to have, that is. It's still something that is more easy
+to run directly from the browser.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326807">
+		
+		<h3 class="commenttitle"><b><a href="http://alanhogan.com/" rel="external nofollow">Alan Hogan</a></b>
+	
+		<small><small>
+			(December 19, 2008 
+			at <a href="#comment-326807" title="Permanent link to this comment">4:12 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>I
+would like to echo the call for the ok() method to be aliased (if not
+renamed) to assert(). But as you said, John, not a huge deal. I would
+imagine it is more common, though.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326883">
+		
+		<h3 class="commenttitle"><b>Empee</b>
+	
+		<small><small>
+			(December 19, 2008 
+			at <a href="#comment-326883" title="Permanent link to this comment">8:35 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Yep Selenium IDE. I just found Michiel's comment.</p>
+	<p>Really, isnt fireUnit trying to grow up to the same thing?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-326922">
+		
+		<h3 class="commenttitle"><b>DiegoG</b>
+	
+		<small><small>
+			(December 19, 2008 
+			at <a href="#comment-326922" title="Permanent link to this comment">11:12 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Does
+it support nightly builds? I mean, is there any chance to run unit
+tests unatended, extract reports, and so on? How do you envision such
+scenario?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-326924">
+		
+		<h3 class="commenttitle"><b><a href="http://rapidrabb.it/" rel="external nofollow">Volker</a></b>
+	
+		<small><small>
+			(December 19, 2008 
+			at <a href="#comment-326924" title="Permanent link to this comment">11:18 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Great
+work, I was on my way to write an extension myself to get access to the
+browser chrome for firing events and now I can use fireunit.</p>
+	<p>However,
+if you intend to create an XUnit test framework, in my opinion it would
+be nice to stick to the common interface. But that's just my opinion.</p>
+	<p>For
+cross browser development, it would be great if fireunit could be used
+as a UI for e.g. yui unit tests, which I'm using already.
+(http://developer.yahoo.com/yui/yuitest/) This way, I could write cross
+browser tests that could be executed in fireunit when running in
+firefox. Then the fireunitLight would just need to provide things like
+the click() function that other frameworks are lacking.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-328615">
+		
+		<h3 class="commenttitle"><b><a href="http://www.nczonline.net/" rel="external nofollow">Nicholas C. Zakas</a></b>
+	
+		<small><small>
+			(December 24, 2008 
+			at <a href="#comment-328615" title="Permanent link to this comment">12:12 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Hey Volker (and everyone),</p>
+	<p>I've
+written a FireUnit extension for YUI Test. It's just a proof of concept
+at the moment, but it basically uses FireUnit as a UI to output YUI
+Test results. Take a look at <a href="http://www.nczonline.net/blog/2008/12/19/fireunit-extension-for-yui-test/" rel="nofollow"></a><a href="http://www.nczonline.net/blog/2008/12/19/fireunit-extension-for-yui-test/" rel="nofollow">http://www.nczonline.net/blog/2008/12/19/fireunit-extension-for-yui-test/</a>.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-328659">
+		
+		<h3 class="commenttitle"><b><a href="http://techbrahmana.blogspot.com/" rel="external nofollow">Brahmana</a></b>
+	
+		<small><small>
+			(December 24, 2008 
+			at <a href="#comment-328659" title="Permanent link to this comment">2:23 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Hi,</p>
+	<p>This
+is a good thing. However I would like to know the motivation/rationale
+for coming up with yet another testing framework when there are already
+tools like FireWatir, Selenium and probably several more which I do not
+know. From what I know, FireWatir can do operations that require chrome
+permissions and hence can be used to test FF extensions also (along
+with . So is there something that all these tools were missing and made
+you come up with FireUnit?</p>
+	<p>Regards,<br>
+Brahmana.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-335387">
+		
+		<h3 class="commenttitle"><b>Cory</b>
+	
+		<small><small>
+			(January 5, 2009 
+			at <a href="#comment-335387" title="Permanent link to this comment">8:04 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Hi John!</p>
+	<p>This
+looks pretty cool. There are a couple of things we'd need before this
+is usable to us. I'll explain why, I think this is a pretty easy
+feature to add and could have a huge payoff for others, even those with
+different use cases than me.</p>
+	<p>1) A simple reporting scheme, i.e. an overall pass/fail or count of passes/fails available through an API.<br>
+2) A way to write the result to disk for IPC purposes.</p>
+	<p>Our
+scenario is this: developers writing code are able to use your
+extension, but we have an automated continuous-integration-and-testing
+server that reports overall pass/failed status after every commit. In
+order to run our tests, we use Xvfb, run selenium, dump the selenium
+results to a file and have the buildbot report a red or green based on
+what's in the file.</p>
+	<p>So the key is, it has to work in such a
+way that a headless server can run it and then report the results
+without an eyeball looking at the screen.</p>
+	<p>Selenium is not a
+unit test framework though. In fact, no unit tests work this way in our
+environment yet, although we're trying to figure out whether jsunit is
+an option. So far, jsunit's heavy reliance on frames makes it very hard
+to work with. FireUnit could convert us easily with the above two
+things.</p>
+	<p>Something to think about. :-)  Thanks!
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-336377">
+		
+		<h3 class="commenttitle"><b><a href="http://flowplayer.org/demos/test/basics.html" rel="external nofollow">Tero Piirainen</a></b>
+	
+		<small><small>
+			(January 7, 2009 
+			at <a href="#comment-336377" title="Permanent link to this comment">3:32 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Hello,</p>
+	<p>Thank you for this utility. On our Flowplayer website we now have a public test that uses fireunit</p>
+	<p><a href="http://flowplayer.org/demos/test/basics.html" rel="nofollow">http://flowplayer.org/demos/test/basics.html</a></p>
+	<p>What I missed was the ability to tell how many tests there are so at the end it would say that x/n tests passed.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-336640">
+		
+		<h3 class="commenttitle"><b><a href="http://webnov8.com/" rel="external nofollow">Todd Alexander</a></b>
+	
+		<small><small>
+			(January 8, 2009 
+			at <a href="#comment-336640" title="Permanent link to this comment">2:46 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Another great addition to the Javascript community.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-338510">
+		
+		<h3 class="commenttitle"><b>LX</b>
+	
+		<small><small>
+			(January 13, 2009 
+			at <a href="#comment-338510" title="Permanent link to this comment">7:35 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Great work! What about other browsers, like MSIE?</p>
+	<p>Greetings, LX
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-338692">
+		
+		<h3 class="commenttitle"><b>Yok</b>
+	
+		<small><small>
+			(January 13, 2009 
+			at <a href="#comment-338692" title="Permanent link to this comment">9:46 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Very nice! But why not display passed tests in green?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-340314">
+		
+		<h3 class="commenttitle"><b><a href="http://timmolendijk.nl/" rel="external nofollow">Tim Molendijk</a></b>
+	
+		<small><small>
+			(January 19, 2009 
+			at <a href="#comment-340314" title="Permanent link to this comment">8:11 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Very
+cool. What would be an awesome addition though is a way of profiling
+the test runs. F.e. if I could tell it to run every test case n times
+consecutively and then include the profiling report.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-344742">
+		
+		<h3 class="commenttitle"><b>Andrew</b>
+	
+		<small><small>
+			(February 2, 2009 
+			at <a href="#comment-344742" title="Permanent link to this comment">11:38 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Is there any way to integrate it into continuous integration?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-345839">
+		
+		<h3 class="commenttitle"><b>PierreR</b>
+	
+		<small><small>
+			(February 9, 2009 
+			at <a href="#comment-345839" title="Permanent link to this comment">8:55 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Is there a plan to make FireUnit work with the latest testrunner.js (from the QUnit site) ?<br>
+To have it work I have to replace the latest testrunner (2009) with the old one (2008) from your demo link.</p>
+	<p>Thanks.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-348969">
+		
+		<h3 class="commenttitle"><b>Aubrey</b>
+	
+		<small><small>
+			(February 23, 2009 
+			at <a href="#comment-348969" title="Permanent link to this comment">4:14 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Would
+it be possible to make some sort of standalone tester that worked with,
+say, prism? I could start it up and it would hit the tests and see what
+passed/failed?
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-360825">
+		
+		<h3 class="commenttitle"><b><a href="http://bigbangtechnology.com/" rel="external nofollow">Cameron Westland</a></b>
+	
+		<small><small>
+			(March 27, 2009 
+			at <a href="#comment-360825" title="Permanent link to this comment">5:53 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>I made a simple screencast showcasing FireUnit.</p>
+	<p><a href="http://bigbangtechnology.com/blog/post/writing_tests_first_in_fireunit" rel="nofollow">http://bigbangtechnology.com/blog/post/writing_tests_first_in_fireunit</a></p>
+	<p>Hope someone finds it useful!
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-369343">
+		
+		<h3 class="commenttitle"><b>Ionut David</b>
+	
+		<small><small>
+			(April 15, 2009 
+			at <a href="#comment-369343" title="Permanent link to this comment">2:45 am</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Congrats for the nice work you done on the FireUnit.<br>In
+the future is there going to be a fire unit tool in which you can write
+unit test and run them under Opera, Safari or cursed IE6+?<br>
+Because when writing js on IE browsers is likely that it won't work.</p>
+	<p>Regards,<br>
+David.
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class="alt " id="comment-380707">
+		
+		<h3 class="commenttitle"><b>Nicolas</b>
+	
+		<small><small>
+			(May 11, 2009 
+			at <a href="#comment-380707" title="Permanent link to this comment">6:45 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Nice, but does it work outside the browser? JS is not only HTML DOM...
+</p>
+</div>
+		
+		</li>
+
+		
+	
+		<li class=" " id="comment-380709">
+		
+		<h3 class="commenttitle"><b>Nicolas</b>
+	
+		<small><small>
+			(May 11, 2009 
+			at <a href="#comment-380709" title="Permanent link to this comment">6:48 pm</a>)
+					</small></small>
+		</h3>
+		
+		<div class="comment-text">	<p>Bah, I didn't notice it was so tied to Firebug (in which case *of course* it won't work out of a browser).
+</p>
+</div>
+		
+		</li>
+
+		
+	
+	</ol>
+	
+	<!--<p class="small">
+	<a href='http://ejohn.org/blog/fireunit/feed/'><abbr title="Really Simple Syndication">RSS</abbr> feed for comments on this post</a>		</p>-->
+
+
+
+<br><hr>
+<p><b>Comments are closed.</b><br>
+Comments are automatically turned off two weeks after the original post. If you have a question
+concerning the content of this post, please feel free to <a href="http://ejohn.org/about/">contact me</a>.</p>
+<hr>
+
+
+		<script src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/JohnResig.js" type="text/javascript" charset="utf-8"></script><script src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/JohnResig_002.js" type="text/javascript"></script>
+		<!--<img src="http://ejohn.org/apps/rss/?from=single&amp;id=5668" style="width:0px;height:0px;"/>-->
+				
+		
+				
+	
+        </div></div>
+
+        <div id="side">
+                <div id="projects">
+                        <h2>JavaScript Books</h2>
+
+                        <div class="box">
+                        <a href="http://jsninja.com/"><img src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/ninja.jpg" class="icon" alt="Secrets of the JavaScript Ninja"></a>
+                        <div class="desc">
+                                <h3><a href="http://jsninja.com/">JavaScript Secrets</a></h3>
+                                <p>Secret techniques of top JavaScript programmers. Coming Fall 2009.</p>
+                        </div>
+                        </div>
+                        <div class="box">
+                        <a href="http://jspro.org/"><img src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/ejohn-side-book.gif" class="icon" alt="Pro JavaScript Techniques"></a>
+                        <div class="desc">
+                                <h3><a href="http://jspro.org/">Pro JavaScript</a></h3>
+                                <p>The best techniques for professional  JavaScript. Published by Apress.</p>
+                        </div>
+                        </div>
+
+                        <h2><a href="http://twitter.com/jeresig">Micro Updates</a></h2>
+                        <div class="box">
+                        <a href="http://twitter.com/jeresig"><img src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/twitter-74.png" class="icon" alt="John Resig Twitter Updates"></a>
+                        <div class="desc">
+                                <h3><a href="http://twitter.com/jeresig">@jeresig</a></h3>
+                                <p>Infrequent, short, updates and links.</p>
+                        </div>
+                        </div>
+
+                        <h2><a href="http://jobs.jsninja.com/">JavaScript Jobs</a></h2>
+                        <div class="box">
+			<h3><a href="http://jobs.jsninja.com/">Ninja Jobs: JavaScript Jobs</a></h3>
+			<h3><a href="http://www.mozilla.com/en-US/careers/">Mozilla: Browser Jobs</a></h3>
+                        </div>
+
+			<br><br>
+                        <div class="box">
+			  Hosting provided by: <a href="http://www.engineyard.com/?utm_source=ejohn.org&amp;utm_medium=hosting&amp;utm_campaign=JohnResig-Hosting" style="background: rgb(255, 255, 255) url(http://assets.engineyard.com/images/ey-rubyhosting-rrbs.png) no-repeat scroll 0px -14px; overflow: hidden; -moz-background-clip: border; -moz-background-origin: padding; -moz-background-inline-policy: continuous; height: 0px; width: 82px; padding-top: 24px; display: inline-block; vertical-align: middle;">Ruby Hosting by Engine Yard</a>
+			</div>
+                </div>
+        </div>
+
+</div>
+<script src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/urchin.js" type="text/javascript"></script>
+<script type="text/javascript">_uacct = "UA-50335-1";urchinTracker();</script>
+<style type="text/css">a.retweet { font: 12px Helvetica,Arial; color: #000; text-decoration: none; border: 0px; }a.retweet span { color: #FFF; background: #94CC3D; margin-left: 2px; border: 1px solid #43A52A; -moz-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px; padding: 3px; }a.vert { display: block; text-align: center; font-size: 16px; float: left; margin: 4px; }a.retweet strong.vert { display: block; margin-bottom: 4px; background: #F5F5F5; border: 1px solid #EEE; -moz-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px; padding: 3px; }a.retweet span.vert { display: block; font-size: 12px; margin-left: 0px; }</style><script src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/shorten.htm" type="text/javascript" language="javascript"></script><script src="John%20Resig%20-%20FireUnit%20%20JavaScript%20Unit%20Testing%20Extension_files/stats.htm" type="text/javascript" language="javascript"></script></body></html>

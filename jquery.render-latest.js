@@ -81,15 +81,15 @@
 	var render = {
 		stream: "",
 		version: "0.1",
-		applyFilters: function applyFilters(content, filters) {
-			var filter,
-				filterId;
-			for (var iFilter in filters) {
-				if (filters.hasOwnProperty(iFilter)) {
-					filterId = filters[iFilter].trim();
-					filter = filterHandlers[filterId];
-					if (typeof(filter)==="function") {
-						content = filter(content);
+		applyDecorators: function applyDecorators(content, decorators) {
+			var decorator,
+				id;
+			for (var i in decorators) {
+				if (decorators.hasOwnProperty(i)) {
+					id = decorators[i].trim();
+					decorator = decoratorHandler[id];
+					if (typeof(decorator)==="function") {
+						content = decorator(content);
 					}
 				}
 			}
@@ -103,7 +103,7 @@
 
 	function compile(template, options) {
 		var parsedTemplate = parse(template, options);
-//		console.log("Template source: ", parsedTemplate);
+		console.log("Template source: \n", parsedTemplate);
 		var templateFunction = new Function(parsedTemplate);
 //		console.log("templateFunction", templateFunction, [templateFunction.toString()]);
 		return templateFunction;
@@ -124,7 +124,7 @@
 			content,
 			segments,
 			expression,
-			filters,
+			decorators,
 			compiledExpression,
 			i,
 			tagToken,
@@ -190,11 +190,11 @@
 					// todo: trigger the appropriate tag handler
 					var tagEnd = (tagTokenType === "tag") ? "/}" : "}";
 					content = match.substring(match.indexOf("{")+1, match.lastIndexOf(tagEnd));
-					segments = content.split(">>");
+					segments = content.split("&gt;&gt;");
 					expression = segments[0].substring(segments[0].indexOf(" "));
-					filters = segments.slice(1);
+					decorators = segments.slice(1);
 
-					//console.log("tagToken: ", tagTokenType, tagToken, match, content, filters);
+					console.log("tagToken: ", tagTokenType, tagToken, match, content, decorators);
 
 					if (tagTokenType === "tag") {
 						tagNodePointer.children.push(new TagNode(tagToken, expression))
@@ -215,8 +215,6 @@
 							treeStack.pop();
 							tagNodePointer = treeStack[treeStack.length-1];
 						}
-					} else {
-						throw("Unknown tag construct!");
 					}
 					lastMatchEnd = lastMatchStart + match.length;
 				}
@@ -348,7 +346,7 @@
 		}
 	};
 
-	var filterHandlers = {
+	var decoratorHandler = {
 		trim: function(content) {
 			return content.trim();
 		},

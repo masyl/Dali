@@ -101,14 +101,6 @@
 	var render = {
 		stream: "",
 		version: "0.1",
-		/*
-		write: function write(str) {
-			this.stream = this.stream + jEscape.unescape(str+"");
-		},
-		writeSafe: function writeSafe(str) {
-			this.stream = this.stream + str;
-		},
-		*/
 		applyFilters: function applyFilters(content, filters) {
 			var filter,
 				filterId;
@@ -124,16 +116,9 @@
 			return content;
 		},
 		render: function render(id, data) {
-//			console.log(templates(id), id, templates(id).render(data));
 //			console.log("output:", templates(id).render(data));
 			return templates(id).render(data);
 		}
-	};
-
-	var codeStream = [];
-
-	var code = function (code) {
-		codeStream = codeStream.concat(code);
 	};
 
 	var compile = function compile(template, options) {
@@ -150,13 +135,10 @@
 			delimitersRegexp,
 			delimiters,
 			matches,
-			stack,
 			match,
 			before,
 			lastMatchStart,
 			lastMatchEnd,
-			codeStream,
-			statementToken,
 			args,
 			endSplit,
 			content,
@@ -165,7 +147,6 @@
 			filters,
 			compiledExpression,
 			i,
-			tokenHandler,
 			tagToken,
 			tagTokenType,
 			tree, // a tree representing the tag structure to be rendered
@@ -181,8 +162,6 @@
 		console.log("MATCHES: ", matches, template);
 		matches.push(null); // Add a null value to signify the end of the matches
 		lastMatchEnd = 0;
-		stack = [];
-		codeStream = "";
 		tree = [];
 		treeStack = [];
 
@@ -203,20 +182,12 @@
 				if (!match) {
 					before = template.substring(lastMatchEnd, template.length);
 					if (before.length) {
-						codeStream =
-								codeStream +
-								tags.raw.tag(before, "");
-						// TREE
 						tagNodePointer.children.push(new TagNode("raw", before))
 					}
 				} else {
 					lastMatchStart = template.indexOf(match, lastMatchEnd);
 					before = template.substring(lastMatchEnd, lastMatchStart);
 					if (before.length) {
-						codeStream =
-								codeStream +
-								tags.raw.tag(before, "");
-						// TREE
 						tagNodePointer.children.push(new TagNode("raw", before))
 					}
 
@@ -237,58 +208,32 @@
 
 
 					// todo: trigger the appropriate tag handler
+					var tagEnd = (tagTokenType === "tag") ? "/}" : "}";
+					content = match.substring(match.indexOf("{")+1, match.lastIndexOf(tagEnd));
+					segments = content.split(">>");
+					expression = segments[0].substring(segments[0].indexOf(" "));
+					filters = segments.slice(1);
 
+					//console.log("tagToken: ", tagTokenType, tagToken, match, content, filters);
 
 					if (tagTokenType === "tag") {
-
-						content = match.substring(match.indexOf("{")+1, match.lastIndexOf("/}"));
-						segments = content.split(">>");
-						expression = segments[0].substring(segments[0].indexOf(" "));
-						filters = segments.slice(1);
-						//console.log("tagToken: ", tagTokenType, tagToken, match, content, filters);
-						compiledExpression = tags[tagToken].tag(expression, "") ||  "// tag failed to render: " + tagToken + "\n";
-						codeStream = codeStream + compiledExpression;
-						// TREE
 						tagNodePointer.children.push(new TagNode(tagToken, expression))
-
 					} else if (tagTokenType === "openTag" || tagTokenType === "closeTag") {
-
-						content = match.substring(match.indexOf("{")+1, match.lastIndexOf("}"));
-						segments = content.split(">>");
-						expression = segments[0].substring(segments[0].indexOf(" "));
-						filters = segments.slice(1);
-
-						//console.log("tagToken: ", tagTokenType, tagToken, match, content, filters);
-
 						// todo: refactor: make statementToken and tagToken the same var
-						statementToken = tagToken;
-						//console.log("args: ", expression, isEndToken, statementToken, stack);
 						if (tagTokenType === "openTag") {
 							// opening a new scope
-							// console.log("tokenHAndler: ", tags[statementToken]);
-							tokenHandler = tags[statementToken].openTag;
-							if (typeof(tokenHandler)==="function") {
-								codeStream = codeStream + tokenHandler(expression);
-								stack.push(statementToken);
-								// TREE
-								tagNode = new TagNode(statementToken, expression);
-								tagNodePointer.children.push(tagNode);
-								treeStack.push(tagNode);
-								tagNodePointer = tagNode;
-							} else {
-								throw("Statement [" + statementToken + "] cannot be parsed!");
-							}
+							if (typeof(tags[tagToken].openTag)!=="function")
+								throw("Statement [" + tagToken + "] cannot be parsed!");
+							tagNode = new TagNode(tagToken, expression);
+							tagNodePointer.children.push(tagNode);
+							treeStack.push(tagNode);
+							tagNodePointer = tagNode;
 						} else {
-							if (statementToken==stack[stack.length-1]) {
-								// closing a scope
-								codeStream = codeStream + tags[statementToken].closeTag(expression);
-								stack.pop();
-								// TREE
-								treeStack.pop();
-								tagNodePointer = treeStack[treeStack.length-1];
-							} else {
+							if (tagToken!==treeStack[treeStack.length-1].name)
 								throw("wrong end of scope!");
-							}
+							// closing a tag
+							treeStack.pop();
+							tagNodePointer = treeStack[treeStack.length-1];
 						}
 					} else {
 						throw("Unknown tag construct!");
@@ -302,7 +247,6 @@
 		var compiledTemplate = compileTree(tree[0]);
 		console.log(compiledTemplate);
 		return compiledTemplate;
-//		return codeStream;
 	};
 
 
@@ -330,7 +274,6 @@
 
 	
 	var parse = function parse(template, options) {
-		//todo: codeStream should not be a global var
 		//todo: the render object should be scope to each templates, not the whole library
 		template = jEscape.escape(template);
 		return lexer(template, options);
@@ -346,14 +289,14 @@
 			// Linefeeds
 			str = str.replace(new RegExp( "%%linefeed%%", "g" ), "\\n");
 			// html entities
-			str = str.replace("&gt;", ">").replace("&lt;", "<");
+			str = str.replace(new RegExp("&gt;", "g"), ">").replace(new RegExp("&gt;", "g"), "<");
 			return str;
 		},
 		unescape: function unescape(str) {
 			// Linefeeds
 			str = str.replace(new RegExp( "%%linefeed%%", "g" ), "\\n");
 			// html entities
-			str = str.replace("&gt;", ">").replace("&lt;", "<");
+			str = str.replace(new RegExp("&gt;", "g"), ">").replace(new RegExp("&gt;", "g"), "<");
 			return str;
 		}
 	};

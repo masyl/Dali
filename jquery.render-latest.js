@@ -111,9 +111,7 @@
 
 
 	function lexer(template, options) {
-		var delimitersSet, // Should be in options/config
-			delimitersRegexp,
-			delimiters,
+		var delimiters,
 			matches,
 			match,
 			before,
@@ -134,10 +132,7 @@
 			tagNode, // to store newly created tagNodes
 			tagNodePointer; // points to the last tagNode being processed
 
-		delimitersSet = ["{(.*?)}"];
-//		delimitersSet = ["{%(.*?) (.*?)%}", "{{(.*?)}}", "{#(.*?)#}"];
-		delimitersRegexp = delimitersSet.join("|");
-		delimiters = new RegExp(delimitersRegexp, "gm");
+		delimiters = new RegExp("{(.*?)}", "gm");
 		matches = template.match(delimiters) || [];
 		console.log("MATCHES: ", matches, template);
 		matches.push(null); // Add a null value to signify the end of the matches

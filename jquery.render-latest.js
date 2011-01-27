@@ -229,7 +229,7 @@
 			child;
 		for (var i in node.children) {
 			child = node.children[i];
-			content = (child.children.length) content = compileNode(child) : "";
+			content = (child.children.length) ? compileNode(child) : "";
 			stream = stream + tags[child.name].tag(child.argString, content);
 		}
 		return stream;

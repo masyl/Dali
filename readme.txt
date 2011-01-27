@@ -39,24 +39,36 @@ Feature set:
 
 ROADMAP
 Release 0.1:
+	- Basic Decorators with >> syntax
+	- Easily extend with new tags, new filters/decorators
 	- Support for lambda.eval expression library
-???		- Ability to register new filters /// Still necessary ?
-		SHOUL filters simply be functions added to the functions scope?
-	- Ability to register new control statements
+	- out tag for content blocks (to enable this kind of scenario {out >> uppercase}whaever...{/out}
+	- or maybe direct use of deorators ? {@uppercase}{/uppercase} {uppercase} {#uppercase}
+	- maybe templates should be rendered as objects with properties so that they can be instantiated, such as in an import feature. And this object model should be exposed in the current scope.
 
 Release 0.2:
+	- Decouple from jQuery. But keep a jQuery plugin available
 	- A "set (varName, value)" control statement to set a variable
-	- Else and ElseIf statement
-	- Tests with the "is" syntax
+	- Template inheritance using base template, placeholders/targets
+	- Partials passed as parameters
+	- escaping of brackets
+	- default behaviors for escaping html
+	- tag to define a template "on the fly" to be reused with render
+	- tag to define a tag "on the fly" to be reused with render (like jinja macros)
+	- collection of builtin filters like jinja
+	- collection of global functions like jinja
+	- ability to use decorators as functions
 
 Release 0.3:
-	- Shortcut syntax for FOR repeaters instead of data.items[item]
-	- A "each (item in items)" statement 
+	- this is always current data, bu provide a context/env object for flow manipulation and others
 	- "Loop" status object
+	- "include" with an include provider ? for {include "file.html"} ?
+	- import similar to jinja ?!?!?
 
 Release 0.4:
 	- Better "Macros/Call" or functions, similar to filters ?
 	- A "filter" statement to apply a filter to a whole bock
+	- Else and ElseIf statement
 
 Release 0.5:
 	- Create a series of templace from an array of literal objects : [{id="", source="", options=""}];

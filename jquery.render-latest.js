@@ -87,7 +87,7 @@
 			for (var i in decorators) {
 				if (decorators.hasOwnProperty(i)) {
 					id = decorators[i].trim();
-					decorator = decoratorHandler[id];
+					decorator = decorators[id];
 					if (typeof(decorator)==="function") {
 						content = decorator(content);
 					}
@@ -224,21 +224,19 @@
 
 	// compile a tagNode and all its children into a javascript function
 	function compileNode(node) {
-		var content,
+		var content = "",
 			stream = "",
-			child,
-			i;
-		for (i in node.children) {
+			child;
+		for (var i in node.children) {
 			child = node.children[i];
-			content = "";
-			if (child.children.length) content = compileNode(child);
+			content = (child.children.length) content = compileNode(child) : "";
 			stream = stream + tags[child.name].tag(child.argString, content);
 		}
 		return stream;
 	}
 
 
-	var parse = function parse(template, options) {
+	function parse(template, options) {
 		//todo: the render object should be scope to each templates, not the whole library
 		template = jEscape.escape(template);
 		return lexer(template, options);
@@ -337,7 +335,7 @@
 		}
 	};
 
-	var decoratorHandler = {
+	var decorators = {
 		trim: function(content) {
 			return content.trim();
 		},
@@ -350,67 +348,3 @@
 	};
 
 })(jQuery);
-
-/*
-
-DEVELOPEMENT NOTES
-
-	Adopt a "everything is a function) approach...
-
-	{% foreach(item, _sort(items, 'asc', 'num')) %}
-		<li>{{ pad(item.prefix, '0', 9) + "" + _escape(item.value) }}</li>
-	{% endforeach %}
-
-to be lexed/tokenized as:
-
-	statement.foreach.handler("foreach", ["item", "_sort(items, 'asc', 'num')"]);
-	statement.foreach.handler("endfor", []);
-
-COMPLEX IF STATEMENT
-
-	Template is...
-
-		{% if (item.length>0) %}
-			<li>{{ pad(item.prefix, '0', 9) + "" + escape(item.value) }}</li>
-		{% elseif (item.length==1) %}
-			<li>One</li>
-		{% else %}
-			<li>None!</li>
-		{% endif %}
-
-	... is tokenized as:
-
-		statement("if", ["item.length>0"]);
-		statement("elseif", ["item.length==1"]);
-		statement("else", []);
-		statement("endif", []);
-
-	... and rendered as :
-
-		if (item.length > 0) {
-		} else if (item.length == 1) {
-		} else {
-		}
-
-	... or what if the template was rendered as series of commands instead of actual javascript...
-		statement["if"](
-			[
-				context["item"]["length"]
-			],
-			[
-			]
-		);
-		{% if (item.length>0) %}
-			<li>{{ pad(item.prefix, '0', 9) + "" + escape(item.value) }}</li>
-		{% elseif (item.length==1) %}
-			<li>One</li>
-		{% else %}
-			<li>None!</li>
-		{% endif %}
-
-
-
-
-
-*/
-

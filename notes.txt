@@ -1,0 +1,59 @@
+
+
+
+DEVELOPEMENT NOTES
+
+	Adopt a "everything is a function) approach...
+
+	{% foreach(item, _sort(items, 'asc', 'num')) %}
+		<li>{{ pad(item.prefix, '0', 9) + "" + _escape(item.value) }}</li>
+	{% endforeach %}
+
+to be lexed/tokenized as:
+
+	statement.foreach.handler("foreach", ["item", "_sort(items, 'asc', 'num')"]);
+	statement.foreach.handler("endfor", []);
+
+COMPLEX IF STATEMENT
+
+	Template is...
+
+		{% if (item.length>0) %}
+			<li>{{ pad(item.prefix, '0', 9) + "" + escape(item.value) }}</li>
+		{% elseif (item.length==1) %}
+			<li>One</li>
+		{% else %}
+			<li>None!</li>
+		{% endif %}
+
+	... is tokenized as:
+
+		statement("if", ["item.length>0"]);
+		statement("elseif", ["item.length==1"]);
+		statement("else", []);
+		statement("endif", []);
+
+	... and rendered as :
+
+		if (item.length > 0) {
+		} else if (item.length == 1) {
+		} else {
+		}
+
+	... or what if the template was rendered as series of commands instead of actual javascript...
+		statement["if"](
+			[
+				context["item"]["length"]
+			],
+			[
+			]
+		);
+		{% if (item.length>0) %}
+			<li>{{ pad(item.prefix, '0', 9) + "" + escape(item.value) }}</li>
+		{% elseif (item.length==1) %}
+			<li>One</li>
+		{% else %}
+			<li>None!</li>
+		{% endif %}
+
+

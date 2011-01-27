@@ -3,7 +3,7 @@
 	jquery.render
 
 	Template rendering engine
-		
+
 	See readme.txt for documentation
 
 */
@@ -11,28 +11,8 @@
 	/*
 	Extend jQuery with the StoreLocator application
 	*/
-	
+
 	$.fn.extend({
-		/*
-		render: function (data, options) {
-			var output = "";
-			var environ = {
-				$: $,
-				render: render,
-				data: data,
-				env: {
-					stream: "",
-					out: function (content) { this.stream = this.stream + content }
-				}
-			}
-			this.each(function () {
-				var compiledTemplate = compile($(this).html());
-//				console.log(compiledTemplate.toString());
-				output = compiledTemplate.call(environ, options);
-			});
-			return output;
-		}
-		*/
 		templates: function (environParam, options) {
 			//todo: include environParam in environ
 			var environ = {
@@ -48,11 +28,11 @@
 	/*
 	Main constructor which creates an instance of the root method
 	*/
-	var Templates = function Templates(options) {
+	function Templates(options) {
 		/*
 		Root function which returns an already compiled template from its cache
 		*/
-		var templates = function templates(templateId) {
+		function templates(templateId) {
 			return templates.templates[templateId] || null;
 		};
 		templates.templates = {};
@@ -71,11 +51,11 @@
 			this.templates[id] = new Templates.Template(id, source, environ, options);
 		};
 		return templates;
-	};
+	}
 
 	var templates = new Templates({});
 	console.log("templates", templates);
-	// Set the root function  
+	// Set the root function
 	$.extend({
 		templates: templates
 	});
@@ -87,7 +67,7 @@
 		this.id = id;
 		this.source = source;
 		this.environ = environ;
-		this.handler = compile(source);
+		this.handler = compile(source, {});
 		this.render = function render(data, options) {
 			var environ = $.extend({}, this.environ, {options: options, data:data});
 			console.log("this.render: ", this.handler, this.id, environ, data, options);
@@ -121,7 +101,7 @@
 		}
 	};
 
-	var compile = function compile(template, options) {
+	function compile(template, options) {
 		var parsedTemplate = parse(template, options);
 //		console.log("Template source: ", parsedTemplate);
 		var templateFunction = new Function(parsedTemplate);
@@ -130,7 +110,7 @@
 	};
 
 
-	var lexer = function lexer(template, options) {
+	function lexer(template, options) {
 		var delimitersSet, // Should be in options/config
 			delimitersRegexp,
 			delimiters,
@@ -242,11 +222,7 @@
 				}
 			}
 		}
-
-		console.dir(tree);
-		var compiledTemplate = compileTree(tree[0]);
-		console.log(compiledTemplate);
-		return compiledTemplate;
+		return compileTree(tree[0]);
 	};
 
 
@@ -272,7 +248,7 @@
 		return stream;
 	}
 
-	
+
 	var parse = function parse(template, options) {
 		//todo: the render object should be scope to each templates, not the whole library
 		template = jEscape.escape(template);
@@ -340,7 +316,6 @@
 				return "});\n";
 			},
 			tag: function(args, content) {
-				console.log("====EACH====", args, content);
 				return "env.out((function (env) {\n" +
 							"$.each(" + jEscape.unescape(args) + ", function(key, value) {\n" +
 								content + "\n" +

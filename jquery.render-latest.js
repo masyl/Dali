@@ -104,10 +104,8 @@
 	function compile(template, options) {
 		var parsedTemplate = parse(template, options);
 		console.log("Template source: \n", parsedTemplate);
-		var templateFunction = new Function(parsedTemplate);
-//		console.log("templateFunction", templateFunction, [templateFunction.toString()]);
-		return templateFunction;
-	};
+		return new Function(parsedTemplate);
+	}
 
 
 	function lexer(template, options) {
@@ -123,12 +121,11 @@
 			segments,
 			expression,
 			decorators,
-			compiledExpression,
 			i,
 			tagToken,
 			tagTokenType,
 			tree, // a tree representing the tag structure to be rendered
-			treeStack,
+			treeStack, // A stack of tagNodePointers used during recursion
 			tagNode, // to store newly created tagNodes
 			tagNodePointer; // points to the last tagNode being processed
 
@@ -216,12 +213,11 @@
 			}
 		}
 		return compileTree(tree[0]);
-	};
+	}
 
 
 	function compileTree (tree) {
-		return "" +
-				"var Env=this.Env;\nvar env = new Env();\nvar render=this.render;\n var data=this.data;\n var $=this.$;\n" +
+		return "var Env=this.Env;\nvar env = new Env();\nvar render=this.render;\n var data=this.data;\n var $=this.$;\n" +
 				compileNode(tree) +
 				"return env.stream;\n";
 	}

@@ -41,16 +41,29 @@
 			var environ = $.extend({
 				$: $,
 				render: render,
-				Env: function() {
-					this.stream = "";
-					this.out = function (content) {
-						this.stream = this.stream + content
-					};
-				}
+				Env: Env
 			}, environParam);
 			this.templates[id] = new Templates.Template(id, source, environ, options);
 		};
 		return templates;
+	}
+
+	function Env() {
+		this.streamArray = [];
+		this.out = function (content) {
+			this.streamArray.push(content);
+		};
+		this.stream = function () {
+			return this.streamArray.join("");
+		};
+		this.applyDecorator = function(decoratorName, args) {
+			var decorator = decorators[decoratorName],
+				content;
+			console.log("content : ", this.streamArray[1]);
+			content = this.streamArray.pop();
+			content = decorator.apply(content+"", args);
+			this.streamArray.push(content);
+		};
 	}
 
 	var templates = new Templates({});
@@ -120,6 +133,7 @@
 			content,
 			segments,
 			expression,
+			decorator,
 			decorators,
 			i,
 			tagToken,
@@ -141,6 +155,7 @@
 			this.name = name;
 			this.argString = argString;
 			this.children = [];
+			this.decorators = [];
 		}
 
 		// Create the root TagNode
@@ -162,10 +177,7 @@
 					if (before.length) {
 						tagNodePointer.children.push(new TagNode("raw", before))
 					}
-
 					tagToken = match.split(" ")[0].substring(1);
-					// todo: check the type of tag match (openTag, closeTag, tag)
-
 					if (tagToken[0] === "/") {
 						tagTokenType = "closeTag";
 						// Remove the trailing brace
@@ -178,7 +190,6 @@
 						tagTokenType = "openTag";
 					}
 
-
 					// todo: trigger the appropriate tag handler
 					var tagEnd = (tagTokenType === "tag") ? "/}" : "}";
 					content = match.substring(match.indexOf("{")+1, match.lastIndexOf(tagEnd));
@@ -186,16 +197,17 @@
 					expression = segments[0].substring(segments[0].indexOf(" "));
 					decorators = segments.slice(1);
 
-					console.log("tagToken: ", tagTokenType, tagToken, match, content, decorators);
+					console.log("tagToken: ", tagTokenType, tagToken, match, decorators);
+					console.log("content: ", content);
 
+					// opening a new scope
+					if (typeof(tags[tagToken].tag)!=="function")
+						throw("Statement [" + tagToken + "] cannot be parsed!");
 					if (tagTokenType === "tag") {
 						tagNodePointer.children.push(new TagNode(tagToken, expression))
 					} else if (tagTokenType === "openTag" || tagTokenType === "closeTag") {
 						// todo: refactor: make statementToken and tagToken the same var
 						if (tagTokenType === "openTag") {
-							// opening a new scope
-							if (typeof(tags[tagToken].openTag)!=="function")
-								throw("Statement [" + tagToken + "] cannot be parsed!");
 							tagNode = new TagNode(tagToken, expression);
 							tagNodePointer.children.push(tagNode);
 							treeStack.push(tagNode);
@@ -208,6 +220,25 @@
 							tagNodePointer = treeStack[treeStack.length-1];
 						}
 					}
+					var decoratorName,
+						decoratorArguments;
+					for (i in decorators) {
+						decorator = decorators[i].trim();
+						if (decorator.indexOf("(") > -1) {
+							decoratorName = decorator.substring(0, decorator.indexOf("("));
+							decoratorArguments = decorator.substring(decorator.indexOf("("));
+							decoratorArguments = "[" + decoratorArguments.substring(1, decoratorArguments.lastIndexOf(")")) + "]";
+						} else {
+							// todo: setup a better and stricter parsing
+							decoratorName = decorator;
+							decoratorArguments = "[]";
+						}
+						tagNodePointer.decorators.push(new TagNode(decoratorName, decoratorArguments));
+
+						console.log("decorator: ", decorator);
+						console.log("decoratorName: ", decoratorName);
+						console.log("decoratorArguments: ", decoratorArguments);
+					}
 					lastMatchEnd = lastMatchStart + match.length;
 				}
 			}
@@ -219,7 +250,7 @@
 	function compileTree (tree) {
 		return "var Env=this.Env;\nvar env = new Env();\nvar render=this.render;\n var data=this.data;\n var $=this.$;\n" +
 				compileNode(tree) +
-				"return env.stream;\n";
+				"return env.stream();\n";
 	}
 
 	// compile a tagNode and all its children into a javascript function
@@ -231,6 +262,10 @@
 			child = node.children[i];
 			content = (child.children.length) ? compileNode(child) : "";
 			stream = stream + tags[child.name].tag(child.argString, content);
+		}
+		for (var i in node.decorators) {
+			child = node.decorators[i];
+			stream = stream + "env.applyDecorator('" + child.name + "', " + child.argString + ");\n";
 		}
 		return stream;
 	}
@@ -270,24 +305,12 @@
 			}
 		},
 		"if" : {
-			openTag: function(args) {
-				return "if (" + jEscape.unescape(args) + ") {\n";
-			},
-			closeTag: function() {
-				return "};\n";
-			},
 			tag: function(args, content) {
 				return "if (" + jEscape.unescape(args) + ") {\n" +
 					content + "};\n";
 			}
 		},
 		"#" : {
-			openTag: function(args) {
-				return "/* ";
-			},
-			closeTag: function() {
-				return " */\n";
-			},
 			tag: function(args, content) {
 				var stream = "";
 				stream = "/* " + jEscape.unescapeWithLinefeeds(args) + " */\n";
@@ -296,18 +319,12 @@
 			}
 		},
 		"each" : {
-			openTag: function(args) {
-				return "$.each(" + jEscape.unescape(args) + ", function() {\n";
-			},
-			closeTag: function() {
-				return "});\n";
-			},
 			tag: function(args, content) {
 				return "env.out((function (env) {\n" +
 							"$.each(" + jEscape.unescape(args) + ", function(key, value) {\n" +
 								content + "\n" +
 							"});\n" +
-							"return env.stream;\n" +
+							"return env.stream();\n" +
 						"}).call(this, new Env()));\n";
 			}
 		},
@@ -318,7 +335,7 @@
 				return "env.out((function(env) {\n" +
 							argStr +
 							contentStr +
-							"return env.stream;\n" +
+							"return env.stream();\n" +
 						"}).call(this, new Env()));\n";
 			}
 		},
@@ -336,14 +353,14 @@
 	};
 
 	var decorators = {
-		trim: function(content) {
-			return content.trim();
+		trim: function(args) {
+			return (this+"").trim();
 		},
-		uppercase: function(content) {
-			return content.toUpperCase();
+		uppercase: function(args) {
+			return (this+"").toUpperCase();
 		},
-		lowercase: function(content) {
-			return content.toLowerCase();
+		lowercase: function(args) {
+			return (this+"").toLowerCase();
 		}
 	};
 

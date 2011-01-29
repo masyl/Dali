@@ -90,8 +90,12 @@ with(QUnit) {
 		$("<div id='test'><div>{out data.okWithWhitespaces >> trim /}</div></div>").templates();
 		equals($.templates("test").render(sampleData), "<div>All Ok!</div>", "trim filter");
 
-		$("<div id='test'><div>{if data.alwaysTrue >> uppercase /}True{/if}{if data.alwaysFalse}False{/if}</div></div>").templates();
+		$("<div id='test'><div>{if data.alwaysTrue >> uppercase}True{/if}{if data.alwaysFalse}False{/if}</div></div>").templates();
 		equals($.templates("test").render(sampleData), "<div>TRUE</div>", "uppercase filter inside if statement");
+
+		$("<div id='test'><div>{if data.alwaysTrue >> uppercase}True {out}is{/out} True{/if}</div></div>").templates();
+		equals($.templates("test").render(sampleData), "<div>TRUE IS TRUE</div>", "uppercase filter inside if statement");
+
 	});
 
 //	module("jquery.render - complex template");

@@ -1,18 +1,18 @@
 /*
 
-	jquery.render
-
-	Template rendering engine
+	Dali - Javascript Templating Engine
 
 	See readme.txt for documentation
 
 */
-(function(scope){
+(function(){
 
 	/*
 	Main constructor which creates an instance of the root method
 	*/
-	scope.Dali = Dali;
+
+	this.Dali = Dali;
+
 	function Dali(options) {
 
 		/*
@@ -30,14 +30,14 @@
 		dali.Template = function Template(id, source, environ, options) {
 
 			this.compile = function() {
-				console.log("Template source: \n", source);
+				//console.log("Template source: \n", source);
 				var source = lexer(escape(this.source));
 				return new Function(source);
-			}
+			};
 
 			this.render = function render(data, options) {
 				var environ = {};
-				extend(environ, this.environ)
+				extend(environ, this.environ);
 				extend(environ, {
 					options: options, // todo: see if deep extend is needed here
 					data: data
@@ -68,7 +68,6 @@
 	}
 
 	function Env(dali) {
-		this.stream = "";
 		this.version = "0.1";
 		this.render = function (id, data) {
 			return dali(id).render(data);
@@ -116,8 +115,8 @@
 			decorator,
 			decorators,
 			i,
-			tagToken,
-			tagTokenType,
+			tagName,
+			tagType,
 			tree, // a tree representing the tag structure to be rendered
 			treeStack, // A stack of tagNodePointers used during recursion
 			tagNode, // to store newly created tagNodes
@@ -131,12 +130,6 @@
 		tree = [];
 		treeStack = [];
 
-		function TagNode(name, argString) {
-			this.name = name;
-			this.argString = argString;
-			this.children = [];
-			this.decorators = [];
-		}
 
 		// Create the root TagNode
 		tagNode = tagNodePointer = new TagNode("out", "");
@@ -146,6 +139,7 @@
 		for (i in matches) {
 			if (matches.hasOwnProperty(i)) {
 				match = matches[i];
+				console.log(match);
 				if (!match) {
 					before = template.substring(lastMatchEnd, template.length);
 					if (before.length) {
@@ -157,22 +151,22 @@
 					if (before.length) {
 						tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'"));
 					}
-					tagToken = match.split(" ")[0].substring(1);
-					if (tagToken[0] === "/") {
-						tagTokenType = "closeTag";
+					tagName = match.split(" ")[0].substring(1);
+					if (tagName[0] === "/") {
+						tagType = "closeTag";
 						// Remove the trailing brace
-						tagToken = tagToken.split("}")[0];
-						tagToken = tagToken.substring(1);
+						tagName = tagName.split("}")[0];
+						tagName = tagName.substring(1);
 					} else if (match.substring(match.length -2) === "/}") {
-						tagTokenType = "tag";
-						tagToken = tagToken.split("/}")[0];
+						tagType = "tag";
+						tagName = tagName.split("/}")[0];
 					} else {
-						tagToken = tagToken.split("}")[0];
-						tagTokenType = "openTag";
+						tagName = tagName.split("}")[0];
+						tagType = "openTag";
 					}
 
 					// todo: trigger the appropriate tag handler
-					var tagEnd = (tagTokenType === "tag") ? "/}" : "}";
+					var tagEnd = (tagType === "tag") ? "/}" : "}";
 					content = match.substring(match.indexOf("{")+1, match.lastIndexOf(tagEnd));
 					segments = content.split("&gt;&gt;");
 					if (segments[0].indexOf(" ") > -1) {
@@ -186,47 +180,46 @@
 					//console.log("content: ", content);
 
 					// opening a new scope
-					if (typeof(tags[tagToken])!=="function")
-						throw("Statement [" + tagToken + "] cannot be parsed!");
-					if (tagTokenType === "tag") {
-						tagNode = new TagNode(tagToken, argSring);
+					if (typeof(tags[tagName])!=="function")
+						throw("Statement [" + tagName + "] cannot be parsed!");
+					if (tagType === "tag") {
+						tagNode = new TagNode(tagName, argSring);
 						tagNodePointer.children.push(tagNode);
-					} else if (tagTokenType === "openTag" || tagTokenType === "closeTag") {
+					} else if (tagType === "openTag" || tagType === "closeTag") {
 						// todo: refactor: make statementToken and tagToken the same var
-						if (tagTokenType === "openTag") {
-							tagNode = new TagNode(tagToken, argSring);
+						if (tagType === "openTag") {
+							tagNode = new TagNode(tagName, argSring);
 							tagNodePointer.children.push(tagNode);
 							treeStack.push(tagNode);
 							tagNodePointer = tagNode;
 						} else {
-							if (tagToken!==treeStack[treeStack.length-1].name)
+							if (tagName!==treeStack[treeStack.length-1].name)
 								throw("wrong end of scope!");
 							treeStack.pop();
 							tagNodePointer = treeStack[treeStack.length-1];
 						}
 					}
 
-					
-					var targetNode,
-						decoratorName,
-						decoratorArguments;
+					// Process chained decorators
+					var targetNode;
 					for (i in decorators) {
 						decorator = decorators[i].trim();
 						if (decorator.indexOf("(") > -1) {
-							decoratorName = decorator.substring(0, decorator.indexOf("("));
-							decoratorArguments = decorator.substring(decorator.indexOf("("));
-							decoratorArguments = "[" + decoratorArguments.substring(1, decoratorArguments.lastIndexOf(")")) + "]";
+							tagName = decorator.substring(0, decorator.indexOf("("));
+							args = decorator.substring(decorator.indexOf("("));
+							args = "[" + args.substring(1, args.lastIndexOf(")")) + "]";
 						} else {
 							// todo: setup a better and stricter parsing
-							decoratorName = decorator;
-							decoratorArguments = "[]";
+							tagName = decorator;
+							args = "[]";
 						}
-						tagNode.decorators.push(new TagNode(decoratorName, decoratorArguments));
+						tagNode.decorators.push(new TagNode(tagName, args));
 
 						//console.log("decorator: ", decorator);
 						//console.log("decoratorName: ", decoratorName);
 						//console.log("decoratorArguments: ", decoratorArguments);
 					}
+					// move the cursor forward
 					lastMatchEnd = lastMatchStart + match.length;
 				}
 			}
@@ -239,10 +232,17 @@
 				"return env.stream();\n";
 	}
 
+	function TagNode(name, argString) {
+		this.name = name;
+		this.argString = argString;
+		this.children = [];
+		this.decorators = [];
+	}
+
 	// compile a tagNode and all its children into a javascript function
 	function compileNode(node) {
 		var i,
-			stream = "",
+			stream = [],
 			content,
 			tagName,
 			child,
@@ -251,18 +251,18 @@
 		// Apply tags
 		for (i in node.children) {
 			child = node.children[i];
-			content = (child.children.length || child.decorators) ? compileNode(child) : "";
-			args = unescape(child.argString).trim();
 			tagName = child.name;
+			content = (child.children.length || child.decorators.length) ? compileNode(child) : "";
+			args = unescape(child.argString).trim();
 			blockHandler = (content) ? "function (env, args) {\n" + content + "}" : null;
-			stream = stream + "env.applyTag('" + tagName + "', [" + args + "], this, " + blockHandler + ");\n";
+			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + blockHandler + ");\n");
 		}
 		// Apply decorator functions
 		for (i in node.decorators) {
 			child = node.decorators[i];
-			stream = stream + "env.applyDecorator('" + child.name + "', " + child.argString + ");\n";
+			stream.push("env.applyDecorator('" + child.name + "', " + child.argString + ");\n");
 		}
-		return stream;
+		return stream.join("");
 	}
 
 	var tags = {
@@ -346,4 +346,4 @@
 		return str;
 	}
 
-})(this);
+})();

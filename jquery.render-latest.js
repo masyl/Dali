@@ -142,7 +142,7 @@
 			endSplit,
 			content,
 			segments,
-			expression,
+			argSring,
 			decorator,
 			decorators,
 			i,
@@ -197,6 +197,7 @@
 						tagTokenType = "tag";
 						tagToken = tagToken.split("/}")[0];
 					} else {
+						tagToken = tagToken.split("}")[0];
 						tagTokenType = "openTag";
 					}
 
@@ -204,7 +205,11 @@
 					var tagEnd = (tagTokenType === "tag") ? "/}" : "}";
 					content = match.substring(match.indexOf("{")+1, match.lastIndexOf(tagEnd));
 					segments = content.split("&gt;&gt;");
-					expression = segments[0].substring(segments[0].indexOf(" "));
+					if (segments[0].indexOf(" ") > -1) {
+						argSring = segments[0].substring(segments[0].indexOf(" "));
+					} else {
+						argSring = ""
+					}
 					decorators = segments.slice(1);
 
 					console.log("tagToken: ", tagTokenType, tagToken, match, decorators);
@@ -214,12 +219,12 @@
 					if (typeof(tags[tagToken].handler)!=="function")
 						throw("Statement [" + tagToken + "] cannot be parsed!");
 					if (tagTokenType === "tag") {
-						tagNode = new TagNode(tagToken, expression);
+						tagNode = new TagNode(tagToken, argSring);
 						tagNodePointer.children.push(tagNode);
 					} else if (tagTokenType === "openTag" || tagTokenType === "closeTag") {
 						// todo: refactor: make statementToken and tagToken the same var
 						if (tagTokenType === "openTag") {
-							tagNode = new TagNode(tagToken, expression);
+							tagNode = new TagNode(tagToken, argSring);
 							tagNodePointer.children.push(tagNode);
 							treeStack.push(tagNode);
 							tagNodePointer = tagNode;

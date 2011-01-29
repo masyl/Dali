@@ -7,122 +7,92 @@
 	See readme.txt for documentation
 
 */
-(function($){
-
-	/*
-	Extend jQuery with the StoreLocator application
-	*/
-	$.fn.extend({
-		templates: function (environParam, options) {
-			//todo: include environParam in environ
-			var environ = {
-				$: $,
-				render: render
-			};
-			return this.each(function () {
-				$.templates.add(this.id, $(this).html());
-			});
-		}
-	});
+(function(scope){
 
 	/*
 	Main constructor which creates an instance of the root method
 	*/
-	function Templates(options) {
+	scope.Dali = Dali;
+	function Dali(options) {
+
 		/*
 		Root function which returns an already compiled template from its cache
 		*/
-		function templates(templateId) {
-			return templates.templates[templateId] || null;
+		function dali(templateId) {
+			return dali.templates[templateId] || null;
+		}
+
+		dali.templates = {};
+
+		/*
+		Constructor for individual templates
+		*/
+		dali.Template = function Template(id, source, environ, options) {
+			this.id = id;
+			this.source = source;
+			this.environ = environ;
+			this.handler = compile(source, {});
+			this.render = function render(data, options) {
+				var environ = {};
+				extend(environ, this.environ)
+				extend(environ, {
+					options: options, // todo: see if deep extend is needed here
+					data: data
+				});
+				//console.log("this.render: ", this.handler, this.id, environ, data, options);
+				var output=this.handler.call(environ);
+				//console.log("output2", output);
+				return output;
+			};
 		};
-		templates.templates = {};
-		templates.add = function add(id, source, environParam, optionsParam) {
-			var options = $.extend({}, optionsParam);
-			var environ = $.extend({
-				$: $,
-				render: render,
-				Env: Env
-			}, environParam);
-			this.templates[id] = new Templates.Template(id, source, environ, options);
+
+		dali.add = function add(id, source, environParam, optionsParam) {
+			var options = {},
+				environ = {
+					Env: Env,
+					dali: dali
+				};
+			extend(options, optionsParam);
+			extend(environ, environParam);
+			dali.templates[id] = new dali.Template(id, source, environ, options);
 		};
-		return templates;
+		return dali;
 	}
 
-	function Env() {
-		this.streamArray = [];
+	function Env(dali) {
+		this.stream = "";
+		this.version = "0.1";
+		this.render = function (id, data) {
+			return dali(id).render(data);
+		};
+		this._stream = [];
 		this.out = function (content) {
-			this.streamArray.push(content);
+			this._stream.push(content);
 		};
 		this.stream = function () {
-			return this.streamArray.join("");
+			return this._stream.join("");
 		};
 		this.applyTag = function (tagName, args, data, blockHandler) {
 			var content,
-				newEnv = new Env(),
+				newEnv = new Env(dali),
 				tag = tags[tagName];
-			content = tag.handler.apply(data, [args, newEnv, blockHandler]);
+			content = tag.apply(data, [args, newEnv, blockHandler]);
 			this.out(content);
 		};
 		this.applyDecorator = function(decoratorName, args) {
 			var str,
 				decorator = decorators[decoratorName],
-				oldArray = this.streamArray,
+				oldArray = this._stream,
 				newArray = [];
 			for (var i in oldArray) {
 				str = decorator.apply(oldArray[i] + "", args);
 				newArray.push(str);
 			}
-			this.streamArray = newArray;
+			this._stream = newArray;
 		};
 	}
 
-	var templates = new Templates({});
-	console.log("templates", templates);
-	// Set the root function
-	$.extend({
-		templates: templates
-	});
 
-	/*
-	Constructor for individual templates
-	*/
-	Templates.Template = function Template(id, source, environ, options) {
-		this.id = id;
-		this.source = source;
-		this.environ = environ;
-		this.handler = compile(source, {});
-		this.render = function render(data, options) {
-			var environ = $.extend({}, this.environ, {options: options, data:data});
-			console.log("this.render: ", this.handler, this.id, environ, data, options);
-			var output=this.handler.call(environ);
-			console.log("output2", output);
-			return output;
-		};
-	};
-
-
-	var render = {
-		stream: "",
-		version: "0.1",
-		applyDecorators: function (content, decorators) {
-			var decorator,
-				id;
-			for (var i in decorators) {
-				if (decorators.hasOwnProperty(i)) {
-					id = decorators[i].trim();
-					decorator = decorators[id];
-					if (typeof(decorator)==="function") {
-						content = decorator(content);
-					}
-				}
-			}
-			return content;
-		},
-		render: function (id, data) {
-//			console.log("output:", templates(id).render(data));
-			return templates(id).render(data);
-		}
-	};
 
 	function compile(template, options) {
 		var parsedTemplate = parse(template, options);
@@ -153,9 +123,9 @@
 			tagNode, // to store newly created tagNodes
 			tagNodePointer; // points to the last tagNode being processed
 
-		delimiters = new RegExp("{(.*?)}", "gm");
+		delimiters = /{(.*?)}/gm;
 		matches = template.match(delimiters) || [];
-		console.log("MATCHES: ", matches, template);
+		//console.log("MATCHES: ", matches, template);
 		matches.push(null); // Add a null value to signify the end of the matches
 		lastMatchEnd = 0;
 		tree = [];
@@ -179,13 +149,13 @@
 				if (!match) {
 					before = template.substring(lastMatchEnd, template.length);
 					if (before.length) {
-						tagNodePointer.children.push(new TagNode("raw", "'" + before + "'"));
+						tagNodePointer.children.push(new TagNode("raw", "'" + jEscape.escape(before) + "'"));
 					}
 				} else {
 					lastMatchStart = template.indexOf(match, lastMatchEnd);
 					before = template.substring(lastMatchEnd, lastMatchStart);
 					if (before.length) {
-						tagNodePointer.children.push(new TagNode("raw", "'" + before + "'"));
+						tagNodePointer.children.push(new TagNode("raw", "'" + jEscape.escape(before) + "'"));
 					}
 					tagToken = match.split(" ")[0].substring(1);
 					if (tagToken[0] === "/") {
@@ -212,11 +182,11 @@
 					}
 					decorators = segments.slice(1);
 
-					console.log("tagToken: ", tagTokenType, tagToken, match, decorators);
-					console.log("content: ", content);
+					//console.log("tagToken: ", tagTokenType, tagToken, match, decorators);
+					//console.log("content: ", content);
 
 					// opening a new scope
-					if (typeof(tags[tagToken].handler)!=="function")
+					if (typeof(tags[tagToken])!=="function")
 						throw("Statement [" + tagToken + "] cannot be parsed!");
 					if (tagTokenType === "tag") {
 						tagNode = new TagNode(tagToken, argSring);
@@ -253,21 +223,24 @@
 						}
 						tagNode.decorators.push(new TagNode(decoratorName, decoratorArguments));
 
-						console.log("decorator: ", decorator);
-						console.log("decoratorName: ", decoratorName);
-						console.log("decoratorArguments: ", decoratorArguments);
+						//console.log("decorator: ", decorator);
+						//console.log("decoratorName: ", decoratorName);
+						//console.log("decoratorArguments: ", decoratorArguments);
 					}
 					lastMatchEnd = lastMatchStart + match.length;
 				}
 			}
 		}
-		console.dir(tree);
+		//console.dir(tree);
 		return compileTree(tree[0]);
 	}
 
-
 	function compileTree (tree) {
-		return "var Env=this.Env;\nvar env = new Env();\nvar render=this.render;\n var data=this.data;\n var $=this.$;\n" +
+		// todo: clean-up and simplify env & var
+		// todo: use a function with params, instead of var declarations
+		return "var Env=this.Env;\n" +
+				"var env = new Env(this.dali);\n" +
+				"var data = this.data;\n" +
 				compileNode(tree) +
 				"return env.stream();\n";
 	}
@@ -306,77 +279,63 @@
 	var jEscape = {
 		escape: function escape(str) {
 			// Linefeeds
-			str = str.replace(new RegExp( "\\n", "g" ), "%%linefeed%%");
+			str = str.replace(/\n/g, "%lf%");
 			return str;
 		},
 		unescapeWithLinefeeds: function unescape(str) {
 			// Linefeeds
-			str = str.replace(new RegExp( "%%linefeed%%", "g" ), "\\n");
+			str = str.replace(/%lf%/g, "\\n");
 			// html entities
-			str = str.replace(new RegExp("&gt;", "g"), ">").replace(new RegExp("&gt;", "g"), "<");
+			str = str.replace(/%gt%/g, ">").replace(/&lt;/g, "<");
 			return str;
 		},
 		unescape: function unescape(str) {
 			// Linefeeds
-			str = str.replace(new RegExp( "%%linefeed%%", "g" ), "\\n");
+			str = str.replace(/%lf%/g, "\\n");
 			// html entities
-			str = str.replace(new RegExp("&gt;", "g"), ">").replace(new RegExp("&gt;", "g"), "<");
+			str = str.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
 			return str;
 		}
 	};
 	var tags = {
-		"raw" : {
-			handler: function(args, env, blockHandler) {
-				return args.join("");
-			}
+		"raw" : function(args, env, blockHandler) {
+			return args.join("");
 		},
-		"if" : {
-			handler: function(args, env, blockHandler) {
-				if (args[0]) {
-					blockHandler.apply(this, [env, args]);
+		"if" : function(args, env, blockHandler) {
+			if (args[0]) {
+				blockHandler.apply(this, [env, args]);
+			}
+			return env.stream();
+		},
+		"#" : function(args, env, blockHandler) {
+			return "";
+		},
+		"each" : function(args, env, blockHandler) {
+			var i, item, items;
+			items = args[0];
+			if (typeof(blockHandler) === "function") {
+				for (i in items) {
+					item = items[i];
+					blockHandler.apply(item, [env, args]);
 				}
-				return env.stream();
 			}
+			return env.stream();
 		},
-		"#" : {
-			handler: function(args, env, blockHandler) {
-				return "";
+		"out" : function(args, env, blockHandler) {
+			env.out(args.join(""));
+			if (blockHandler) {
+				blockHandler.apply(this, [env, args]);
 			}
+			return env.stream();
 		},
-		"each" : {
-			handler: function(args, env, blockHandler) {
-				var i, item, items;
-				items = args[0];
-				if (typeof(blockHandler) === "function") {
-					for (i in items) {
-						item = items[i];
-						blockHandler.apply(item, [env, args]);
-					}
-				}
-				return env.stream();
-			}
+		"var" : function(args, env, blockHandler) {
+			//return "var " + jEscape.unescape(args) +  ";\n";
+			// todo: NOT WORKING YE
 		},
-		"out" : {
-			handler: function(args, env, blockHandler) {
-				env.out(args.join(""));
-				if (blockHandler) {
-					blockHandler.apply(this, [env, args]);
-				}
-				return env.stream();
-			}
-		},
-		"var" : {
-			// todo: NOT WORKING YET
-			handler: function(args, env, blockHandler) {
-				//return "var " + jEscape.unescape(args) +  ";\n";
-			}
-		},
-		"render" : {
-			handler: function(args, env, blockHandler) {
-				env.out(render.render(args[0], args[1]));
-				return env.stream();
-				// todo: handle template source from tag content
-			}
+		"render" : function(args, env, blockHandler) {
+			env.out(env.render(args[0], args[1]));
+			return env.stream();
+			// todo: handle template source from tag content
 		}
 	};
 
@@ -392,4 +351,18 @@
 		}
 	};
 
-})(jQuery);
+	// Create Global "extend" method
+	function extend(obj, extObj) {
+		if (arguments.length > 2) {
+			for (var a = 1; a < arguments.length; a++) {
+				extend(obj, arguments[a]);
+			}
+		} else {
+			for (var i in extObj) {
+				obj[i] = extObj[i];
+			}
+		}
+		return obj;
+	};
+
+})(this);

@@ -8,10 +8,10 @@
 
 */
 (function($){
+
 	/*
 	Extend jQuery with the StoreLocator application
 	*/
-
 	$.fn.extend({
 		templates: function (environParam, options) {
 			//todo: include environParam in environ
@@ -56,13 +56,23 @@
 		this.stream = function () {
 			return this.streamArray.join("");
 		};
+		this.applyTag = function (tagName, args, data, blockHandler) {
+			var content,
+				newEnv = new Env(),
+				tag = tags[tagName];
+			content = tag.handler.apply(data, [args, newEnv, blockHandler]);
+			this.out(content);
+		};
 		this.applyDecorator = function(decoratorName, args) {
-			var decorator = decorators[decoratorName],
-				content;
-			console.log("content : ", this.streamArray[1]);
-			content = this.streamArray.pop();
-			content = decorator.apply(content+"", args);
-			this.streamArray.push(content);
+			var str,
+				decorator = decorators[decoratorName],
+				oldArray = this.streamArray,
+				newArray = [];
+			for (var i in oldArray) {
+				str = decorator.apply(oldArray[i] + "", args);
+				newArray.push(str);
+			}
+			this.streamArray = newArray;
 		};
 	}
 
@@ -94,7 +104,7 @@
 	var render = {
 		stream: "",
 		version: "0.1",
-		applyDecorators: function applyDecorators(content, decorators) {
+		applyDecorators: function (content, decorators) {
 			var decorator,
 				id;
 			for (var i in decorators) {
@@ -108,7 +118,7 @@
 			}
 			return content;
 		},
-		render: function render(id, data) {
+		render: function (id, data) {
 //			console.log("output:", templates(id).render(data));
 			return templates(id).render(data);
 		}
@@ -169,13 +179,13 @@
 				if (!match) {
 					before = template.substring(lastMatchEnd, template.length);
 					if (before.length) {
-						tagNodePointer.children.push(new TagNode("raw", before))
+						tagNodePointer.children.push(new TagNode("raw", "'" + before + "'"));
 					}
 				} else {
 					lastMatchStart = template.indexOf(match, lastMatchEnd);
 					before = template.substring(lastMatchEnd, lastMatchStart);
 					if (before.length) {
-						tagNodePointer.children.push(new TagNode("raw", before))
+						tagNodePointer.children.push(new TagNode("raw", "'" + before + "'"));
 					}
 					tagToken = match.split(" ")[0].substring(1);
 					if (tagToken[0] === "/") {
@@ -201,10 +211,11 @@
 					console.log("content: ", content);
 
 					// opening a new scope
-					if (typeof(tags[tagToken].tag)!=="function")
+					if (typeof(tags[tagToken].handler)!=="function")
 						throw("Statement [" + tagToken + "] cannot be parsed!");
 					if (tagTokenType === "tag") {
-						tagNodePointer.children.push(new TagNode(tagToken, expression))
+						tagNode = new TagNode(tagToken, expression);
+						tagNodePointer.children.push(tagNode);
 					} else if (tagTokenType === "openTag" || tagTokenType === "closeTag") {
 						// todo: refactor: make statementToken and tagToken the same var
 						if (tagTokenType === "openTag") {
@@ -215,12 +226,14 @@
 						} else {
 							if (tagToken!==treeStack[treeStack.length-1].name)
 								throw("wrong end of scope!");
-							// closing a tag
 							treeStack.pop();
 							tagNodePointer = treeStack[treeStack.length-1];
 						}
 					}
-					var decoratorName,
+
+					
+					var targetNode,
+						decoratorName,
 						decoratorArguments;
 					for (i in decorators) {
 						decorator = decorators[i].trim();
@@ -233,7 +246,7 @@
 							decoratorName = decorator;
 							decoratorArguments = "[]";
 						}
-						tagNodePointer.decorators.push(new TagNode(decoratorName, decoratorArguments));
+						tagNode.decorators.push(new TagNode(decoratorName, decoratorArguments));
 
 						console.log("decorator: ", decorator);
 						console.log("decoratorName: ", decoratorName);
@@ -243,6 +256,7 @@
 				}
 			}
 		}
+		console.dir(tree);
 		return compileTree(tree[0]);
 	}
 
@@ -255,15 +269,22 @@
 
 	// compile a tagNode and all its children into a javascript function
 	function compileNode(node) {
-		var content = "",
+		var i,
 			stream = "",
-			child;
-		for (var i in node.children) {
+			content,
+			tagName,
+			child,
+			args,
+			blockHandler;
+		for (i in node.children) {
 			child = node.children[i];
-			content = (child.children.length) ? compileNode(child) : "";
-			stream = stream + tags[child.name].tag(child.argString, content);
+			content = (child.children.length || child.decorators) ? compileNode(child) : "";
+			args = jEscape.unescape(child.argString).trim();
+			tagName = child.name;
+			blockHandler = (content) ? "function (env, args) {\n" + content + "}" : null;
+			stream = stream + "env.applyTag('" + tagName + "', [" + args + "], this, " + blockHandler + ");\n";
 		}
-		for (var i in node.decorators) {
+		for (i in node.decorators) {
 			child = node.decorators[i];
 			stream = stream + "env.applyDecorator('" + child.name + "', " + child.argString + ");\n";
 		}
@@ -275,7 +296,7 @@
 		//todo: the render object should be scope to each templates, not the whole library
 		template = jEscape.escape(template);
 		return lexer(template, options);
-	};
+	}
 
 	var jEscape = {
 		escape: function escape(str) {
@@ -300,53 +321,55 @@
 	};
 	var tags = {
 		"raw" : {
-			tag: function(args) {
-				return "env.out('" + jEscape.unescape(args) + "');\n";
+			handler: function(args, env, blockHandler) {
+				return args.join("");
 			}
 		},
 		"if" : {
-			tag: function(args, content) {
-				return "if (" + jEscape.unescape(args) + ") {\n" +
-					content + "};\n";
+			handler: function(args, env, blockHandler) {
+				if (args[0]) {
+					blockHandler.apply(this, [env, args]);
+				}
+				return env.stream();
 			}
 		},
 		"#" : {
-			tag: function(args, content) {
-				var stream = "";
-				stream = "/* " + jEscape.unescapeWithLinefeeds(args) + " */\n";
-				if (content) stream = stream + "/* " + jEscape.unescapeWithLinefeeds(content) + " */\n";
-				return stream;
+			handler: function(args, env, blockHandler) {
+				return "";
 			}
 		},
 		"each" : {
-			tag: function(args, content) {
-				return "env.out((function (env) {\n" +
-							"$.each(" + jEscape.unescape(args) + ", function(key, value) {\n" +
-								content + "\n" +
-							"});\n" +
-							"return env.stream();\n" +
-						"}).call(this, new Env()));\n";
+			handler: function(args, env, blockHandler) {
+				var i, item, items;
+				items = args[0];
+				if (typeof(blockHandler) === "function") {
+					for (i in items) {
+						item = items[i];
+						blockHandler.apply(item, [env, args]);
+					}
+				}
+				return env.stream();
 			}
 		},
 		"out" : {
-			tag: function(args, content) {
-				var argStr = (args) ? "env.out(" + jEscape.unescape(args) + ");\n" : "";
-				var contentStr = (content) ? jEscape.unescape(content) : "";
-				return "env.out((function(env) {\n" +
-							argStr +
-							contentStr +
-							"return env.stream();\n" +
-						"}).call(this, new Env()));\n";
+			handler: function(args, env, blockHandler) {
+				env.out(args.join(""));
+				if (blockHandler) {
+					blockHandler.apply(this, [env, args]);
+				}
+				return env.stream();
 			}
 		},
 		"var" : {
-			tag: function(args, content) {
-				return "var " + jEscape.unescape(args) +  ";\n";
+			// todo: NOT WORKING YET
+			handler: function(args, env, blockHandler) {
+				//return "var " + jEscape.unescape(args) +  ";\n";
 			}
 		},
 		"render" : {
-			tag: function(args, content) {
-				return "env.out(render.render(" + args + "));\n";
+			handler: function(args, env, blockHandler) {
+				env.out(render.render(args[0], args[1]));
+				return env.stream();
 				// todo: handle template source from tag content
 			}
 		}

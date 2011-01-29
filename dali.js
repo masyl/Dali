@@ -28,10 +28,13 @@
 		Constructor for individual templates
 		*/
 		dali.Template = function Template(id, source, environ, options) {
-			this.id = id;
-			this.source = source;
-			this.environ = environ;
-			this.handler = compile(source, {});
+
+			this.compile = function() {
+				console.log("Template source: \n", source);
+				var source = lexer(escape(this.source));
+				return new Function(source);
+			}
+
 			this.render = function render(data, options) {
 				var environ = {};
 				extend(environ, this.environ)
@@ -44,6 +47,11 @@
 				//console.log("output2", output);
 				return output;
 			};
+
+			this.id = id;
+			this.source = source;
+			this.environ = environ;
+			this.handler = this.compile();
 		};
 
 		dali.add = function add(id, source, environParam, optionsParam) {
@@ -92,16 +100,8 @@
 		};
 	}
 
-
-
-	function compile(template, options) {
-		var parsedTemplate = parse(template, options);
-		console.log("Template source: \n", parsedTemplate);
-		return new Function(parsedTemplate);
-	}
-
-
-	function lexer(template, options) {
+	// todo: Refactor: Cut the lexer in smaller functions
+	function lexer(template) {
 		var delimiters,
 			matches,
 			match,
@@ -149,13 +149,13 @@
 				if (!match) {
 					before = template.substring(lastMatchEnd, template.length);
 					if (before.length) {
-						tagNodePointer.children.push(new TagNode("raw", "'" + jEscape.escape(before) + "'"));
+						tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'"));
 					}
 				} else {
 					lastMatchStart = template.indexOf(match, lastMatchEnd);
 					before = template.substring(lastMatchEnd, lastMatchStart);
 					if (before.length) {
-						tagNodePointer.children.push(new TagNode("raw", "'" + jEscape.escape(before) + "'"));
+						tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'"));
 					}
 					tagToken = match.split(" ")[0].substring(1);
 					if (tagToken[0] === "/") {
@@ -232,16 +232,10 @@
 			}
 		}
 		//console.dir(tree);
-		return compileTree(tree[0]);
-	}
-
-	function compileTree (tree) {
-		// todo: clean-up and simplify env & var
-		// todo: use a function with params, instead of var declarations
 		return "var Env=this.Env;\n" +
 				"var env = new Env(this.dali);\n" +
 				"var data = this.data;\n" +
-				compileNode(tree) +
+				compileNode(tree[0]) +
 				"return env.stream();\n";
 	}
 
@@ -254,14 +248,16 @@
 			child,
 			args,
 			blockHandler;
+		// Apply tags
 		for (i in node.children) {
 			child = node.children[i];
 			content = (child.children.length || child.decorators) ? compileNode(child) : "";
-			args = jEscape.unescape(child.argString).trim();
+			args = unescape(child.argString).trim();
 			tagName = child.name;
 			blockHandler = (content) ? "function (env, args) {\n" + content + "}" : null;
 			stream = stream + "env.applyTag('" + tagName + "', [" + args + "], this, " + blockHandler + ");\n";
 		}
+		// Apply decorator functions
 		for (i in node.decorators) {
 			child = node.decorators[i];
 			stream = stream + "env.applyDecorator('" + child.name + "', " + child.argString + ");\n";
@@ -269,34 +265,6 @@
 		return stream;
 	}
 
-
-	function parse(template, options) {
-		//todo: the render object should be scope to each templates, not the whole library
-		template = jEscape.escape(template);
-		return lexer(template, options);
-	}
-
-	var jEscape = {
-		escape: function escape(str) {
-			// Linefeeds
-			str = str.replace(/\n/g, "%lf%");
-			return str;
-		},
-		unescapeWithLinefeeds: function unescape(str) {
-			// Linefeeds
-			str = str.replace(/%lf%/g, "\\n");
-			// html entities
-			str = str.replace(/%gt%/g, ">").replace(/&lt;/g, "<");
-			return str;
-		},
-		unescape: function unescape(str) {
-			// Linefeeds
-			str = str.replace(/%lf%/g, "\\n");
-			// html entities
-			str = str.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
-			return str;
-		}
-	};
 	var tags = {
 		"raw" : function(args, env, blockHandler) {
 			return args.join("");
@@ -329,7 +297,6 @@
 			return env.stream();
 		},
 		"var" : function(args, env, blockHandler) {
-			//return "var " + jEscape.unescape(args) +  ";\n";
 			// todo: NOT WORKING YE
 		},
 		"render" : function(args, env, blockHandler) {
@@ -363,6 +330,20 @@
 			}
 		}
 		return obj;
-	};
+	}
+
+	function escape(str) {
+		// Linefeeds
+		str = str.replace(/\n/g, "%lf%");
+		return str;
+	}
+
+	function unescape(str) {
+		// Linefeeds
+		str = str.replace(/%lf%/g, "\\n");
+		// html entities
+		str = str.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
+		return str;
+	}
 
 })(this);

@@ -168,7 +168,7 @@
 
 				// opening a new scope
 				if (typeof(tags[tagName])!=="function")
-					throw("Statement [" + tagName + "] cannot be parsed!");
+					throw("Unknown tag:  " + tagName);
 				if (tagType === "tag") {
 					tagNode = new TagNode(tagName, args);
 					tagNodePointer.children.push(tagNode);
@@ -179,9 +179,11 @@
 						treeStack.push(tagNode);
 						tagNodePointer = tagNode;
 					} else {
-						if (tagName!==treeStack[treeStack.length-1].name)
-							throw("wrong end of scope!");
-						treeStack.pop();
+						// temporarelly move the pointer to the exiting scope and test to
+						// see if the tag was properly closed
+						tagNodePointer = treeStack.pop();
+						if (tagName !== tagNodePointer.name)
+							throw("Badly closed tag: expecter '" + tagNodePointer.name + "' but got '" + tagName + "'");
 						tagNodePointer = treeStack[treeStack.length-1];
 					}
 				}
@@ -201,9 +203,6 @@
 					}
 					tagNode.decorators.push(new TagNode(tagName, args));
 
-					//console.log("decorator: ", decorator);
-					//console.log("decoratorName: ", decoratorName);
-					//console.log("decoratorArguments: ", decoratorArguments);
 				}
 				// move the cursor forward
 				lastTagEnd = lastTagStart + tag.length;
@@ -281,13 +280,9 @@
 			}
 			return env.stream();
 		},
-		"var" : function(args, env, blockHandler) {
-			// todo: NOT WORKING YE
-		},
 		"render" : function(args, env, blockHandler) {
 			env.out(env.render(args[0], args[1]));
 			return env.stream();
-			// todo: handle template source from tag content
 		}
 	};
 

@@ -47,6 +47,7 @@
 				//console.log("Template source: \n", source);
 				var source = lexer(escape(template.source)) +
 						"return env.stream();\n";
+				console.log(source);
 				return new Function("env", source);
 			}
 
@@ -87,6 +88,7 @@
 					decorator = decorators[decoratorName],
 					oldArray = this._stream,
 					newArray = [];
+				if (typeof(decorator) !== "function") throw(new Error("Unknown decorator: " + decoratorName));
 				for (var i in oldArray) {
 					str = decorator.apply(oldArray[i] + "", args);
 					newArray.push(str);
@@ -156,19 +158,16 @@
 
 				var tagEnd = (tagType === "tag") ? "/}" : "}";
 				content = tag.substring(tag.indexOf("{")+1, tag.lastIndexOf(tagEnd));
-				segments = content.split("&gt;&gt;");
+				segments = content.split(">>");
 				args = "";
 				if (segments[0].indexOf(" ") > -1) {
 					args = segments[0].substring(segments[0].indexOf(" "));
 				}
 				decorators = segments.slice(1);
 
-				//console.log("tagToken: ", tagTokenType, tagToken, match, decorators);
-				//console.log("content: ", content);
-
 				// opening a new scope
 				if (typeof(tags[tagName])!=="function")
-					throw("Unknown tag:  " + tagName);
+					throw(new Error("Unknown tag:  " + tagName));
 				if (tagType === "tag") {
 					tagNode = new TagNode(tagName, args);
 					tagNodePointer.children.push(tagNode);
@@ -183,7 +182,7 @@
 						// see if the tag was properly closed
 						tagNodePointer = treeStack.pop();
 						if (tagName !== tagNodePointer.name)
-							throw("Badly closed tag: expecter '" + tagNodePointer.name + "' but got '" + tagName + "'");
+							throw(new Error("Badly closed tag: expected '" + tagNodePointer.name + "' but got '" + tagName + "'"));
 						tagNodePointer = treeStack[treeStack.length-1];
 					}
 				}
@@ -191,7 +190,7 @@
 				// Process chained decorators
 				var targetNode;
 				for (j in decorators) {
-					decorator = decorators[i].trim();
+					decorator = decorators[j].trim();
 					if (decorator.indexOf("(") > -1) {
 						tagName = decorator.substring(0, decorator.indexOf("("));
 						args = decorator.substring(decorator.indexOf("("));

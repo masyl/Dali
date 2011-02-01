@@ -5,37 +5,6 @@
 */
 with(QUnit) {
 
-	var sampleData  = {
-		ok: "All Ok!",
-		alwaysFalse: false,
-		alwaysTrue: true,
-		okWithWhitespaces: "   All Ok!   ",
-		fruits: ["Orange", "Banana", "Apple"],
-		loremItems: [
-			{id:1, label: "lorem ipsum", referenceNumbers: [156,282,133]},
-			{id:2, label: "dolor sit", referenceNumbers: [8990,387,5822]},
-			{id:3, label: "amet aridom", referenceNumbers: [2209,849,437]}
-		],
-		fooBar: {
-			foo: "foo!",
-			bar: "bar!"
-		}
-	};
-
-
-	module("Core");
-
-	test("Instantiate template", function() {
-		var template;
-		template = "<div id='test'><div>{out this.ok /}</div></div>";
-		$(template).dali();
-		equals($.dali("test").source, "<div>{out this.ok /}</div>", "Instantiate using a jQuery selector");
-
-		template = "<div>{out this.ok /}</div>";
-		$.dali.add("test", template);
-		equals($.dali("test").source, template, "Instantiate using string input and an id");
-	});
-
 	test("Rendering templates inside templates", function() {
 		$.dali.add("parseList", "{each this}{out this /}, {/each}");
 		$.dali.add("test", "Items: {render 'parseList', this.fruits /}");

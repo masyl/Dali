@@ -5,9 +5,11 @@
 // Todo: test multiple "if" statement hierarchy
 // Todo: test comments
 
-var dali = require("../dali.node"),
+var Dali = require("../src/dali"),
 	vows = require("vows"),
 	assert = require("assert");
+
+dali = Dali.dali();
 
 var sampleData  = {
 	ok: "All Ok!",
@@ -129,14 +131,6 @@ vows.describe("Raw Output").addBatch({
 }).export(module);
 
 vows.describe("Decorators").addBatch({
-	'A template containing a "xxx" decorator': {
-		topic: function() {
-			return dali.add("test", "xxx");
-		},
-		'can render correctly': function (template) {
-			assert.equal(template.render(sampleData), "xxx");
-		}
-	},
 	'A template containing a "uppercase" decorator': {
 		topic: function() {
 			return dali.add("test", "<div>{out this.ok >> uppercase /}</div>");

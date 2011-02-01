@@ -5,7 +5,7 @@
 	See readme.txt for documentation
 
 */
-(function () {
+(function (exportContent) {
 
 	/*
 	Main constructor which creates an instance of the root method
@@ -13,6 +13,8 @@
 
 	function Dali(options) {
 		// todo: simplify the dali constructor... less like jQuery
+
+		var dali = this;
 
 		this.templates = {};
 		this.tags = tags;
@@ -319,17 +321,10 @@
 		return str;
 	}
 
-	var dali = new Dali({});
 
-	exports.name = "Dali";
-	exports.version = "0.1";
-	exports.add = function (id, source, environParam, optionsParam) {
-		return dali.add(id, source, environParam, optionsParam);
-	};
-	exports.get = function (id) {
-		return dali.get(id);
-	};
-
-})();
+	exportContent.dali = function (options) {
+		return new Dali(options)
+	}
+})(exports || dali);
 
 

@@ -132,7 +132,7 @@
 			tagNode, // to store newly created tagNodes
 			tagNodePointer; // points to the last tagNode being processed
 
-		tagsMatch = template.match(/{(.*?)}/gm) || [];
+		tagsMatch = template.match(/{{(.*?)}}/gm) || [];
 		lastTagEnd = 0;
 		tree = [];
 		treeStack = [];
@@ -142,7 +142,6 @@
 		tagNode = tagNodePointer = new TagNode("out", "");
 		tree.push(tagNode);
 		treeStack.push(tagNode);
-
 		for (i in tagsMatch) {
 			if (tagsMatch.hasOwnProperty(i)) {
 				tag = tagsMatch[i];
@@ -151,22 +150,22 @@
 				if (before.length) {
 					tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'"));
 				}
-				tagName = tag.split(" ")[0].substring(1);
+				tagName = tag.split(" ")[0].substring(2);
 				if (tagName[0] === "/") {
 					tagType = "closeTag";
 					// Remove the trailing brace
-					tagName = tagName.split("}")[0];
+					tagName = tagName.split("}}")[0];
 					tagName = tagName.substring(1);
-				} else if (tag.substring(tag.length -2) === "/}") {
+				} else if (tag.substring(tag.length -3) === "/}}") {
 					tagType = "tag";
-					tagName = tagName.split("/}")[0];
+					tagName = tagName.split("/}}")[0];
 				} else {
-					tagName = tagName.split("}")[0];
+					tagName = tagName.split("}}")[0];
 					tagType = "openTag";
 				}
 
-				var tagEnd = (tagType === "tag") ? "/}" : "}";
-				content = tag.substring(tag.indexOf("{")+1, tag.lastIndexOf(tagEnd));
+				var tagEnd = (tagType === "tag") ? "/}}" : "}}";
+				content = tag.substring(tag.indexOf("{{")+2, tag.lastIndexOf(tagEnd));
 				segments = content.split(">>");
 				args = "";
 				if (segments[0].indexOf(" ") > -1) {

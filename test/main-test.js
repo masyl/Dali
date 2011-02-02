@@ -32,7 +32,7 @@ var sampleData  = {
 vows.describe("Core Features").addBatch({
 	'A tempalte created using ".add" with the source as a parameter': {
 		topic: function () {
-			return dali.add("test", "<div>{out this.ok /}</div>");
+			return dali.add("test", "<div>{{out this.ok /}}</div>");
 		},
 		"should be outputed as a return value": function(template) {
 			assert.equal(typeof(template), "object");
@@ -46,7 +46,7 @@ vows.describe("Core Features").addBatch({
 				assert.equal(typeof(template), "object");
 			},
 			"should have the expected source and id": function(template) {
-				assert.equal(template.source, "<div>{out this.ok /}</div>");
+				assert.equal(template.source, "<div>{{out this.ok /}}</div>");
 				assert.equal(template.id, "test");
 			}
 		}
@@ -56,7 +56,7 @@ vows.describe("Core Features").addBatch({
 vows.describe("Expressions").addBatch({
 	'A simple template': {
 		topic: function() {
-			return dali.add("test", "<div>{out this.ok /}</div>");
+			return dali.add("test", "<div>{{out this.ok /}}</div>");
 		},
 		'can render simple expressions': function(template) {
 			assert.equal(template.render(sampleData), "<div>All Ok!</div>");
@@ -68,8 +68,8 @@ vows.describe("Expressions").addBatch({
 vows.describe("Reusability").addBatch({
 	'A template': {
 		topic: function() {
-			dali.add("parseList", "{each this}{out this /}, {/each}");
-			dali.add("test", "Items: {render 'parseList', this.fruits /}");
+			dali.add("parseList", "{{each this}}{{out this /}}, {{/each}}");
+			dali.add("test", "Items: {{render 'parseList', this.fruits /}}");
 			return dali.get("test");
 		},
 		'can render data using another template inside an iterator': function (template) {
@@ -81,7 +81,7 @@ vows.describe("Reusability").addBatch({
 vows.describe("Each Statement").addBatch({
 	'A template containing the "each" statement': {
 		topic: function() {
-			return dali.add("test", "<div>{each this}{out this /} {/each}</div>");
+			return dali.add("test", "<div>{{each this}}{{out this /}} {{/each}}</div>");
 		},
 		'can render values from an object': function (template) {
 			assert.equal(template.render(sampleData.fruitsObj), "<div>Orange Banana Apple </div>");
@@ -92,7 +92,7 @@ vows.describe("Each Statement").addBatch({
 	},
 	'A template containting two each statements, one inside the other': {
 		topic: function() {
-			return dali.add("test", "<div>{each this.loremItems }{out this.label /}={each this.referenceNumbers}{out this /},{/each} - {/each}</div>");
+			return dali.add("test", "<div>{{each this.loremItems }}{{out this.label /}}={{each this.referenceNumbers}}{{out this /}},{{/each}} - {{/each}}</div>");
 		},
 		'can render collections inside collections': function (template) {
 			assert.equal(template.render(sampleData), "<div>lorem ipsum=156,282,133, - dolor sit=8990,387,5822, - amet aridom=2209,849,437, - </div>");
@@ -103,7 +103,7 @@ vows.describe("Each Statement").addBatch({
 vows.describe("If Statement").addBatch({
 	'A template containing the "if" statement': {
 		topic: function() {
-			return dali.add("test", "<div>{if this.alwaysTrue }True{/if}{if this.alwaysFalse}False{/if}</div>");
+			return dali.add("test", "<div>{{if this.alwaysTrue }}True{{/if}}{{if this.alwaysFalse}}False{{/if}}</div>");
 		},
 		'can render output conditionnaly': function (template) {
 			assert.equal(template.render(sampleData), "<div>True</div>");
@@ -133,7 +133,7 @@ vows.describe("Raw Output").addBatch({
 vows.describe("Decorators").addBatch({
 	'A template containing a "uppercase" decorator': {
 		topic: function() {
-			return dali.add("test", "<div>{out this.ok >> uppercase /}</div>");
+			return dali.add("test", "<div>{{out this.ok >> uppercase /}}</div>");
 		},
 		'can render correctly': function (template) {
 			assert.equal(template.render(sampleData), "<div>ALL OK!</div>");
@@ -141,7 +141,7 @@ vows.describe("Decorators").addBatch({
 	},
 	'A template containing a "lowercase" decorator': {
 		topic: function() {
-			return dali.add("test", "<div>{out this.ok >> lowercase /}</div>");
+			return dali.add("test", "<div>{{out this.ok >> lowercase /}}</div>");
 		},
 		'can render correctly': function (template) {
 			assert.equal(template.render(sampleData), "<div>all ok!</div>");
@@ -149,7 +149,7 @@ vows.describe("Decorators").addBatch({
 	},
 	'A template containing a "trim" decorator': {
 		topic: function() {
-			return dali.add("test", "<div>{out this.okWithWhitespaces >> trim /}</div>");
+			return dali.add("test", "<div>{{out this.okWithWhitespaces >> trim /}}</div>");
 		},
 		'can render correctly': function (template) {
 			assert.equal(template.render(sampleData), "<div>All Ok!</div>");
@@ -157,7 +157,7 @@ vows.describe("Decorators").addBatch({
 	},
 	'A template containing a "uppercase" decorator inside an "if" statement': {
 		topic: function() {
-			return dali.add("test", "<div>{if this.alwaysTrue >> uppercase}True{/if}{if this.alwaysFalse}False{/if}</div>");
+			return dali.add("test", "<div>{{if this.alwaysTrue >> uppercase}}True{{/if}}{{if this.alwaysFalse}}False{{/if}}</div>");
 		},
 		'can render correctly': function (template) {
 			assert.equal(template.render(sampleData), "<div>TRUE</div>");

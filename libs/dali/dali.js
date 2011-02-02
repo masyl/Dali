@@ -5,7 +5,7 @@
 	See readme.txt for documentation
 
 */
-(function (exports) {
+(function (global, $, exports) {
 
 	/**
 	 * Create an Dali instance. Each instance has its own set templates and config.
@@ -333,10 +333,36 @@
 		return str;
 	}
 
-
-	exports.dali = function (options) {
-		return new Dali(options)
+	/**
+	 * Makes Dali available as a jQuery plugin
+	 * @param $ {jQuery} A jQuery instance
+	 */
+	function exportjQuery($) {
+		$.dali = new Dali({});
+		$.fn.extend({
+			dali: function (environParam, options) {
+				this.each(function () {
+					$.dali.add(this.id, $(this).html());
+				});
+			}
+		});
 	}
-})(exports || dali);
+
+	/**
+	 * Export Dali as a JSCommons module
+	 * @param options
+	 */
+	function exportJSCommons(exports) {
+		exports.dali = function (options) {
+			return new Dali(options)
+		}
+	}
+
+	// apply exports
+	if ($) exportjQuery($);
+	if (exports) exportJSCommons(exports);
+	global.Dali = Dali;
+
+})(this, this.jQuery, exports);
 
 

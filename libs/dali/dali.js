@@ -12,7 +12,6 @@
 	 * @constructor
 	 */
 	function Dali(options) {
-		// todo: simplify the dali constructor... less like jQuery
 
 		var dali = this;
 

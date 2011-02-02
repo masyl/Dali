@@ -5,7 +5,7 @@
 // Todo: test multiple "if" statement hierarchy
 // Todo: test comments
 
-var Dali = require("../src/dali"),
+var Dali = require(__dirname +"/../"),
 	vows = require("vows"),
 	assert = require("assert");
 

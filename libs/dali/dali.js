@@ -5,7 +5,7 @@
 	See readme.txt for documentation
 
 */
-(function (exportContent) {
+(function (exports) {
 
 	/**
 	 * Create an Dali instance. Each instance has its own set templates and config.
@@ -334,7 +334,7 @@
 	}
 
 
-	exportContent.dali = function (options) {
+	exports.dali = function (options) {
 		return new Dali(options)
 	}
 })(exports || dali);

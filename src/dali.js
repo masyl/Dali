@@ -7,10 +7,10 @@
 */
 (function (exportContent) {
 
-	/*
-	Main constructor which creates an instance of the root method
-	*/
-
+	/**
+	 * Create an Dali instance. Each instance has its own set templates and config.
+	 * @constructor
+	 */
 	function Dali(options) {
 		// todo: simplify the dali constructor... less like jQuery
 
@@ -21,9 +21,10 @@
 		this.decorators = decorators;
 		this.version = "0.1";
 
-		/*
-		Constructor for individual templates
-		*/
+		/**
+		 * Constructor for individual templates
+		 * @constructor
+		 */
 		this.Template = function Template(id, source, environ, options) {
 			var template = this;
 			this.id = id;
@@ -46,10 +47,22 @@
 
 		};
 
+		/**
+		 * Get a template by its id
+		 * @param id
+		 * @returns a template
+		 */
 		this.get = function(id) {
 			return this.templates[id];
 		};
 
+		/**
+		 * Add a new template instance and compile it
+		 * @param id {string} he id by which this new tempalte can be called
+		 * @param source {string} the source of the template to compile
+		 * @param environParam {object} specific environment data to be made available during rendering
+		 * @param optionsParam {object} options, none for now
+		 */
 		this.add = function add(id, source, environParam, optionsParam) {
 			var options = {},
 				environ = {

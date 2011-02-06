@@ -37,7 +37,7 @@ html .full-frame {
 
 .page .page-header h1 {
    margin: 0;
-   padding: 5px 10px;
+   padding: 5px 25px;
    color: #fff;
    font-size: 1.1em;
    font-weight: normal;
@@ -230,7 +230,7 @@ List of samples
 	background: #cba;
 }
 .sampleList ul li {
-	background: #a98;
+	background: #ba9;
 	margin: 0px;
 }
 .sampleList ul li a:visited,

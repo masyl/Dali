@@ -1,3 +1,15 @@
+/*
+
+TODO:
+- Follow currently selected sample in hash history
+- Local storage for template edited by user
+- Output of custom template as an HTML fragment
+- Save multiple templates from user in local storage
+- View output as HTML
+- Support for multiple templates scenarios
+- Support for custom environment data
+
+*/
 (function ($) {
 
 	var sampleCache,

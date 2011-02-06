@@ -36,12 +36,13 @@
 
 		$(".sampleList a").click(function (e) {
 			e.preventDefault();
-			loadSample(this.href);
+			loadSample($(this).attr("href"));
 		});
 	});
 
 	$(window).load(function() {
-		runSample();
+		var url = $(".defaultSample").attr("href");
+		loadSample(url);
 	});
 
 	function onLoadEditor() {}

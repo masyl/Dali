@@ -1,12 +1,12 @@
 body {
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 90%;
-	background: #ddd;
 	text-align: center;
 	position: relative;
 	padding: 0px;
 	margin: 0px;
 	width: 100%;
+	background: #000 url(images/background.png);
 }
 .page {
 	position: relative;
@@ -24,9 +24,15 @@ html .full-frame {
 }
 .page .page-header {
 	position: absolute;
-	width: 100%;
+	top: 30px;
+	right: 30px;
+	left: 30px;
 	height: 30px;
 	background: #444;
+	behavior: url(libs/css3pie/PIE.htc);
+	-webkit-border-radius: 15px 15px 0 0;
+	-moz-border-radius: 15px 15px 0 0;
+	border-radius: 15px 15px 0 0;
 }
 
 .page .page-header h1 {
@@ -35,16 +41,6 @@ html .full-frame {
    color: #fff;
    font-size: 1.1em;
    font-weight: normal;
-}
-
-.page .page-header .samplesLegend {
-	color: #fff;
-	font-size: 0.8em;
-	font-weight: normal;
-	left: 75%;
-	position: absolute;
-	padding-left: 10px;
-	top: 8px;
 }
 
 .page .page-footer {
@@ -86,43 +82,50 @@ html body .ace_print_margin {
 
 .samples {
 	position: absolute;
-	left: 0%;
-	top: 0;
-	width: 25%;
-	height: 100%;
+	left: 30px;
+	top: 30px;
+	right: 75%;
+	bottom: 30px;
+	behavior: url(libs/css3pie/PIE.htc);
+	-webkit-border-radius: 0 0 0 15px;
+	-moz-border-radius: 0 0 0 15px;
+	border-radius: 0 0 0 15px;
 }
 .data {
 	color: #987;
 	background: #dcb !important;
 	position: absolute;
-	top: 0;
+	top: 30px;
 	left: 25%;
 	width: 40%;
-	height: 50%;
+	bottom: 50%;
 }
 .template {
 	position: absolute;
 	top: 50%;
 	left: 25%;
 	width: 40%;
-	height: 50%;
+	bottom: 30px;
 	color: #ba9;
 	background: #edc !important;
 }
 .output {
 	position: absolute;
 	left: 65%;
-	top: 0;
-	width: 35%;
-	height: 100%;
+	top: 30px;
+	right: 30px;
+	bottom: 30px;
 	color: #cba;
 	background: #fed !important;
+	behavior: url(libs/css3pie/PIE.htc);
+	-webkit-border-radius: 0 0 15px 0;
+	-moz-border-radius: 0 0 15px 0;
+	border-radius: 0 0 15px 0;
 }
 
 textarea {
 	width: 100%;
 	border: none;
-	background: #eee;
 	padding: 5px;
 	font-weight: normal;
 }
@@ -142,7 +145,6 @@ page-body,
 	left: 0;
 	bottom: 0;
 	right: 0;
-	background: #eee;
 }
 .samples {
 	overflow-x: hidden;

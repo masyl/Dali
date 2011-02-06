@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="libs/jquery-1.5.js"></script>
+		<script src="libs/jquery.ba-throttle-debounce.min.js"></script>
+		<script src="libs/dali/dali.js"></script>
+
+		<script src="libs/ace/src/ace.js"></script>
+		<script src="libs/ace/src/theme-twilight.js"></script>
+		<script src="libs/ace/src/mode-javascript.js"></script>
+
+		<script src="samples.js"></script>
+		<link rel="stylesheet"  href="samples.css" />
+
+	</head>
+	<body class="full-frame">
+		<div class="page full-frame">
+			<div class="page-header">
+				<h1>Sampler for Dali Templating Engine</h1>
+				<div class="samplesLegend">
+					&#8595;&nbsp;&nbsp;Here's a few samples to try
+				</div>
+			</div>
+			<div class="page-body full-frame">
+
+				<div class="testBoard full-frame">
+					<div class="data">
+						<label>&#8598; Data</label>
+						<div id="sampleData">{a:"wtf"}</div>
+					</div>
+					<div class="template">
+						<label>&#8598; Template</label>
+						<div id="sampleTemplate">{{out this.a /}}</div>
+					</div>
+					<div class="output">
+						<label>&#8598; Output</label>
+						<div id="sampleOutput"></div>
+					</div>
+					<div class="samples">
+						<div class="sampleList">
+							<ul>
+								<li><a href="./samples/output-environment-variables.html">Output environment variables</a></li>
+								<li><a href="./samples/decorators.html">Decorators</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="page-footer"></div>
+		</div>
+	</body>
+</html>

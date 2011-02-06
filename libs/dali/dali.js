@@ -5,6 +5,7 @@
 	See readme.txt for documentation
 
 */
+exports = (typeof exports === "object") ? exports : null;
 (function (global, $, exports) {
 
 	/**

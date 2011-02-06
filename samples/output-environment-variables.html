@@ -1,0 +1,16 @@
+<div id="output-environment-variables">
+	<div class="title">Outputing Environment variables</div>
+	<div class="description">
+		<p>When the template is being rendered, you have access to a rich execution context:</p>
+		<ul>
+			<li>data: the root data source</li>
+			<li>env &amp; render: utility functions and environment variables</li>
+		</ul>
+	</div>
+<script id="output-environment-variables-data" type="application/json">
+{}
+</script>
+<script id="output-environment-variables-template" type="text/x-dali-template">
+version: {{out env.dali.version /}}
+</script>
+</div>

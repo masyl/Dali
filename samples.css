@@ -151,6 +151,11 @@ html body .ace_print_margin {
 .descriptionWrapper p {
 	margin: 0px 0px 1.3em 0px;
 }
+.descriptionWrapper h2 {
+	font-size: 1.1em;
+	color: #000;
+	margin: 0px 0px 1em 0px;
+}
 .descriptionWrapper ul {
 	margin: 0px;
 	padding: 0px 0px 0px 15px;

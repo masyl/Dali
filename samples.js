@@ -79,7 +79,7 @@
 	function applySample(sample) {
 		sampleData.getSession().setValue(sample.data+"");
 		sampleTemplate.getSession().setValue(sample.template+"");
-		$(".descriptionWrapper").html(sample.description);
+		$(".descriptionWrapper").html("<h2>" + sample.title + "</h2>" + sample.description);
 	}
 	function runSample() {
 		var data, output, template, sampleDataInput, sampleTemplateInput;

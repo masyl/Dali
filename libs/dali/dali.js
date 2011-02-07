@@ -7,7 +7,6 @@
 */
 exports = (typeof exports === "object") ? exports : null;
 (function (global, $, exports) {
-
 	/**
 	 * Create an Dali instance. Each instance has its own set templates and config.
 	 * @constructor
@@ -31,15 +30,18 @@ exports = (typeof exports === "object") ? exports : null;
 			this.source = source;
 			this.environ = environ;
 			this.handler = compile();
+			this.vars = {};
 
 			this.render = function render(data) {
-				var env = new Env();
+				var env = new Env(this.vars);
 				return this.handler.call(data, env);
 			};
 
 			function compile() {
 				//console.log("Template source: \n", source);
-				var source = lexer(escape(template.source)) +
+				var source =
+						"var vars = env.vars;\n" +
+						lexer(escape(template.source)) +
 						"return env.stream();\n";
 				//console.log(source);
 				return new Function("env", source);
@@ -74,8 +76,9 @@ exports = (typeof exports === "object") ? exports : null;
 			return dali.templates[id] = new dali.Template(id, source, environ, options);
 		};
 
-		function Env() {
+		function Env(vars) {
 			this.dali = dali;
+			this.vars = vars || {};
 			this.render = function (id, data) {
 				return dali.get(id).render(data);
 			};
@@ -88,7 +91,7 @@ exports = (typeof exports === "object") ? exports : null;
 			};
 			this.applyTag = function (tagName, args, data, blockHandler) {
 				var content,
-					newEnv = new Env(),
+					newEnv = new Env(vars),
 					tag = tags[tagName];
 				content = tag.apply(data, [args, newEnv, blockHandler]);
 				this.out(content);
@@ -245,7 +248,7 @@ exports = (typeof exports === "object") ? exports : null;
 			tagName = child.name;
 			content = (child.children.length || child.decorators.length) ? compileNode(child) : "";
 			args = unescape(child.argString).trim();
-			blockHandler = (content) ? "function (env, args) {\n" + content + "}" : null;
+			blockHandler = (content) ? "function (env, args) {\nvar vars = env.vars;\n" + content + "}" : null;
 			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + blockHandler + ");\n");
 		}
 		// Apply decorator functions
@@ -290,6 +293,18 @@ exports = (typeof exports === "object") ? exports : null;
 		"render" : function(args, env, blockHandler) {
 			env.out(env.render(args[0], args[1]));
 			return env.stream();
+		},
+		"define" : function(args, env, blockHandler) {
+			var val;
+			if (typeof(args[1]) !== "undefined") {
+				val = args[1];
+			}
+			if (blockHandler) {
+				blockHandler.apply(this, [env, args]);
+				val = env.stream();
+			}
+			env.vars[args[0]] = val;
+			return "";
 		}
 	};
 

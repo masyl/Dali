@@ -1,6 +1,15 @@
 <div id="sample-defineVariables" class="daliSample">
-	<div class="title">Decorators</div>
+	<div class="title">Define variables</div>
 	<div class="description">
+		<p>
+			Using the "define" tag, you can define variables for later use in the rendering process.
+		</p>
+		<p>
+			The newly defined variables can be accessed with the "vars" object.
+		</p>
+		<p>
+			You can also use the "define" tag to store a whole content block as a value.
+		</p>
 	</div>
 <script id="sample-defineVariables-data" type="application/json">
 {
@@ -11,7 +20,13 @@
 <script id="sample-defineVariables-template" type="text/x-dali-template">
 	{{define "onePlusOne", this.one + " + " + this.one /}}
 	<p>
-		{{out onePlusOne /}} = three!
+		{{out vars.onePlusOne /}} = three!
+	</p>
+	{{define "twoPlusTwoWithABlock" }}
+		{{out this.two /}} + {{out this.two /}}
+	{{/define}}
+	<p>
+		{{out vars.twoPlusTwoWithABlock /}} = four!
 	</p>
 </script>
 </div>

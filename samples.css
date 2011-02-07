@@ -206,7 +206,7 @@ page-body,
 }
 #sampleOutputHTML {
 	z-index: 100;
-	background: #fed;
+	background: #fed url(./images/dali-stache.png) top right no-repeat;
 	padding: 20px;
 	color: #000;
 	font-weight: normal;

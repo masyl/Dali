@@ -1,0 +1,17 @@
+<div id="sample-defineVariables" class="daliSample">
+	<div class="title">Decorators</div>
+	<div class="description">
+	</div>
+<script id="sample-defineVariables-data" type="application/json">
+{
+	one: "one",
+	two: "two"
+}
+</script>
+<script id="sample-defineVariables-template" type="text/x-dali-template">
+	{{define "onePlusOne", this.one + " + " + this.one /}}
+	<p>
+		{{out onePlusOne /}} = three!
+	</p>
+</script>
+</div>

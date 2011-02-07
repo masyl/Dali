@@ -1,11 +1,11 @@
-<div id="output-data" class="daliSample">
+<div id="sample-output-data" class="daliSample">
 	<div class="title">Outputing Environment variables</div>
 	<div class="description">
 		<p>When a template is rendered, it is provided a object to process.</p>
 		<p>This object is used as the global scope and is accessed as the "this" object.</p>
 		<p>This example simply outputs the values using the "out" tag.</p>
 	</div>
-<script id="output-data-data" type="application/json">
+<script id="sample-output-data-data" type="application/json">
 {
 	id: "12345",
 	age: 33,
@@ -17,7 +17,7 @@
 	}
 }
 </script>
-<script id="output-data-template" type="text/x-dali-template">
+<script id="sample-output-data-template" type="text/x-dali-template">
 <p>
     {{out this.name.full /}} is {{out this.age /}} years old...
 </p>

@@ -194,6 +194,7 @@ page-body,
 	background: #cba;
 }
 #sampleOutput,
+#sampleOutputHTML,
 #sampleData,
 #sampleTemplate {
 	margin: 0;
@@ -202,6 +203,18 @@ page-body,
 	bottom: 0;
 	left: 0;
 	right: 0;
+}
+#sampleOutputHTML {
+	z-index: 100;
+	background: #fed;
+	padding: 20px;
+	color: #000;
+	font-weight: normal;
+	font-size: 0.9em;
+	behavior: url(libs/css3pie/PIE.htc);
+	-webkit-border-radius: 0 0 15px 0;
+	-moz-border-radius: 0 0 15px 0;
+	border-radius: 0 0 15px 0;
 }
 html body .ace_editor .ace_scroller {
 	overflow-x: auto;
@@ -236,7 +249,7 @@ List of samples
 .sampleList ul li a:visited,
 .sampleList ul li a:link {
 	display: block;
-	padding: 5px 10px;
+	padding: 5px 10px 5px 25px;
 	text-decoration: none;
 	color: #000;
 }

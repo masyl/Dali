@@ -3,17 +3,22 @@
 	<div class="description">
 		<p>Decorators are a way to modify the output of a tag before it gets rendered.</p>
 		<p>There are many predefined decorators and it is easy to create your own custom decorators.</p>
+		<p>Note that using the "out" tag with decorators can be usefull when applied to whole blocks.</p>
 	</div>
 <script id="sample-Decorators-data" type="application/json">
 {
-"label": "  This is a LABEL with Various cApItAlIzAtIoN!!  "
+	"label": "  This is a LABEL with Various cApItAlIzAtIoN!!  "
 }
 </script>
 <script id="sample-Decorators-template" type="text/x-dali-template">
-uppercase : {{out this.label >> uppercase /}}
-
-trim : {{out this.label >> trim /}}
-
-lowercase : {{out this.label >> lowercase /}}
+<p>uppercase :<br />{{out this.label >> uppercase /}}</p>
+<p>trim :<br />{{out this.label >> trim /}}</p>
+<p>lowercase :<br />{{out this.label >> lowercase /}}</p>
+<p>
+	uppercase block:<br />
+	{{out >> uppercase}}
+		[uppercase this: {{out this.label /}}]
+	{{/out}}
+</p>
 </script>
 </div>

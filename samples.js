@@ -112,11 +112,11 @@ TODO:
 				data = eval("(" + sampleDataInput + ")");
 				template = dali.add("sample", sampleTemplateInput);
 				output = template.render(data);
-				sampleOutput.getSession().setValue(output);
 			} catch (err) {
 				output = "An error occured: \n" + err.name + "\n" + err.message;
-				sampleOutput.getSession().setValue(output);
 			}
+			sampleOutput.getSession().setValue(output);
+			$("#sampleOutputHTML").html(output);
 		}
 	}
 

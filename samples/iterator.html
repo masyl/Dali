@@ -10,7 +10,11 @@
 }
 </script>
 <script id="sample-Iterator-template" type="text/x-dali-template">
-My bestest colors are:
-{{each this.colors}}{{out this /}},{{/each}}
+<h3>My bestest colors are:</h3>
+<ul>
+	{{each this.colors}}
+		<li style="color:{{out this /}}">{{out this /}}</li>
+	{{/each}}
+</ul>
 </script>
 </div>

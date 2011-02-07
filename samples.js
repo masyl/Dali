@@ -1,12 +1,12 @@
 /*
 
 TODO:
-- Follow currently selected sample in hash history
+- Navigation to move to next/previous sample
 - Local storage for template edited by user
 - Output of custom template as an HTML fragment
 - Save multiple templates from user in local storage
 - View output as HTML
-- Support for multiple templates scenarios
+- Support for multiple templates scenarios and custom code
 - Support for custom environment data
 
 */
@@ -50,17 +50,25 @@ TODO:
 			e.preventDefault();
 			loadSample($(this).attr("href"));
 		});
-	});
 
-	$(window).load(function() {
-		var url = $(".defaultSample").attr("href");
-		loadSample(url);
+		$(window).bind("hashchange", function (e) {
+			var sample = $.bbq.getState( "sample" );
+			if (!sample) {
+				sample = $(".defaultSample").attr("href");
+			}
+			loadSample(sample);
+		});
+
+		$(window).trigger("hashchange");
 	});
 
 	function onLoadEditor() {}
 
 	function loadSample(url) {
 		var sample = new Sample(url);
+		$.bbq.pushState({
+					sample: url
+				});
 		$.ajax({
 			url: url,
 			dataType: "html",

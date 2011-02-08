@@ -101,7 +101,7 @@ exports = (typeof exports === "object") ? exports : null;
 					decorator = decorators[decoratorName],
 					oldArray = this._stream,
 					newArray = [];
-				if (typeof(decorator) !== "function") throw(new Error("Unknown decorator: " + decoratorName));
+				if (typeof(decorator) !== "function") throw(new Err("UnknownDecorator", "Encountered unknown decorator \"" + decoratorName + "\""));
 				for (var i in oldArray) {
 					str = decorator.apply(oldArray[i] + "", args);
 					newArray.push(str);
@@ -178,7 +178,7 @@ exports = (typeof exports === "object") ? exports : null;
 
 				// opening a new scope
 				if (typeof(tags[tagName])!=="function")
-					throw(new Error("Unknown tag:  " + tagName));
+					throw(new Err("UnknownTag", "Encountered unknown tag \"" + tagName + "\""));
 				if (tagType === "tag") {
 					tagNode = new TagNode(tagName, args);
 					tagNodePointer.children.push(tagNode);
@@ -193,7 +193,7 @@ exports = (typeof exports === "object") ? exports : null;
 						// see if the tag was properly closed
 						tagNodePointer = treeStack.pop();
 						if (tagName !== tagNodePointer.name)
-							throw(new Error("Badly closed tag: expected '" + tagNodePointer.name + "' but got '" + tagName + "'"));
+							throw(new Err("BadlyClosedTag", "Was expecting closing tag for \"" + tagNodePointer.name + "\" but encountered \"" + tagName + "\""));
 						tagNodePointer = treeStack[treeStack.length-1];
 					}
 				}
@@ -326,6 +326,18 @@ exports = (typeof exports === "object") ? exports : null;
 		lowercase: function(args) {
 			return (this+"").toLowerCase();
 		}
+	};
+
+	/**
+	 * Error helper constructor
+	 * @param name
+	 * @param message
+	 */
+	function Err(name, message) {
+		var err = new Error();
+		err.name = name;
+		err.message = message;
+		return err;
 	};
 
 	/**

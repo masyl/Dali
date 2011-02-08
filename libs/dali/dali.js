@@ -38,12 +38,11 @@ exports = (typeof exports === "object") ? exports : null;
 			};
 
 			function compile() {
-				//console.log("Template source: \n", source);
 				var source =
 						"var vars = env.vars;\n" +
 						lexer(escape(template.source)) +
 						"return env.stream();\n";
-				//console.log(source);
+				//console.log("Template source: \n", source);
 				return new Function("env", source);
 			}
 
@@ -177,7 +176,13 @@ exports = (typeof exports === "object") ? exports : null;
 				if (before.length) {
 					tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'"));
 				}
-				tagName = tag.split(" ")[0].substring(2);
+				tagName = tag.split(/ +/)[0];
+				// If the braces and tag name are separated by spaces
+				if (tagName === "{{") {
+					tagName = tag.split(/ +/)[1];
+				} else {
+					tagName = tag.split(/ +/)[0].substring(2);
+				}
 				if (tagName[0] === "/") {
 					tagType = "closeTag";
 					// Remove the trailing brace
@@ -196,7 +201,7 @@ exports = (typeof exports === "object") ? exports : null;
 				segments = content.split(">>");
 				args = "";
 				if (segments[0].indexOf(" ") > -1) {
-					args = segments[0].substring(segments[0].indexOf(" "));
+					args = segments[0].trim().substring(segments[0].trim().indexOf(" "));
 				}
 				decorators = segments.slice(1);
 

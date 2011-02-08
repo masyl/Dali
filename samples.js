@@ -113,7 +113,6 @@ TODO:
 				template = dali.add("sample", sampleTemplateInput);
 				output = template.render(data);
 			} catch (err) {
-				console.dir(err);
 				output = "<h2>An error occured:</h2><p>" + err.name + "\n" + "</p><p>" + err.message +"</p>";
 			}
 			sampleOutput.getSession().setValue(output);

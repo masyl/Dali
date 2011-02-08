@@ -248,7 +248,7 @@ exports = (typeof exports === "object") ? exports : null;
 			tagName = child.name;
 			content = (child.children.length || child.decorators.length) ? compileNode(child) : "";
 			args = unescape(child.argString).trim();
-			blockHandler = (content) ? "function (env, args) {\nvar vars = env.vars;\n" + content + "}" : null;
+			blockHandler = (content) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + content + "}" : null;
 			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + blockHandler + ");\n");
 		}
 		// Apply decorator functions
@@ -264,21 +264,38 @@ exports = (typeof exports === "object") ? exports : null;
 			return args.join("");
 		},
 		"if" : function(args, env, blockHandler) {
+			var output = "";
 			if (args[0]) {
-				blockHandler.apply(this, [env, args]);
+				output = output + (args[1] || "");
+				if (typeof(blockHandler) === "function") {
+					blockHandler.apply(this, [env, args]);
+				}
+			} else {
+				output = output + (args[2] || "");
 			}
-			return env.stream();
+			return output + env.stream();
 		},
 		"#" : function(args, env, blockHandler) {
 			return "";
 		},
 		"each" : function(args, env, blockHandler) {
-			var i, item, items;
+			function Loop(count) {
+				this.count = count;
+				this.last = false;
+				this.current = 0;
+				this.step = function() {
+					this.current = this.current + 1;
+					if (this.current >= this.count) this.last = true;
+				}
+			}
+			var i, item, items, loop;
 			items = args[0];
 			if (typeof(blockHandler) === "function") {
+				loop = new Loop(items.length);
 				for (i in items) {
+					loop.step();
 					item = items[i];
-					blockHandler.apply(item, [env, args]);
+					blockHandler.apply(item, [env, args, loop]);
 				}
 			}
 			return env.stream();
@@ -294,7 +311,7 @@ exports = (typeof exports === "object") ? exports : null;
 			env.out(env.render(args[0], args[1]));
 			return env.stream();
 		},
-		"define" : function(args, env, blockHandler) {
+		"var" : function(args, env, blockHandler) {
 			var val;
 			if (typeof(args[1]) !== "undefined") {
 				val = args[1];
@@ -336,13 +353,14 @@ exports = (typeof exports === "object") ? exports : null;
 
 	function escape(str) {
 		// Linefeeds
-		str = str.replace(/\n/g, "%lf%");
+		str = str.replace(/\n/g, "&#10;");
+		str = str.replace(/'/g, "&rsquo;");
 		return str;
 	}
 
 	function unescape(str) {
 		// Linefeeds
-		str = str.replace(/%lf%/g, "\\n");
+		str = str.replace(/&#10;/g, "\\n");
 		// html entities
 		str = str.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
 		return str;

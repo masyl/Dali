@@ -1,8 +1,9 @@
 <div id="sample-Iterator" class="daliSample">
-	<div class="title">Iterator</div>
+	<div class="title">Iterator (each)</div>
 	<div class="description">
 		<p>To iterate across arrays and object members, you can use the "each" tag.</p>
 		<p>This tag behaves similarly to a javascript "for" statement, but does more by automatically setting the current item to the "this" object.</p>
+		<p>Also, a loop object is made available to access the current state of the iteration.</p>
 	</div>
 <script id="sample-Iterator-data" type="application/json">
 {
@@ -14,6 +15,12 @@
 <ul>
 	{{each this.colors}}
 		<li style="color:{{out this /}}">{{out this /}}</li>
+	{{/each}}
+</ul>
+<h3>My bestest colors are:</h3>
+<ul>
+	{{each this.colors}}
+		{{out loop.current /}}:{{out this /}}{{if !loop.last, "," /}}{{if loop.last, "." /}}
 	{{/each}}
 </ul>
 </script>

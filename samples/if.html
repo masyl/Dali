@@ -1,0 +1,23 @@
+<div id="sample-if" class="daliSample">
+	<div class="title">Conditionnal (if)</div>
+	<div class="description">
+		<p>...</p>
+	</div>
+<script id="sample-if-data" type="application/json">
+{
+	"TrueIsTrue": true
+}
+</script>
+<script id="sample-if-template" type="text/x-dali-template">
+<h3>True in many forms:</h3>
+<p>Block output:<br />
+	{{if this.TrueIsTrue }}It's true!{{/if}}
+</p>
+<p>Inline output:<br />
+	{{if this.TrueIsTrue, "It's true again!" /}}
+</p>
+<p>Inline output if false:<br />
+	{{if !this.TrueIsTrue, "if it was true!", "It's false that it's not true!" /}}
+</p>
+</script>
+</div>

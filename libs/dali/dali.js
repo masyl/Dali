@@ -279,15 +279,6 @@ exports = (typeof exports === "object") ? exports : null;
 			return "";
 		},
 		"each" : function(args, env, blockHandler) {
-			function Loop(count) {
-				this.count = count;
-				this.last = false;
-				this.current = 0;
-				this.step = function() {
-					this.current = this.current + 1;
-					if (this.current >= this.count) this.last = true;
-				}
-			}
 			var i, item, items, loop;
 			items = args[0];
 			if (typeof(blockHandler) === "function") {
@@ -337,7 +328,25 @@ exports = (typeof exports === "object") ? exports : null;
 		}
 	};
 
-	// Create Global "extend" method
+	/**
+	 * Iterator state object
+	 * @param count (integer) The number of items in the iteration
+	 */
+	function Loop(count) {
+		this.count = count;
+		this.last = false;
+		this.current = 0;
+		this.step = function() {
+			this.current = this.current + 1;
+			if (this.current >= this.count) this.last = true;
+		}
+	}
+
+	/**
+	 * Extend an object with the properties of another
+	 * @param obj
+	 * @param extObj
+	 */
 	function extend(obj, extObj) {
 		if (arguments.length > 2) {
 			for (var a = 1; a < arguments.length; a++) {
@@ -351,6 +360,10 @@ exports = (typeof exports === "object") ? exports : null;
 		return obj;
 	}
 
+	/**
+	 * Escape special characters so that it doesnt come in conflits with parsing and compilation
+	 * @param str
+	 */
 	function escape(str) {
 		// Linefeeds
 		str = str.replace(/\n/g, "&#10;");
@@ -358,6 +371,10 @@ exports = (typeof exports === "object") ? exports : null;
 		return str;
 	}
 
+	/**
+	 * Removed escaping rules that have been applied with the "escape" function
+	 * @param str
+	 */
 	function unescape(str) {
 		// Linefeeds
 		str = str.replace(/&#10;/g, "\\n");

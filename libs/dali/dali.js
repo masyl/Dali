@@ -76,6 +76,11 @@ exports = (typeof exports === "object") ? exports : null;
 			return dali.templates[id] = new dali.Template(id, source, environ, options);
 		};
 
+		/**
+		 * Environment object available during the rendering process
+		 * @constructor
+		 * @param vars
+		 */
 		function Env(vars) {
 			this.dali = dali;
 			this.vars = vars || {};
@@ -83,12 +88,26 @@ exports = (typeof exports === "object") ? exports : null;
 				return dali.get(id).render(data);
 			};
 			this._stream = [];
+			/**
+			 * Add content to the output stream
+			 * @param content
+			 */
 			this.out = function (content) {
 				this._stream.push(content);
 			};
+			/**
+			 * Return the stream content as a string
+			 */
 			this.stream = function () {
 				return this._stream.join("");
 			};
+			/**
+			 * Render a tag with the available arguments, contextual data and block content
+			 * @param tagName
+			 * @param args
+			 * @param data
+			 * @param blockHandler
+			 */
 			this.applyTag = function (tagName, args, data, blockHandler) {
 				var content,
 					newEnv = new Env(vars),
@@ -96,6 +115,11 @@ exports = (typeof exports === "object") ? exports : null;
 				content = tag.apply(data, [args, newEnv, blockHandler]);
 				this.out(content);
 			};
+			/**
+			 * Apply a decorator function to the available arguments
+			 * @param decoratorName
+			 * @param args
+			 */
 			this.applyDecorator = function(decoratorName, args) {
 				var str,
 					decorator = decorators[decoratorName],

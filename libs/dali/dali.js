@@ -250,6 +250,11 @@ exports = (typeof exports === "object") ? exports : null;
 		return compileNode(tree[0]);
 	}
 
+	/**
+	 * Tag object used to populate the tagTree
+	 * @param name
+	 * @param argString
+	 */
 	function TagNode(name, argString) {
 		this.name = name;
 		this.argString = argString;
@@ -257,7 +262,10 @@ exports = (typeof exports === "object") ? exports : null;
 		this.decorators = [];
 	}
 
-	// compile a tagNode and all its children into a javascript function
+	/**
+	 * Compile a tagNode and all its children into a javascript function
+	 * @param node
+	 */
 	function compileNode(node) {
 		var i,
 			stream = [],
@@ -366,7 +374,7 @@ exports = (typeof exports === "object") ? exports : null;
 
 	/**
 	 * Iterator state object
-	 * @param count (integer) The number of items in the iteration
+	 * @param count {number} The number of items in the iteration
 	 */
 	function Loop(count) {
 		this.count = count;
@@ -436,7 +444,7 @@ exports = (typeof exports === "object") ? exports : null;
 
 	/**
 	 * Export Dali as a JSCommons module
-	 * @param options
+	 * @param exports Export object from the JSCommons api
 	 */
 	function exportJSCommons(exports) {
 		exports.dali = function (options) {

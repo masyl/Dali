@@ -33,17 +33,31 @@ exports = (typeof exports === "object") ? exports : null;
 			this.vars = {};
 
 			this.render = function render(data) {
-				var env = new Env(this.vars);
-				return this.handler.call(data, env);
+				var output,
+					env = new Env(this.vars);
+				try {
+					output = this.handler.call(data, env);
+				} catch(err) {
+					throw(new Err("RenderingFailed", "Template rendering failed, with following error:\n" + err.name + "\n" + err.message));
+				}
+				return output;
 			};
 
 			function compile() {
-				var source =
+				var
+						fn,
+						err,
+						source =
 						"var vars = env.vars;\n" +
 						lexer(escape(template.source)) +
 						"return env.stream();\n";
 				//console.log("Template source: \n", source);
-				return new Function("env", source);
+				try {
+					fn = new Function("env", source);
+				} catch(err) {
+					throw(new Err("CompilationFailed", "Template compilation failed, with following error:\n" + err.name + "\n" + err.message));
+				}
+				return fn;
 			}
 
 		};

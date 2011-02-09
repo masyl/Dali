@@ -1,0 +1,28 @@
+<div id="sample-renderingFailed" class="daliSample">
+	<div class="title">Error: Rendering failed</div>
+	<div class="description">
+		<p>
+			Some errors occur only when the template is actually used to
+			render data.
+		</p>
+		<p>
+			This will trigger a "RenderingFailed" error with a message
+			containing the original javascript error.
+		</p>
+		<p>
+			The standard "ReferenceError" is one of the most common error to
+			cause rendering failure.
+		</p>
+	</div>
+<script id="sample-renderingFailed-data" type="application/json">
+{
+	sample: "something..."
+}
+</script>
+<script id="sample-renderingFailed-template" type="text/x-dali-template">
+<p>
+	Trying to use an undefined value:</br>
+	{{out sayWhat /}}
+</p>
+</script>
+</div>

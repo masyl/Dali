@@ -1,0 +1,28 @@
+<div id="sample-compilationFailed" class="daliSample">
+	<div class="title">Error: Compilation failed</div>
+	<div class="description">
+		<p>
+			If you mess up the tag syntax in special ways, Dali might
+			fail to compile the template to native javascript.
+		</p>
+		<p>
+			This will trigger a "CompilationFailed" error with a message
+			containing the original javascript error.
+		</p>
+		<p>
+			The standard "SyntaxError" is one of the most common error to
+			cause compilation failure.
+		</p>
+	</div>
+<script id="sample-compilationFailed-data" type="application/json">
+{
+	sample: "something..."
+}
+</script>
+<script id="sample-compilationFailed-template" type="text/x-dali-template">
+<p>
+	Missing coma to separate arguments:</br>
+	{{out say what /}}
+</p>
+</script>
+</div>

@@ -42,7 +42,7 @@ exports = (typeof exports === "object") ? exports : null;
 						"var vars = env.vars;\n" +
 						lexer(escape(template.source)) +
 						"return env.stream();\n";
-				//console.log("Template source: \n", source);
+				console.log("Template source: \n", source);
 				return new Function("env", source);
 			}
 
@@ -200,9 +200,10 @@ exports = (typeof exports === "object") ? exports : null;
 				content = tag.substring(tag.indexOf("{{")+2, tag.lastIndexOf(tagEnd));
 				segments = content.split(">>");
 				args = "";
-				if (segments[0].indexOf(" ") > -1) {
+				if (segments[0].trim().indexOf(" ") > -1) {
 					args = segments[0].trim().substring(segments[0].trim().indexOf(" "));
 				}
+				console.log("args: ", args);
 				decorators = segments.slice(1);
 
 				// opening a new scope

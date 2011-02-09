@@ -1,0 +1,27 @@
+<div id="sample-tagNotation" class="daliSample">
+	<div class="title">Tag notation</div>
+	<div class="description">
+		<p>
+			With Dali, most of the syntax takes the familiar form of tags. Those
+			tags are similar but not identical to html or xmltags.
+		</p>
+		<p>
+			This syntax is both easy to use and understand, while making it simple to extend using custom functions.
+		</p>
+		<p>
+			The double mustaches "{{ }}" are used to mark the begining and end of tags.
+		</p>
+	</div>
+<script id="sample-tagNotation-data" type="application/json">
+{
+	sample: "something..."
+}
+</script>
+<script id="sample-tagNotation-template" type="text/x-dali-template">
+<p>A closed tag:  {{out this.sample/}}</p>
+<p>A closed with some extra spaces:  {{  out this.sample   /}}</p>
+<p>An open tag:  {{out}} Wooopy! {{/out}}</p>
+<p>A tag in a tag:  {{if true}} {{out this.sample/}} {{/if}}</p>
+<p>A tag with multiple arguments:  {{if true, "Yes!", "No!" /}}</p>
+</script>
+</div>

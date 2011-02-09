@@ -1,0 +1,22 @@
+<div id="sample-comments" class="daliSample">
+	<div class="title">Comments</div>
+	<div class="description">
+		<p>You can add comments or documentation or simply to comment-out part of your template.</p>
+	</div>
+<script id="sample-comments-data" type="application/json">
+{
+	emptyData: "Nothing here"
+}
+</script>
+<script id="sample-comments-template" type="text/x-dali-template">
+<p>
+	Nothing here: {{# "Nohting will happen and nothing will be parsed here!" /}}
+</p>
+<p>
+	And nothing here either:
+	{{#}}
+		Nohting will happen and nothing will be parsed here!
+	{{/#}}
+</p>
+</script>
+</div>

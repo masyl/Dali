@@ -1,59 +1,80 @@
 
+{{if}}
+	yaaata!
+{{/if else}}
+	Pfff...
+{{/else}}
 
 
-DEVELOPEMENT NOTES
+{{if 2 > 3}}
+	yaaata!
+{{elseif 2 = 2}}
+	Pfff...
+{{else}}
+	Pfff...
+{{/if}}
 
-	Adopt a "everything is a function) approach...
+// Should is be "each" or "for" ??
 
-	{% foreach(item, _sort(items, 'asc', 'num')) %}
-		<li>{{ pad(item.prefix, '0', 9) + "" + _escape(item.value) }}</li>
-	{% endforeach %}
+{{each this}}
+	odd: {{out loop.current /}}
+{{every 2}}
+	even: {{out loop.current /}}
+{{empty}}
+	list is empty!
+{{/each}}
 
-to be lexed/tokenized as:
 
-	statement.foreach.handler("foreach", ["item", "_sort(items, 'asc', 'num')"]);
-	statement.foreach.handler("endfor", []);
+// output item in a var
 
-COMPLEX IF STATEMENT
+{{each this, "parentItem"}}
+	{{each this.children, "child"}}
+		{{out var.parentItem.name /}} is parent of {{out var.child.name /}}
+	{{/each}}
+{{/each}}
 
-	Template is...
+{{ firstof var1, var2, var3, "fallback value" /}}  from django
 
-		{% if (item.length>0) %}
-			<li>{{ pad(item.prefix, '0', 9) + "" + escape(item.value) }}</li>
-		{% elseif (item.length==1) %}
-			<li>One</li>
-		{% else %}
-			<li>None!</li>
-		{% endif %}
+/**
+ * Loop 31 times, with alternate output every 2 items with 1 offset count
+ */
+ Or "repeat" ?
+ Or {{each spawn(3) }} or similar ?
 
-	... is tokenized as:
+{{loop 31}}
+	odd: {{out loop.current /}}
+{{every 2, 1}}
+	even: {{out loop.current /}}
+{{/loop}}
 
-		statement("if", ["item.length>0"]);
-		statement("elseif", ["item.length==1"]);
-		statement("else", []);
-		statement("endif", []);
+----
+{{cycle "odd", "even" }}  (like django)
 
-	... and rendered as :
+{{i18n}}Bonjour à vous!{{/i18n}}
+{{i18n "bonjour"}}Bonjour à vous!{{/i18n}}
 
-		if (item.length > 0) {
-		} else if (item.length == 1) {
-		} else {
-		}
+------
 
-	... or what if the template was rendered as series of commands instead of actual javascript...
-		statement["if"](
-			[
-				context["item"]["length"]
-			],
-			[
-			]
-		);
-		{% if (item.length>0) %}
-			<li>{{ pad(item.prefix, '0', 9) + "" + escape(item.value) }}</li>
-		{% elseif (item.length==1) %}
-			<li>One</li>
-		{% else %}
-			<li>None!</li>
-		{% endif %}
+More complete Loop object
+
+forloop.counter 	The current iteration of the loop (1-indexed)
+forloop.counter0 	The current iteration of the loop (0-indexed)
+forloop.revcounter 	The number of iterations from the end of the loop (1-indexed)
+forloop.revcounter0 	The number of iterations from the end of the loop (0-indexed)
+forloop.first 	True if this is the first time through the loop
+forloop.last 	True if this is the last time through the loop
+forloop.parentloop 	For nested loops, this is the loop "above" the current one
+
+-----
+
+Reusability:
+
+{{include "template" /}}
+{{render data, "template" /}}
+{{extend "template"}}
+
+-------
+
+Comments:
 
 

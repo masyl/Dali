@@ -1,0 +1,27 @@
+<div id="sample-templateRendering" class="daliSample">
+	<div class="title">Template rendering</div>
+	<div class="description">
+		<p>...</p>
+	</div>
+<script id="sample-templateRendering-data" type="application/json">
+{
+	user: {
+		firstname: "John",
+		lastname: "Doe"
+	}
+}
+</script>
+<script id="sample-templateRendering-template" type="text/x-dali-template">
+{{template "welcomeUser"}}
+	<p>Welcome {{out this.firstname + " " + this.lastname /}}</p>
+	<div style="padding:20px; border:1px solid;">
+		{{out args.content /}}
+	</div>
+{{/template}}
+
+{{var "messageCount", 4 /}}
+{{render "welcomeUser", this.user}}
+	<p>You have {{out vars.messageCount /}} new messages in your inbox!</p>
+{{/render}}
+</script>
+</div>

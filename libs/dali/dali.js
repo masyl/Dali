@@ -146,7 +146,6 @@ exports = (typeof exports === "object") ? exports : null;
 					decorator = decorators[decoratorName],
 					oldArray = this._stream,
 					newArray = [];
-				if (typeof(decorator) !== "function") throw(new Err("UnknownDecorator", "Encountered unknown decorator \"" + decoratorName + "\""));
 				for (var i in oldArray) {
 					str = decorator.apply(oldArray[i] + "", args);
 					newArray.push(str);
@@ -169,8 +168,8 @@ exports = (typeof exports === "object") ? exports : null;
 			content,
 			segments,
 			args,
-			decorator,
-			decorators,
+			decoratorTag,
+			decoratorsTags,
 			i,
 			j,
 			tagName,
@@ -225,7 +224,6 @@ exports = (typeof exports === "object") ? exports : null;
 				if (segments[0].trim().indexOf(" ") > -1) {
 					args = segments[0].trim().substring(segments[0].trim().indexOf(" "));
 				}
-				decorators = segments.slice(1);
 
 				// opening a new scope
 				if (typeof(tags[tagName])!=="function")
@@ -250,18 +248,19 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 
 				// Process chained decorators
-				var targetNode;
-				for (j in decorators) {
-					decorator = decorators[j].trim();
-					if (decorator.indexOf("(") > -1) {
-						tagName = decorator.substring(0, decorator.indexOf("("));
-						args = decorator.substring(decorator.indexOf("("));
+				decoratorsTags = segments.slice(1);
+				for (j in decoratorsTags) {
+					decoratorTag = decoratorsTags[j].trim();
+					if (decoratorTag.indexOf("(") > -1) {
+						tagName = decoratorTag.substring(0, decoratorTag.indexOf("("));
+						args = decoratorTag.substring(decoratorTag.indexOf("("));
 						args = "[" + args.substring(1, args.lastIndexOf(")")) + "]";
 					} else {
 						// todo: setup a better and stricter parsing
-						tagName = decorator;
+						tagName = decoratorTag;
 						args = "[]";
 					}
+					if (typeof(decorators[tagName]) !== "function") throw(new Err("UnknownDecorator", "Encountered unknown decorator \"" + tagName + "\""));
 					tagNode.decorators.push(new TagNode(tagName, args, ""));
 
 				}

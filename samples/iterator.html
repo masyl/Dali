@@ -7,7 +7,8 @@
 	</div>
 <script id="sample-Iterator-data" type="application/json">
 {
-	"colors": ["blue", "red", "green"]
+	"colors": ["blue", "red", "green"],
+	"colorsForFunerals": []
 }
 </script>
 <script id="sample-Iterator-template" type="text/x-dali-template">
@@ -21,6 +22,14 @@
 <ul>
 	{{each this.colors}}
 		{{out loop.current /}}:{{out this /}}{{if !loop.last, "," /}}{{if loop.last, "." /}}
+	{{endeach}}
+</ul>
+<h3>Colors for funerals:</h3>
+<ul>
+	{{each this.colorsForFunerals}}
+		{{out this /}}
+	{{each-empty}}
+		None!
 	{{endeach}}
 </ul>
 </script>

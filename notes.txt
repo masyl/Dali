@@ -8,20 +8,13 @@ Other tags are innert: comment, template?, ...
 
 ---------
 
-{{if}}
-	yaaata!
-{{/if else}}
-	Pfff...
-{{/else}}
-
-
 {{if 2 > 3}}
 	yaaata!
-{{elseif 2 = 2}}
+{{if-else 2 = 2}}
 	Pfff...
-{{else}}
+{{if-not}}
 	Pfff...
-{{/if}}
+{{endif}}
 
 -------
 
@@ -29,25 +22,25 @@ Other tags are innert: comment, template?, ...
 
 {{each this}}
 	odd: {{out loop.current /}}
-{{/each}}
-{{every 2}}
+{{each-every 2}}
 	even: {{out loop.current /}}
-{{/every}}
-{{empty}}
-	list is empty!
-{{/empty}}
-
--------
-
-// Should is be "each" or "for" ??
-
-{{each this}}
-	odd: {{out loop.current /}}
-{{every 2}}
-	even: {{out loop.current /}}
-{{empty}}
+{{each-empty}}
 	list is empty!
 {{endeach}}
+
+{{for this}}
+	odd: {{out loop.current /}}
+{{for-every 2}}
+	even: {{out loop.current /}}
+{{for-empty}}
+	list is empty!
+{{endfor}}
+
+-----------
+
+{{with this.reservation.days}}
+	{{out this.length /}} days left
+{{endwith}}
 
 -----------
 
@@ -99,7 +92,7 @@ same as :
 
 {{loop 31}}
 	odd: {{out loop.current /}}
-{{every 2, 1}}
+{{loop-every 2, 1}}
 	even: {{out loop.current /}}
 {{/loop}}
 
@@ -165,9 +158,7 @@ forloop.parentloop 	For nested loops, this is the loop "above" the current one
 
 Reusability tags:
 {{load "templateName"}}
-{{template "templateName"}}
 {{include "templatenName" /}}
-{{render data, "templateName" /}}
 {{extend "templateName"}}
 
 -------

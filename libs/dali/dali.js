@@ -24,17 +24,22 @@ exports = (typeof exports === "object") ? exports : null;
 		 * Constructor for individual templates
 		 * @constructor
 		 */
-		this.Template = function Template(id, source, environ, options) {
+		this.Template = function Template(id, source, vars, options) {
 			var template = this;
 			this.id = id;
 			this.source = source;
-			this.environ = environ;
 			this.handler = compile();
 			this.vars = {};
 
-			this.render = function render(data) {
-				var output,
-					env = new Env(this.vars);
+			extend(this.vars, vars);
+
+			this.render = function render(data, vars) {
+				var newVars = {},
+					output,
+					env;
+				extend(newVars, this.vars);
+				extend(newVars, vars);
+				env = new Env(newVars);
 				try {
 					output = this.handler.call(data, env);
 				} catch(err) {
@@ -97,8 +102,11 @@ exports = (typeof exports === "object") ? exports : null;
 		function Env(vars) {
 			this.dali = dali;
 			this.vars = vars || {};
-			this.render = function (id, data) {
-				return dali.get(id).render(data);
+			this.render = function (id, data, env) {
+				return dali.get(id).render(data, env);
+			};
+			this.addTemplate = function (id, source, environParam, optionsParam) {
+				return dali.add(id, source, environParam, optionsParam);
 			};
 			this._stream = [];
 			/**
@@ -179,7 +187,7 @@ exports = (typeof exports === "object") ? exports : null;
 
 
 		// Create the root TagNode
-		tagNode = tagNodePointer = new TagNode("out", "");
+		tagNode = tagNodePointer = new TagNode("out", "", "");
 		tree.push(tagNode);
 		treeStack.push(tagNode);
 		for (i in tagsMatch) {
@@ -188,7 +196,7 @@ exports = (typeof exports === "object") ? exports : null;
 				lastTagStart = template.indexOf(tag, lastTagEnd);
 				before = template.substring(lastTagEnd, lastTagStart);
 				if (before.length) {
-					tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'"));
+					tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'", before));
 				}
 				tagName = tag.split(/ +/)[0];
 				// If the braces and tag name are separated by spaces
@@ -223,11 +231,11 @@ exports = (typeof exports === "object") ? exports : null;
 				if (typeof(tags[tagName])!=="function")
 					throw(new Err("UnknownTag", "Encountered unknown tag \"" + tagName + "\""));
 				if (tagType === "tag") {
-					tagNode = new TagNode(tagName, args);
+					tagNode = new TagNode(tagName, args, tag);
 					tagNodePointer.children.push(tagNode);
 				} else if (tagType === "openTag" || tagType === "closeTag") {
 					if (tagType === "openTag") {
-						tagNode = new TagNode(tagName, args);
+						tagNode = new TagNode(tagName, args, tag);
 						tagNodePointer.children.push(tagNode);
 						treeStack.push(tagNode);
 						tagNodePointer = tagNode;
@@ -254,7 +262,7 @@ exports = (typeof exports === "object") ? exports : null;
 						tagName = decorator;
 						args = "[]";
 					}
-					tagNode.decorators.push(new TagNode(tagName, args));
+					tagNode.decorators.push(new TagNode(tagName, args, ""));
 
 				}
 				// move the cursor forward
@@ -264,7 +272,7 @@ exports = (typeof exports === "object") ? exports : null;
 		// Add a raw tag for the last piece to be renderec or if not tag are found
 		before = template.substring(lastTagEnd, template.length);
 		if (before.length) {
-			tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'"));
+			tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'", before));
 		}
 		return compileNode(tree[0]);
 	}
@@ -274,11 +282,12 @@ exports = (typeof exports === "object") ? exports : null;
 	 * @param name
 	 * @param argString
 	 */
-	function TagNode(name, argString) {
+	function TagNode(name, argString, raw) {
 		this.name = name;
 		this.argString = argString;
 		this.children = [];
 		this.decorators = [];
+		this.raw = raw;
 	}
 
 	/**
@@ -297,15 +306,29 @@ exports = (typeof exports === "object") ? exports : null;
 		for (i in node.children) {
 			child = node.children[i];
 			tagName = child.name;
-			content = (child.children.length || child.decorators.length) ? compileNode(child) : "";
+			if (tagName === "template") {
+				content = "'" + escape(compileInnertNode(child)) + "'";
+			} else {
+				content = (child.children.length || child.decorators.length) ? compileNode(child) : "";
+				content = (content) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + content + "}" : "null";
+			}
 			args = unescape(child.argString).trim();
-			blockHandler = (content) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + content + "}" : null;
-			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + blockHandler + ");\n");
+			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + content  + ");\n");
 		}
 		// Apply decorator functions
 		for (i in node.decorators) {
 			child = node.decorators[i];
 			stream.push("env.applyDecorator('" + child.name + "', " + child.argString + ");\n");
+		}
+		return stream.join("");
+	}
+	function compileInnertNode(node) {
+		var i,
+			stream = [],
+			child;
+		for (i in node.children) {
+			child = node.children[i];
+			stream.push(child.raw);
 		}
 		return stream.join("");
 	}
@@ -349,9 +372,24 @@ exports = (typeof exports === "object") ? exports : null;
 			}
 			return env.stream();
 		},
+		"template": function(args, env, blockHandler) {
+			var template,
+				id = args[0],
+				source = "",
+				environParam = env, //todo: reuse env or instantiate a new one ??
+				optionsParam = {};
+			source = blockHandler;
+			template = env.addTemplate(id, source, environParam, optionsParam);
+			return "";
+		},
 		"render" : function(args, env, blockHandler) {
-			env.out(env.render(args[0], args[1]));
-			return env.stream();
+			if (blockHandler) {
+				blockHandler.apply(this, [env, args]);
+			}
+			var output = env.render(args[0], args[1], {
+				"_body": env.stream()
+			});
+			return output;
 		},
 		"var" : function(args, env, blockHandler) {
 			var val;
@@ -429,7 +467,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 */
 	function escape(str) {
 		// Linefeeds
-		str = str.replace(/\n/g, "&#10;");
+		str = (str+"").replace(/\n/g, "&#10;");
 		str = str.replace(/'/g, "&rsquo;");
 		return str;
 	}
@@ -440,7 +478,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 */
 	function unescape(str) {
 		// Linefeeds
-		str = str.replace(/&#10;/g, "\\n");
+		str = (str+"").replace(/&#10;/g, "\\n");
 		// html entities
 		str = str.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
 		return str;

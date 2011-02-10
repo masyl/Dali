@@ -29,11 +29,25 @@ Other tags are innert: comment, template?, ...
 
 {{each this}}
 	odd: {{out loop.current /}}
+{{/each}}
+{{every 2}}
+	even: {{out loop.current /}}
+{{/every}}
+{{empty}}
+	list is empty!
+{{/empty}}
+
+-------
+
+// Should is be "each" or "for" ??
+
+{{each this}}
+	odd: {{out loop.current /}}
 {{every 2}}
 	even: {{out loop.current /}}
 {{empty}}
 	list is empty!
-{{/each}}
+{{endeach}}
 
 -----------
 
@@ -104,9 +118,13 @@ Define a variable using JSON and store as an object
 {{/var}}
 
 -------
+i18n could be a template global
 
-{{i18n}}Bonjour à vous!{{/i18n}}
-{{i18n "bonjour"}}Bonjour à vous!{{/i18n}}
+{{out i18n("Bonjour à vous les amis!")/}}
+{{out "Bonjour à vous les amis!" >> i18n /}}
+{{i18n}}Bonjour à vous les amis!{{/i18n}}
+{{i18n "bonjour"}}Bonjour à vous les amis!{{/i18n}}
+{{out >> i18n "bonjourAvous"}}Bonjour à vous les amis!{{/i18n}}
 
 ------
 

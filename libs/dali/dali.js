@@ -204,11 +204,11 @@ exports = (typeof exports === "object") ? exports : null;
 				} else {
 					tagName = tag.split(/ +/)[0].substring(2);
 				}
-				if (tagName[0] === "/") {
+				if (tagName.substring(0,3) === "end") {
 					tagType = "closeTag";
 					// Remove the trailing brace
 					tagName = tagName.split("}}")[0];
-					tagName = tagName.substring(1);
+					tagName = tagName.substring(3);
 				} else if (tag.substring(tag.length -3) === "/}}") {
 					tagType = "tag";
 					tagName = tagName.split("/}}")[0];
@@ -360,7 +360,7 @@ exports = (typeof exports === "object") ? exports : null;
 			}
 			return output + env.stream();
 		}, {}),
-		"#" : new Tag("#", function(args, env, blockHandler) {
+		"comment" : new Tag("comment", function(args, env, blockHandler) {
 			return "";
 		},{isInnert:true}),
 		"each" : new Tag("each", function(args, env, blockHandler) {

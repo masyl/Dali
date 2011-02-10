@@ -20,8 +20,8 @@
 <script id="sample-tagNotation-template" type="text/x-dali-template">
 <p>A closed tag:  {{out this.sample/}}</p>
 <p>A closed with some extra spaces:  {{  out this.sample   /}}</p>
-<p>An open tag:  {{out}} Wooopy! {{/out}}</p>
-<p>A tag in a tag:  {{if true}} {{out this.sample/}} {{/if}}</p>
+<p>An open tag:  {{out}} Wooopy! {{endout}}</p>
+<p>A tag in a tag:  {{if true}} {{out this.sample/}} {{endif}}</p>
 <p>A tag with multiple arguments:  {{if true, "Yes!", "No!" /}}</p>
 </script>
 </div>

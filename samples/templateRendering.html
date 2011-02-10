@@ -22,12 +22,12 @@
 	<div style="background: #fff; padding:10px; border:1px solid;">
 		{{out vars._body /}}
 	</div>
-{{/template}}
+{{endtemplate}}
 
 {{var "messageCount", 4 /}}
 {{render "welcomeUser", this.user}}
 	You have {{out vars.messageCount /}} new messages in your inbox!
-{{/render}}
+{{endrender}}
 
 </script>
 </div>

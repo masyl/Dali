@@ -15,13 +15,13 @@
 <ul>
 	{{each this.colors}}
 		<li style="color:{{out this /}}">{{out this /}}</li>
-	{{/each}}
+	{{endeach}}
 </ul>
 <h3>My bestest colors are:</h3>
 <ul>
 	{{each this.colors}}
 		{{out loop.current /}}:{{out this /}}{{if !loop.last, "," /}}{{if loop.last, "." /}}
-	{{/each}}
+	{{endeach}}
 </ul>
 </script>
 </div>

@@ -132,7 +132,7 @@ exports = (typeof exports === "object") ? exports : null;
 			this.applyTag = function (tagName, args, data, blockHandler) {
 				var content,
 					newEnv = new Env(vars),
-					tag = tags[tagName];
+					tag = tags[tagName].handler;
 				content = tag.apply(data, [args, newEnv, blockHandler]);
 				this.out(content);
 			};
@@ -226,7 +226,7 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 
 				// opening a new scope
-				if (typeof(tags[tagName])!=="function")
+				if (!tags[tagName])
 					throw(new Err("UnknownTag", "Encountered unknown tag \"" + tagName + "\""));
 				if (tagType === "tag") {
 					tagNode = new TagNode(tagName, args, tag);
@@ -289,6 +289,14 @@ exports = (typeof exports === "object") ? exports : null;
 		this.raw = raw;
 	}
 
+	function Tag(id, handler, options) {
+		this.isInnert = false; // determines if the tags content should be parsed or not
+		extend(this, options);
+		// The following attributes cannot be overriden with the options param
+		this.id = id;
+		this.handler = handler;
+	}
+
 	/**
 	 * Compile a tagNode and all its children into a javascript function
 	 * @param node
@@ -297,6 +305,7 @@ exports = (typeof exports === "object") ? exports : null;
 		var i,
 			stream = [],
 			content,
+			tag,
 			tagName,
 			child,
 			args,
@@ -305,14 +314,17 @@ exports = (typeof exports === "object") ? exports : null;
 		for (i in node.children) {
 			child = node.children[i];
 			tagName = child.name;
-			if (tagName === "template") {
-				content = "'" + escape(compileInnertNode(child)) + "'";
-			} else {
-				content = (child.children.length || child.decorators.length) ? compileNode(child) : "";
-				content = (content) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + content + "}" : "null";
+			tag = tags[tagName];
+			if (tag) {
+				if (tag.isInnert) {
+					content = "'" + escape(compileInnertNode(child)) + "'";
+				} else {
+					content = (child.children.length || child.decorators.length) ? compileNode(child) : "";
+					content = (content) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + content + "}" : "null";
+				}
+				args = unescape(child.argString).trim();
+				stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + content  + ");\n");
 			}
-			args = unescape(child.argString).trim();
-			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + content  + ");\n");
 		}
 		// Apply decorator functions
 		for (i in node.decorators) {
@@ -333,10 +345,10 @@ exports = (typeof exports === "object") ? exports : null;
 	}
 
 	var tags = {
-		"raw" : function(args, env, blockHandler) {
+		"raw" : new Tag("raw", function(args, env, blockHandler) {
 			return args.join("");
-		},
-		"if" : function(args, env, blockHandler) {
+		}, {}),
+		"if" : new Tag("if", function(args, env, blockHandler) {
 			var output = "";
 			if (args[0]) {
 				output = output + (args[1] || "");
@@ -347,11 +359,11 @@ exports = (typeof exports === "object") ? exports : null;
 				output = output + (args[2] || "");
 			}
 			return output + env.stream();
-		},
-		"#" : function(args, env, blockHandler) {
+		}, {}),
+		"#" : new Tag("#", function(args, env, blockHandler) {
 			return "";
-		},
-		"each" : function(args, env, blockHandler) {
+		},{isInnert:true}),
+		"each" : new Tag("each", function(args, env, blockHandler) {
 			var i, item, items, loop;
 			items = args[0];
 			if (typeof(blockHandler) === "function") {
@@ -363,15 +375,15 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 			}
 			return env.stream();
-		},
-		"out" : function(args, env, blockHandler) {
+		}, {}),
+		"out" : new Tag("out", function(args, env, blockHandler) {
 			env.out(args.join(""));
 			if (blockHandler) {
 				blockHandler.apply(this, [env, args]);
 			}
 			return env.stream();
-		},
-		"template": function(args, env, blockHandler) {
+		}, {}),
+		"template": new Tag("template", function(args, env, blockHandler) {
 			var template,
 				id = args[0],
 				source = "",
@@ -380,8 +392,8 @@ exports = (typeof exports === "object") ? exports : null;
 			source = blockHandler;
 			template = env.addTemplate(id, source, environParam, optionsParam);
 			return "";
-		},
-		"render" : function(args, env, blockHandler) {
+		}, {isInnert: true}),
+		"render" : new Tag("render", function(args, env, blockHandler) {
 			if (blockHandler) {
 				blockHandler.apply(this, [env, args]);
 			}
@@ -389,8 +401,8 @@ exports = (typeof exports === "object") ? exports : null;
 				"_body": env.stream()
 			});
 			return output;
-		},
-		"var" : function(args, env, blockHandler) {
+		}, {}),
+		"var" : new Tag("var", function(args, env, blockHandler) {
 			var val;
 			if (typeof(args[1]) !== "undefined") {
 				val = args[1];
@@ -401,7 +413,7 @@ exports = (typeof exports === "object") ? exports : null;
 			}
 			env.vars[args[0]] = val;
 			return "";
-		}
+		}, {})
 	};
 
 	var decorators = {

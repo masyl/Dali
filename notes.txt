@@ -94,6 +94,16 @@ same as :
 {{cycle "odd", "even" }}  (like django)
 
 -------
+Define a variable using JSON and store as an object
+
+{{var "messageCount" >> json /}}
+	{
+		a: 1,
+		b: 2
+	}
+{{/var}}
+
+-------
 
 {{i18n}}Bonjour à vous!{{/i18n}}
 {{i18n "bonjour"}}Bonjour à vous!{{/i18n}}
@@ -108,20 +118,6 @@ forloop.first 	True if this is the first time through the loop
 forloop.last 	True if this is the last time through the loop
 forloop.parentloop 	For nested loops, this is the loop "above" the current one
 
-
------
-
-{{template "welcomeUser"}}
-	<p>Welcome {{out this.firstname + " " + this.lastname /}}</p>
-	<div style="padding:20px; border:1px solid;">
-		{{out args.content /}}
-	</div>
-{{/template}}
-
-{{var "messageCount", 4 /}}
-{{render "welcomeUser", this.user}}
-	<p>You have {{out vars.messageCount /}} new messages in your inbox!</p>
-{{/render}}
 
 ------
 

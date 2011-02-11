@@ -77,6 +77,9 @@ done like this : {{ out (0 || 0 || 0 || 2 || 1) }}
 -------
 Define a variable using JSON and store as an object
 
+NOT POSSIBLE FOR NOW BECAUSE DECORATORS ARE PARSED
+OUTSIDE OF THE TAG HANDLER ITSELF
+
 {{var "messageCount" >> json /}}
 	{
 		a: 1,
@@ -131,9 +134,9 @@ forloop.parentloop 	For nested loops, this is the loop "above" the current one
 -----
 
 Reusability tags:
-{{load "templateName"}}
+{{load "templateName" }}
 {{include "templatenName" /}}
-{{extend "templateName"}}
+{{extend "templateName" }}
 
 -------
 

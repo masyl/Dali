@@ -339,11 +339,12 @@ exports = (typeof exports === "object") ? exports : null;
 			args,
 			blockHandler;
 		// Apply tags
-		for (i=0; i<node.children.length; i = i + 1) {
+		for (i = 0; i < node.children.length; i = i + 1) {
 			child = node.children[i];
 			tagName = child.name;
 			tag = tags[tagName];
 			if (tag.isInnert) {
+				args = unescape(child.argString).trim();
 				block = "'" + escape(compileInnertNode(child)) + "'";
 			} else {
 				// process alternate tag which might follow in the tag sequence
@@ -423,7 +424,7 @@ exports = (typeof exports === "object") ? exports : null;
 			function(args, env, block, alternateBlocks) {
 				return "";
 			},{
-				isInnert:true
+				isInnert: true
 			}
 		),
 		"each" : new Tag("each",
@@ -520,6 +521,7 @@ exports = (typeof exports === "object") ? exports : null;
 				source = "",
 				environParam = env, //todo: reuse env or instantiate a new one ??
 				optionsParam = {};
+			console.log(args, env, block, alternateBlocks);
 			source = block;
 			template = env.addTemplate(id, source, environParam, optionsParam);
 			return "";

@@ -129,11 +129,11 @@ exports = (typeof exports === "object") ? exports : null;
 			 * @param data
 			 * @param blockHandler
 			 */
-			this.applyTag = function (tagName, args, data, blockHandler) {
+			this.applyTag = function (tagName, args, data, blockHandler, alternateBlocks) {
 				var content,
 					newEnv = new Env(vars),
 					tag = tags[tagName].handler;
-				content = tag.apply(data, [args, newEnv, blockHandler]);
+				content = tag.apply(data, [args, newEnv, blockHandler, alternateBlocks]);
 				this.out(content);
 			};
 			/**
@@ -172,7 +172,8 @@ exports = (typeof exports === "object") ? exports : null;
 			decoratorsTags,
 			i,
 			j,
-			tagName,
+			tagName,  // ex.: if, endif
+			tagNameExtension, // ex.: if-elseif, if-else
 			tagType,
 			tree, // a tree representing the tag structure to be rendered
 			treeStack, // A stack of tagNodePointers used during recursion
@@ -186,7 +187,7 @@ exports = (typeof exports === "object") ? exports : null;
 
 
 		// Create the root TagNode
-		tagNode = tagNodePointer = new TagNode("out", "", "");
+		tagNode = tagNodePointer = new TagNode("out", "", "", "");
 		tree.push(tagNode);
 		treeStack.push(tagNode);
 		for (i in tagsMatch) {
@@ -195,7 +196,7 @@ exports = (typeof exports === "object") ? exports : null;
 				lastTagStart = template.indexOf(tag, lastTagEnd);
 				before = template.substring(lastTagEnd, lastTagStart);
 				if (before.length) {
-					tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'", before));
+					tagNodePointer.children.push(new TagNode("raw", "", "'" + escape(before) + "'", before));
 				}
 				tagName = tag.split(/ +/)[0];
 				// If the braces and tag name are separated by spaces
@@ -225,18 +226,39 @@ exports = (typeof exports === "object") ? exports : null;
 					args = segments[0].trim().substring(segments[0].trim().indexOf(" "));
 				}
 
-				// opening a new scope
+				// split the tagName and and the tagNameExtension
+				tagNameExtension = tagName.split("-").slice(1).join("");
+				tagName = tagName.split("-")[0];
+
+				// Test if tag exists
 				if (!tags[tagName])
 					throw(new Err("UnknownTag", "Encountered unknown tag \"" + tagName + "\""));
+				// If the tag is an alternate tag, test if it is applicable
+				if (tagNameExtension && !tags[tagName].alternateBlocks[tagNameExtension])
+					throw(new Err("UnknownAlternateTag", "Encountered unknown alternate tag \"" + tagName + "-" + tagNameExtension + "\""));
+
+// TODO: HANDLE CASE OF SELF-CLOSING ALT TAGS
+// TODO: HANDLE CASE OF CLOSE-TAG + ALT-TAG
+
 				if (tagType === "tag") {
-					tagNode = new TagNode(tagName, args, tag);
+					tagNode = new TagNode(tagName, "", args, tag);
 					tagNodePointer.children.push(tagNode);
 				} else if (tagType === "openTag" || tagType === "closeTag") {
 					if (tagType === "openTag") {
-						tagNode = new TagNode(tagName, args, tag);
-						tagNodePointer.children.push(tagNode);
-						treeStack.push(tagNode);
-						tagNodePointer = tagNode;
+						if (tagNameExtension) {
+							// Both close the current tag and open a new one.
+							tagNodePointer = treeStack.pop();
+							tagNodePointer = treeStack[treeStack.length-1];
+							tagNode = new TagNode(tagName, tagNameExtension, args, tag);
+							tagNodePointer.children.push(tagNode);
+							treeStack.push(tagNode);
+							tagNodePointer = tagNode;
+						} else {
+							tagNode = new TagNode(tagName, "", args, tag);
+							tagNodePointer.children.push(tagNode);
+							treeStack.push(tagNode);
+							tagNodePointer = tagNode;
+						}
 					} else {
 						// temporarelly move the pointer to the exiting scope and test to
 						// see if the tag was properly closed
@@ -261,7 +283,7 @@ exports = (typeof exports === "object") ? exports : null;
 						args = "[]";
 					}
 					if (typeof(decorators[tagName]) !== "function") throw(new Err("UnknownDecorator", "Encountered unknown decorator \"" + tagName + "\""));
-					tagNode.decorators.push(new TagNode(tagName, args, ""));
+					tagNode.decorators.push(new TagNode(tagName, "", args, ""));
 
 				}
 				// move the cursor forward
@@ -271,7 +293,7 @@ exports = (typeof exports === "object") ? exports : null;
 		// Add a raw tag for the last piece to be renderec or if not tag are found
 		before = template.substring(lastTagEnd, template.length);
 		if (before.length) {
-			tagNodePointer.children.push(new TagNode("raw", "'" + escape(before) + "'", before));
+			tagNodePointer.children.push(new TagNode("raw", "", "'" + escape(before) + "'", before));
 		}
 		return compileNode(tree[0]);
 	}
@@ -281,16 +303,19 @@ exports = (typeof exports === "object") ? exports : null;
 	 * @param name
 	 * @param argString
 	 */
-	function TagNode(name, argString, raw) {
+	function TagNode(name, nameExtension, argString, raw) {
 		this.name = name;
+		this.nameExtension = nameExtension;
 		this.argString = argString;
 		this.children = [];
 		this.decorators = [];
+		this.alternateBlocks = [];
 		this.raw = raw;
 	}
 
 	function Tag(id, handler, options) {
 		this.isInnert = false; // determines if the tags content should be parsed or not
+		this.alternateBlocks = {};
 		extend(this, options);
 		// The following attributes cannot be overriden with the options param
 		this.id = id;
@@ -304,27 +329,53 @@ exports = (typeof exports === "object") ? exports : null;
 	function compileNode(node) {
 		var i,
 			stream = [],
-			content,
+			block,
+			alternateBlock,
+			alternateBlocks,
 			tag,
 			tagName,
 			child,
+			nextChild, // used to peek ahead for alternate tags
 			args,
 			blockHandler;
 		// Apply tags
-		for (i in node.children) {
+		for (i=0; i<node.children.length; i = i + 1) {
 			child = node.children[i];
 			tagName = child.name;
 			tag = tags[tagName];
-			if (tag) {
-				if (tag.isInnert) {
-					content = "'" + escape(compileInnertNode(child)) + "'";
-				} else {
-					content = (child.children.length || child.decorators.length) ? compileNode(child) : "";
-					content = (content) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + content + "}" : "null";
+			if (tag.isInnert) {
+				block = "'" + escape(compileInnertNode(child)) + "'";
+			} else {
+				// process alternate tag which might follow in the tag sequence
+				// and collapse them into alternateBlocks to pass as arguments to
+				// the parent tag
+				alternateBlocks = "";
+				nextChild = node.children[i + 1];
+				while (nextChild && nextChild.nameExtension) {
+					i = i + 1;
+					//console.log("collapsing alternate tag", nextChild);
+					args = unescape(nextChild.argString).trim();
+					alternateBlock = (nextChild.children.length || nextChild.decorators.length) ? compileNode(nextChild) : "";
+					alternateBlock = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + alternateBlock + "}" : "null";
+					alternateBlock =
+						"{\nname: '" + nextChild.nameExtension + "',\n" +
+						"args: [" + args + "],\n" +
+						"handler: "+ alternateBlock + "\n" +
+						"}";
+					alternateBlocks = alternateBlocks + ", " + alternateBlock;
+					nextChild = node.children[i + 1];
 				}
 				args = unescape(child.argString).trim();
-				stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + content  + ");\n");
+				alternateBlocks = "[" + alternateBlocks.substring(2) + "]";
+				block = (child.children.length || child.decorators.length) ? compileNode(child) : "";
+				block = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + block + "}" : "null";
 			}
+			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + block  + ", " + alternateBlocks + ");\n");
+
+			/*
+			TODO: PROVIDE ALTERNATE BLOCKS
+			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + content  + ");\n");
+			 */
 		}
 		// Apply decorator functions
 		for (i in node.decorators) {
@@ -332,6 +383,14 @@ exports = (typeof exports === "object") ? exports : null;
 			stream.push("env.applyDecorator('" + child.name + "', " + child.argString + ");\n");
 		}
 		return stream.join("");
+	}
+
+	/**
+	 * Object to provide source code for a block handler
+	 * @constructor
+	 */
+	function BlockHandler() {
+
 	}
 	function compileInnertNode(node) {
 		var i,
@@ -345,70 +404,142 @@ exports = (typeof exports === "object") ? exports : null;
 	}
 
 	var tags = {
-		"raw" : new Tag("raw", function(args, env, blockHandler) {
+		"raw" : new Tag("raw", function(args, env, block, alternateBlocks) {
 			return args.join("");
 		}, {}),
-		"if" : new Tag("if", function(args, env, blockHandler) {
+		"if" : new Tag("if", function(args, env, block, alternateBlocks) {
 			var output = "";
 			if (args[0]) {
 				output = output + (args[1] || "");
-				if (typeof(blockHandler) === "function") {
-					blockHandler.apply(this, [env, args]);
+				if (typeof(block) === "function") {
+					block.apply(this, [env, args]);
 				}
 			} else {
 				output = output + (args[2] || "");
 			}
 			return output + env.stream();
 		}, {}),
-		"comment" : new Tag("comment", function(args, env, blockHandler) {
-			return "";
-		},{isInnert:true}),
-		"each" : new Tag("each", function(args, env, blockHandler) {
-			var i, item, items, loop;
-			items = args[0];
-			if (typeof(blockHandler) === "function") {
-				loop = new Loop(items.length);
-				for (i in items) {
-					loop.step();
-					item = items[i];
-					blockHandler.apply(item, [env, args, loop]);
+		"comment" : new Tag("comment",
+			function(args, env, block, alternateBlocks) {
+				return "";
+			},{
+				isInnert:true
+			}
+		),
+		"each" : new Tag("each",
+			function(args, env, _block, alternateBlocks) {
+				var i,
+					item,
+					items,
+					block,
+					loop,
+					altBlocksObj,
+					altBlock;
+
+				altBlocksObj = objectfyAlternateBlocks(alternateBlocks,{
+					"empty": [],
+					"single": [],
+					"begin": [],
+					"end": [],
+					"first": [],
+					"between": [],
+					"last": []
+				});
+				function objectfyAlternateBlocks(blocks, obj) {
+					var block;
+					for (var iBlock in blocks) {
+						block = blocks[iBlock];
+						if (obj[block.name]) obj[block.name].push(block);
+					}
+					return obj;
+				}
+				items = args[0];
+				if (typeof(_block) === "function") {
+					if (items && items.length) {
+						loop = new Loop(items.length);
+						// to insert after all items
+						if (altBlocksObj.begin[0]) {
+							altBlocksObj.begin[0].handler.apply(item, [env, args, loop]);
+						}
+						for (i=0; i<items.length; i = i + 1) {
+							loop.step();
+							item = items[i];
+							block = null;
+							if (i==0 && items.length==1) {
+								// Is single item
+								block = altBlocksObj.single[0];
+							} else if (i==0) {
+								// Is first item
+								block = altBlocksObj.first[0];
+							} else if (i==items.length-1) {
+								// Is last item
+								block = altBlocksObj.last[0];
+							}
+							//todo: optimize this... its confusing
+							if (!block) block = _block;
+							block = (block.handler || block);
+							block.apply(item, [env, args, loop]);
+
+							// to insert between each item
+							if (altBlocksObj.between[0] && i<items.length-1) {
+								altBlocksObj.between[0].handler.apply(item, [env, args, loop]);
+							}
+						}
+						// to insert after all items
+						if (altBlocksObj.end[0]) {
+							altBlocksObj.end[0].handler.apply(item, [env, args, loop]);
+						}
+					} else {
+						altBlock = altBlocksObj.empty[0];
+						if (altBlock) altBlock.handler.apply({}, [env, args, null]);
+					}
+				}
+				return env.stream();
+			}, {
+				"alternateBlocks": {
+					"empty": [],
+					"single": [],
+					"begin": [],
+					"end": [],
+					"first": [],
+					"between": [],
+					"last": []
 				}
 			}
-			return env.stream();
-		}, {}),
-		"out" : new Tag("out", function(args, env, blockHandler) {
+		),
+		"out" : new Tag("out", function(args, env, block, alternateBlocks) {
 			env.out(args.join(""));
-			if (blockHandler) {
-				blockHandler.apply(this, [env, args]);
+			if (block) {
+				block.apply(this, [env, args]);
 			}
 			return env.stream();
 		}, {}),
-		"template": new Tag("template", function(args, env, blockHandler) {
+		"template": new Tag("template", function(args, env, block, alternateBlocks) {
 			var template,
 				id = args[0],
 				source = "",
 				environParam = env, //todo: reuse env or instantiate a new one ??
 				optionsParam = {};
-			source = blockHandler;
+			source = block;
 			template = env.addTemplate(id, source, environParam, optionsParam);
 			return "";
 		}, {isInnert: true}),
-		"render" : new Tag("render", function(args, env, blockHandler) {
-			if (blockHandler) {
-				blockHandler.apply(this, [env, args]);
+		"render" : new Tag("render", function(args, env, block, alternateBlocks) {
+			if (block) {
+				block.apply(this, [env, args]);
 			}
 			var output = env.render(args[0], args[1], {
 				"_body": env.stream()
 			});
 			return output;
 		}, {}),
-		"var" : new Tag("var", function(args, env, blockHandler) {
+		"var" : new Tag("var", function(args, env, block, alternateBlocks) {
 			var val;
 			if (typeof(args[1]) !== "undefined") {
 				val = args[1];
 			}
-			if (blockHandler) {
-				blockHandler.apply(this, [env, args]);
+			if (block) {
+				block.apply(this, [env, args]);
 				val = env.stream();
 			}
 			env.vars[args[0]] = val;

@@ -3,33 +3,60 @@
 	<div class="description">
 		<p>To iterate across arrays and object members, you can use the "each" tag.</p>
 		<p>This tag behaves similarly to a javascript "for" statement, but does more by automatically setting the current item to the "this" object.</p>
-		<p>Also, a loop object is made available to access the current state of the iteration.</p>
+		<p>Also, a "loop" object is made available to access the current state of the iteration.</p>
+		<h3>Alternate tags:</h3>
+		<ul>
+			<li>{{each-first}} : Used for the first item.</li>
+			<li>{{each-last}} : Used for the last item.</li>
+			<li>{{each-begin}} : Content to append before all items if not empty.</li>
+			<li>{{each-between}} : Content to append between each item.</li>
+			<li>{{each-end}} : Content to append after all items if not empty.</li>
+			<li>{{each-single}} : Used when the collection has a single item.</li>
+			<li>{{each-empty}} : Used when the collection to iterate is empty.</li>
+		</ul>
 	</div>
 <script id="sample-Iterator-data" type="application/json">
 {
-	"colors": ["blue", "red", "green"],
+	"allColors": ["blue", "red", "green"],
+	"favColor": ["red"],
 	"colorsForFunerals": []
 }
 </script>
 <script id="sample-Iterator-template" type="text/x-dali-template">
-<h3>My bestest colors are:</h3>
+<h3>Available colors are:</h3>
 <ul>
-	{{each this.colors}}
+	{{each this.allColors}}
 		<li style="color:{{out this /}}">{{out this /}}</li>
+	{{each-last}}
+		<li style="color:{{out this /}}">{{out this /}} (is last item)</li>
+	{{each-first}}
+		<li style="color:{{out this /}}">{{out this /}} (is first item)</li>
 	{{endeach}}
 </ul>
-<h3>My bestest colors are:</h3>
-<ul>
-	{{each this.colors}}
-		{{out loop.current /}}:{{out this /}}{{if !loop.last, "," /}}{{if loop.last, "." /}}
+<div>
+	{{each this.allColors}}
+		<span style="color:{{out this /}}">{{out this /}}</span>
+	{{each-begin >> trim}}
+		<span>Available colors are </span>
+	{{each-between >> trim}}
+		<span>, </span>
+	{{each-end >> trim}}
+		<span style="color:#999"> !!!</span>
 	{{endeach}}
-</ul>
-<h3>Colors for funerals:</h3>
+</div>
+<h3>My favorite color is
+	{{each this.favColor}}
+		<span style="color:{{out this /}}">{{out this /}}</span>
+	{{each-single}}
+		<span style="color:{{out this /}}">{{out this /}} (is single item)</span>
+	{{endeach}}
+</h3>
+<h4>Colors for funerals:</h4>
 <ul>
 	{{each this.colorsForFunerals}}
 		{{out this /}}
 	{{each-empty}}
-		None!
+		<li>No matching colors found!</li>
 	{{endeach}}
 </ul>
 </script>

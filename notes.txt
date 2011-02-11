@@ -1,40 +1,18 @@
 
-Allow event subscriptions
-
--------
-
-Some tags should have its content parsed: if, each, out
-Other tags are innert: comment, template?, ...
+Allow event subscriptions onTag, onDecorator, onWhatever
 
 ---------
 
+Alternate tag for if-or, if-else, any other form ?
+
 {{if 2 > 3}}
 	yaaata!
-{{if-else 2 = 2}}
+{{if-or 2 = 2}}  <--- more than one
 	Pfff...
-{{if-not}}
+{{if-else}}
 	Pfff...
 {{endif}}
 
--------
-
-// Should is be "each" or "for" ??
-
-{{each this}}
-	odd: {{out loop.current /}}
-{{each-every 2}}
-	even: {{out loop.current /}}
-{{each-empty}}
-	list is empty!
-{{endeach}}
-
-{{for this}}
-	odd: {{out loop.current /}}
-{{for-every 2}}
-	even: {{out loop.current /}}
-{{for-empty}}
-	list is empty!
-{{endfor}}
 
 -----------
 
@@ -80,21 +58,17 @@ same as :
 
 -------
 
+Example for this syntax:
 {{ firstof var1, var2, var3, "fallback value" /}}  from django
+done like this : {{ out (0 || 0 || 0 || 2 || 1) }}
 
 -------
 
 /**
- * Loop 31 times, with alternate output every 2 items with 1 offset count
+ * Sample to show a Loop 31 times without data
  */
- Or "repeat" ?
- Or {{each spawn(3) }} or similar ?
-
-{{loop 31}}
-	odd: {{out loop.current /}}
-{{loop-every 2, 1}}
-	even: {{out loop.current /}}
-{{/loop}}
+ Or {{each spawn(31) }} or similar ?
+ Or {{each new Array(31) }}
 
 ----
 

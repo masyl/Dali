@@ -36,11 +36,10 @@ exports = (typeof exports === "object") ? exports : null;
 				var newVars = {},
 					output,
 					env;
-				//extend(newVars, this.vars);
+				extend(newVars, this.vars);
 				extend(newVars, vars);
-
 				env = new Env(newVars);
-				//console.log("}}}", env, env.vars, newVars);
+
 				try {
 					output = this.handler.call(data, env);
 				} catch(err) {

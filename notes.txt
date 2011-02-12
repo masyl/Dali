@@ -3,6 +3,51 @@ Allow event subscriptions onTag, onDecorator, onWhatever
 
 ---------
 
+Template inheritance:
+
+{{var "pageClass", "yeah" /}}
+{{render "templateId" }}
+{{render-block "title" >> trime}}
+	Yeah!
+{{render-block "content" }}
+	Yeah!!! this is content!
+{{render-block "footer" }}
+	Yeah!!! this is content!
+{{endrender}}
+
+
+{{template "basePage"}}
+	{{render "html5"}}
+	{{render-block "head" }}
+		<title>Welcome :: {{out vars.template.title /}}</title>
+	{{render-block "header" }}
+		{{out vars.template.header /}}
+	{{render-block "content" }}
+		{{out vars.template.content /}}
+	{{render-block "footer"}}
+		<div style="border: 1px solid; padding: 20px">
+				{{out vars.template.footer /}}
+				<div class="copyright">Copyright 2011</div>
+		<div>
+	{{endrender}}
+{{endtemplate}}
+
+
+{{template "html5"}}
+	<html>
+		<head>
+			{{out vars.template.head /}}
+		</head>
+		<body class="{{out vars.pageClass /}}">
+			{{out vars.template.header /}}
+			{{out vars.template.content /}}
+			{{out vars.template.footer /}}
+		</body>
+	</html>
+{{endtemplate}}
+
+---------
+
 Alternate tag for if-or, if-else, any other form ?
 
 {{if 2 > 3}}
@@ -15,6 +60,8 @@ Alternate tag for if-or, if-else, any other form ?
 
 
 -----------
+
+Is it usefull ?
 
 {{with this.reservation.days}}
 	{{out this.length /}} days left
@@ -136,7 +183,6 @@ forloop.parentloop 	For nested loops, this is the loop "above" the current one
 Reusability tags:
 {{load "templateName" }}
 {{include "templatenName" /}}
-{{extend "templateName" }}
 
 -------
 

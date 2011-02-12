@@ -30,16 +30,17 @@ exports = (typeof exports === "object") ? exports : null;
 			this.source = source;
 			this.handler = compile();
 			this.vars = {};
-
 			extend(this.vars, vars);
 
 			this.render = function render(data, vars) {
 				var newVars = {},
 					output,
 					env;
-				extend(newVars, this.vars);
+				//extend(newVars, this.vars);
 				extend(newVars, vars);
+
 				env = new Env(newVars);
+				//console.log("}}}", env, env.vars, newVars);
 				try {
 					output = this.handler.call(data, env);
 				} catch(err) {
@@ -49,13 +50,12 @@ exports = (typeof exports === "object") ? exports : null;
 			};
 
 			function compile() {
-				var
-						fn,
-						err,
-						source =
-						"var vars = env.vars;\n" +
-						lexer(escape(template.source)) +
-						"return env.stream();\n";
+				var fn,
+					err,
+					source =
+					"var vars = env.vars;\n" +
+					lexer(escape(template.source)) +
+					"return env.stream();\n";
 				//console.log("Template source: \n", source);
 				try {
 					fn = new Function("env", source);
@@ -80,18 +80,18 @@ exports = (typeof exports === "object") ? exports : null;
 		 * Add a new template instance and compile it
 		 * @param id {string} he id by which this new tempalte can be called
 		 * @param source {string} the source of the template to compile
-		 * @param environParam {object} specific environment data to be made available during rendering
+		 * @param _vars {object} specific environment data to be made available during rendering
 		 * @param optionsParam {object} options, none for now
 		 */
-		this.add = function add(id, source, environParam, optionsParam) {
+		this.add = function add(id, source, _vars, optionsParam) {
 			var options = {},
-				environ = {
+				vars = {
 					Env: Env,
 					dali: dali
 				};
 			extend(options, optionsParam);
-			extend(environ, environParam);
-			return dali.templates[id] = new dali.Template(id, source, environ, options);
+			extend(vars, vars);
+			return dali.templates[id] = new dali.Template(id, source, vars, options);
 		};
 
 		/**
@@ -101,12 +101,14 @@ exports = (typeof exports === "object") ? exports : null;
 		 */
 		function Env(vars) {
 			this.dali = dali;
-			this.vars = vars || {};
+			this.vars = vars || {}; // TODO: REFACTOR: Should this be extended? And restricted to local scope ?
 			this.render = function (id, data, env) {
-				return dali.get(id).render(data, env);
+				var template = dali.get(id);
+				if (!template) throw new Err("TemplateNotFound", "Template not found: " + id);
+				return template.render(data, env);
 			};
-			this.addTemplate = function (id, source, environParam, optionsParam) {
-				return dali.add(id, source, environParam, optionsParam);
+			this.addTemplate = function (id, source, vars, optionsParam) {
+				return dali.add(id, source, vars, optionsParam);
 			};
 			this._stream = [];
 			/**
@@ -122,6 +124,10 @@ exports = (typeof exports === "object") ? exports : null;
 			this.stream = function () {
 				return this._stream.join("");
 			};
+			this.flush = function() {
+				this._stream = [];
+				return this;
+			};
 			/**
 			 * Render a tag with the available arguments, contextual data and block content
 			 * @param tagName
@@ -131,10 +137,13 @@ exports = (typeof exports === "object") ? exports : null;
 			 */
 			this.applyTag = function (tagName, args, data, blockHandler, alternateBlocks) {
 				var content,
-					newEnv = new Env(vars),
+					newEnv = new Env(this.vars),
+					//newEnv = this,
 					tag = tags[tagName].handler;
+				//console.log("WTF>>>>", this.vars, newEnv.vars, tagName, args);
 				content = tag.apply(data, [args, newEnv, blockHandler, alternateBlocks]);
 				this.out(content);
+				return this;
 			};
 			/**
 			 * Apply a decorator function to the available arguments
@@ -151,6 +160,7 @@ exports = (typeof exports === "object") ? exports : null;
 					newArray.push(str);
 				}
 				this._stream = newArray;
+				return this;
 			};
 		}
 
@@ -185,12 +195,12 @@ exports = (typeof exports === "object") ? exports : null;
 		tree = [];
 		treeStack = [];
 
-
 		// Create the root TagNode
 		tagNode = tagNodePointer = new TagNode("out", "", "", "");
 		tree.push(tagNode);
 		treeStack.push(tagNode);
 		for (i in tagsMatch) {
+
 			if (tagsMatch.hasOwnProperty(i)) {
 				tag = tagsMatch[i];
 				lastTagStart = template.indexOf(tag, lastTagEnd);
@@ -250,9 +260,11 @@ exports = (typeof exports === "object") ? exports : null;
 							tagNodePointer = treeStack.pop();
 							tagNodePointer = treeStack[treeStack.length-1];
 							tagNode = new TagNode(tagName, tagNameExtension, args, tag);
+							tagNode.xyz = 0;
 							tagNodePointer.children.push(tagNode);
 							treeStack.push(tagNode);
 							tagNodePointer = tagNode;
+
 						} else {
 							tagNode = new TagNode(tagName, "", args, tag);
 							tagNodePointer.children.push(tagNode);
@@ -265,6 +277,7 @@ exports = (typeof exports === "object") ? exports : null;
 						tagNodePointer = treeStack.pop();
 						if (tagName !== tagNodePointer.name)
 							throw(new Err("BadlyClosedTag", "Was expecting closing tag for \"" + tagNodePointer.name + "\" but encountered \"" + tagName + "\""));
+						tagNodePointer.rawEnd = tag;
 						tagNodePointer = treeStack[treeStack.length-1];
 					}
 				}
@@ -311,6 +324,7 @@ exports = (typeof exports === "object") ? exports : null;
 		this.decorators = [];
 		this.alternateBlocks = [];
 		this.raw = raw;
+		this.rawEnd = "";
 	}
 
 	function Tag(id, handler, options) {
@@ -353,7 +367,6 @@ exports = (typeof exports === "object") ? exports : null;
 				alternateBlocks = "";
 				nextChild = node.children[i + 1];
 				while (nextChild && nextChild.nameExtension) {
-					i = i + 1;
 					//console.log("collapsing alternate tag", nextChild);
 					args = unescape(nextChild.argString).trim();
 					alternateBlock = (nextChild.children.length || nextChild.decorators.length) ? compileNode(nextChild) : "";
@@ -364,6 +377,7 @@ exports = (typeof exports === "object") ? exports : null;
 						"handler: "+ alternateBlock + "\n" +
 						"}";
 					alternateBlocks = alternateBlocks + ", " + alternateBlock;
+					i = i + 1;
 					nextChild = node.children[i + 1];
 				}
 				args = unescape(child.argString).trim();
@@ -373,10 +387,6 @@ exports = (typeof exports === "object") ? exports : null;
 			}
 			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + block  + ", " + alternateBlocks + ");\n");
 
-			/*
-			TODO: PROVIDE ALTERNATE BLOCKS
-			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + content  + ");\n");
-			 */
 		}
 		// Apply decorator functions
 		for (i in node.decorators) {
@@ -400,6 +410,8 @@ exports = (typeof exports === "object") ? exports : null;
 		for (i in node.children) {
 			child = node.children[i];
 			stream.push(child.raw);
+			if (child.children) stream.push(compileInnertNode(child));
+			stream.push(child.rawEnd);
 		}
 		return stream.join("");
 	}
@@ -446,14 +458,6 @@ exports = (typeof exports === "object") ? exports : null;
 					"between": [],
 					"last": []
 				});
-				function objectfyAlternateBlocks(blocks, obj) {
-					var block;
-					for (var iBlock in blocks) {
-						block = blocks[iBlock];
-						if (obj[block.name]) obj[block.name].push(block);
-					}
-					return obj;
-				}
 				items = args[0];
 				if (typeof(_block) === "function") {
 					if (items && items.length) {
@@ -518,23 +522,45 @@ exports = (typeof exports === "object") ? exports : null;
 		"template": new Tag("template", function(args, env, block, alternateBlocks) {
 			var template,
 				id = args[0],
-				source = "",
-				environParam = env, //todo: reuse env or instantiate a new one ??
+				source = "", //todo: reuse env or instantiate a new one ??
 				optionsParam = {};
-			console.log(args, env, block, alternateBlocks);
+
+			var vars = {};
+			extend(vars, env.vars);
 			source = block;
-			template = env.addTemplate(id, source, environParam, optionsParam);
+			template = env.addTemplate(id, source, vars, optionsParam);
 			return "";
-		}, {isInnert: true}),
+		}, {
+			isInnert: true
+		}),
 		"render" : new Tag("render", function(args, env, block, alternateBlocks) {
+			var i, output, vars, varName, varBlocks, varBlock, altBlocksObj;
+			altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
+				"var": []
+			});
+			varBlocks = altBlocksObj["var"];
+			for (i in varBlocks) {
+				varBlock = varBlocks[i];
+				varName = varBlock.args[0];
+				env.flush();
+				//console.log(">>>> ", env.vars);
+				varBlock.handler.apply({}, [env, args]);
+				//console.log(">>>>2 ", env.vars, env.stream()+ "8"+varName, varBlock.handler.toString());
+				env.vars[varName] = env.stream();
+			}
 			if (block) {
+				env.flush();
 				block.apply(this, [env, args]);
 			}
-			var output = env.render(args[0], args[1], {
-				"_body": env.stream()
-			});
+			env.vars._body = env.stream();
+			//console.log("vars::: ", env.vars, args);
+			output = env.render(args[0], args[1], env.vars);
 			return output;
-		}, {}),
+		}, {
+			"alternateBlocks": {
+				"var": []
+			}
+		}),
 		"var" : new Tag("var", function(args, env, block, alternateBlocks) {
 			var val;
 			if (typeof(args[1]) !== "undefined") {
@@ -562,6 +588,20 @@ exports = (typeof exports === "object") ? exports : null;
 	};
 
 	/**
+	 * Convert an array of alternate tags to an dictionnary object
+	 * @param blocks
+	 * @param obj
+	 */
+	function objectfyAlternateBlocks(blocks, obj) {
+		var block;
+		for (var iBlock in blocks) {
+			block = blocks[iBlock];
+			if (obj[block.name]) obj[block.name].push(block);
+		}
+		return obj;
+	}
+
+	/**
 	 * Error helper constructor
 	 * @param name
 	 * @param message
@@ -571,7 +611,7 @@ exports = (typeof exports === "object") ? exports : null;
 		err.name = name;
 		err.message = message;
 		return err;
-	};
+	}
 
 	/**
 	 * Iterator state object

@@ -1,0 +1,73 @@
+<div id="sample-templateInheritance" class="daliSample">
+	<div class="title">Template rendering</div>
+	<div class="description">
+		<p>
+		</p>
+	</div>
+<script id="sample-templateInheritance-data" type="application/json">
+{user: {
+	firstname: "John",
+	lastname: "Doe"
+}}
+</script>
+<script id="sample-templateInheritance-template" type="text/x-dali-template">
+
+
+{{template "basePage"}}
+	{{render "html5"}}
+	{{render-var "html_head" }}
+		<div class="title">Welcome :: {{out vars._title /}}</div>
+	{{render-var "html_content" }}
+		<div style="border: 1px solid; padding: 10px">
+			{{out vars._content /}}
+		</div>
+	{{render-var "html_footer"}}
+		<div style="border: 1px solid; padding: 10px">
+			{{out vars._footer /}}
+			<div class="copyright">Copyright 2011</div>
+		</div>
+	{{endrender}}
+{{endtemplate}}
+
+
+{{template "html5"}}
+	<style>
+		.html {
+			padding: 10px;
+			background: #fff;
+		}
+		.head {
+			background: #f3f3f3;
+			margin-bottom: 10px;
+			padding: 10px;
+		}
+		.body {
+			background: #f3f3f3;
+			padding: 10px;
+		}
+	</style>
+	<div class="html">
+		<div class="head">
+			{{out vars.html_head /}}
+		</div>
+		<div class="body {{out vars.pageClass /}}">
+			{{out vars.html_content /}}
+			{{out vars.html_footer /}}
+		</div>
+	</div>
+{{endtemplate}}
+
+			
+{{var "pageClass", "yeah" /}}
+
+	{{render "basePage" }}
+{{render-var "_title" >> trim}}
+	Its a title!
+{{render-var "_content" }}
+	Content goes here!
+{{render-var "_footer" }}
+	And something in the footer.
+{{endrender}}
+
+</script>
+</div>

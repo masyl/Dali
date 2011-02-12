@@ -551,7 +551,7 @@ exports = (typeof exports === "object") ? exports : null;
 				env.flush();
 				block.apply(this, [env, args]);
 			}
-			env.vars._body = env.stream();
+			env.vars._tag = env.stream();
 			//console.log("vars::: ", env.vars, args);
 			output = env.render(args[0], args[1], env.vars);
 			return output;

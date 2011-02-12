@@ -11,24 +11,39 @@
 }}
 </script>
 <script id="sample-templateInheritance-template" type="text/x-dali-template">
-
+{{template "page"}}
+	{{var "pageClass", "yeah" /}}
+	{{render "basePage" }}
+	{{render-var "_title" >> trim}}
+		Its a title!
+	{{render-var "_content" }}
+		Content goes here!
+	{{render-var "_footer" }}
+		And something in the footer.
+	{{endrender}}
+{{endtemplate}}
 
 {{template "basePage"}}
 	{{render "html5"}}
-	{{render-var "html_head" }}
+		This default block will be available as the _tag variable!<br/>
+		For page templates, it might be usefull to pass meta-data such as
+		build version, render time, credits or other secondary information
+		to be hidden to the user but available to the devs.</br></br>
+		the _tag var is not really semantically suited to be used like
+		for the content of a body.
+	{{render-var "_head" }}
 		<div class="title">Welcome :: {{out vars._title /}}</div>
-	{{render-var "html_content" }}
-		<div style="border: 1px solid; padding: 10px">
+	{{render-var "_content" }}
+		<div style="border: 1px solid; padding: 10px; margin-bottom: 10px;">
 			{{out vars._content /}}
 		</div>
-	{{render-var "html_footer"}}
+	{{render-var "_footer"}}
 		<div style="border: 1px solid; padding: 10px">
 			{{out vars._footer /}}
 			<div class="copyright">Copyright 2011</div>
 		</div>
 	{{endrender}}
 {{endtemplate}}
-
 
 {{template "html5"}}
 	<style>
@@ -48,25 +63,18 @@
 	</style>
 	<div class="html">
 		<div class="head">
-			{{out vars.html_head /}}
+			{{out vars._head /}}
 		</div>
 		<div class="body {{out vars.pageClass /}}">
-			{{out vars.html_content /}}
-			{{out vars.html_footer /}}
+			{{out vars._content /}}
+			{{out vars._footer /}}
 		</div>
+	</div>
+	<div style="font-size: 0.8em; margin-top: 10px; color: #999">
+		{{out vars._tag /}}
 	</div>
 {{endtemplate}}
 
-			
-{{var "pageClass", "yeah" /}}
-	{{render "basePage" }}
-{{render-var "_title" >> trim}}
-	Its a title!
-{{render-var "_content" }}
-	Content goes here!
-{{render-var "_footer" }}
-	And something in the footer.
-{{endrender}}
-
+{{render "page" /}}
 </script>
 </div>

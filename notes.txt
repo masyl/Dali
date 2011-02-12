@@ -7,19 +7,22 @@ Alternate tag for if-or, if-else, any other form ?
 
 {{if 2 > 3}}
 	yaaata!
-{{if-or 2 = 2}}  <--- more than one
+{{if-else 2 = 2}}  <--- more than one
 	Pfff...
-{{if-else}}
+{{if-not}}
 	Pfff...
 {{endif}}
 
 
 -----------
 
-Is it usefull ?
+Is a with statement usefull ?
+Could it have practical alternateTags.
 
-{{with this.reservation.days}}
+{{with this.reservation.days }}
 	{{out this.length /}} days left
+{{with-empty}}
+	No days left!
 {{endwith}}
 
 -----------
@@ -58,21 +61,8 @@ same as :
 	{{/each}}
 {{/each}}
 
--------
 
-Example for this syntax:
-{{ firstof var1, var2, var3, "fallback value" /}}  from django
-done like this : {{ out (0 || 0 || 0 || 2 || 1) }}
 
--------
-
-/**
- * Sample to show a Loop 31 times without data
- */
- Or {{each spawn(31) }} or similar ?
- Or {{each new Array(31) }}
-
-----
 
 {{cycle "odd", "even" }}  (like django)
 
@@ -102,36 +92,52 @@ i18n could be a template global
 
 More complete Loop object
 
-forloop.counter 	The current iteration of the loop (1-indexed)
-forloop.revcounter 	The number of iterations from the end of the loop (1-indexed)
-forloop.first 	True if this is the first time through the loop
-forloop.last 	True if this is the last time through the loop
-forloop.parentloop 	For nested loops, this is the loop "above" the current one
+** SOULD be a prefixed var like so _loop
 
+_loop.counter 	The current iteration of the loop (1-indexed)
+_loop.revcounter 	The number of iterations from the end of the loop (1-indexed)
+_loop.first 	True if this is the first time through the loop
+_loop.last 	True if this is the last time through the loop
+_loop.parent 	For nested loops, this is the loop "above" the current one
 
-------
+----------
+Special vars
 
-{{macro "welcomeUser", "firstname", "lastname"}}
-	<p>Welcome {{out args.firstname + " " + args.lastname /}}</p>
-	<div style="padding:20px; border:1px solid;">
-		{{out args.content /}}
+vars._parent	The parent data context
+env._parent		The parent environement ?
+
+----------
+
+Custom Tags
+
+? What would be the "this" object ?
+- arguments and alternate blocks for passing prefixed vars
+
+{{tag "welcomeBox", "first", "last", "color"}}
+	<p>Welcome {{out this.first + " " + this.last /}}</p>
+	<div style="padding:20px; border:1px solid; background: #fff;">
+		{{out vars._tag /}}
 	</div>
-{{/macro}}
+{{endtag}}
 
-{{var "messageCount", 4 /}}
-{{call "welcomeUser", this.firstname, this.lastname }}
-	<p>You have {{out vars.messageCount /}} new messages in your inbox!</p>
-{{/call}}
+data= {
+	first: "John",
+	last: "Doe",
+	favoriteColor: "green",
+	unreadMessages: 4
+}
 
-------
+{{var "messageCount", this.unreadMessages /}}
+{{welcomeBox this.firstname, this.lastname, this.favoriteColor }}
+	<p style="color:{{out this.color /}}">You have {{out vars.messageCount /}} new messages in your inbox!</p>
+{{endwelcomeBox}}
 
-{{tag "welcomeUser"}}
-	<p>
-		Welcome {{out this.fullUsername //}
-	</p>
-{{/tag}}
 
-{{welcomeUser user /}}
+-----
+
+Ability to use tags as functions:
+
+{{out welcomeUser}}
 
 -----
 
@@ -141,3 +147,21 @@ Reusability tags:
 
 -------
 
+
+------------------------------------------
+SYNTAXIC EQUIVALENCIES
+------------------------------------------
+
+Example for this syntax:
+{{ firstof var1, var2, var3, "fallback value" /}}  from django
+done like this : {{ out (0 || 0 || 0 || 2 || 1) }}
+
+-------
+
+/**
+ * Sample to show a Loop 31 times without data
+ */
+ Or {{each spawn(31) }} or similar ?
+ Or {{each new Array(31) }}
+
+----

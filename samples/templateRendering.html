@@ -7,7 +7,7 @@
 		<p>
 			The "template" tag will create and register a new template and the "render" tag will
 			render a template with the data you provide. Note that before rendering, the content of the
-			tag will first be rendered and then passed to the template as a variable called "_body"
+			tag will first be rendered and then passed to the template as a variable called "_ouput"
 		</p>
 	</div>
 <script id="sample-templateRendering-data" type="application/json">
@@ -20,7 +20,7 @@
 {{template "welcomeUser"}}
 	<h3>Welcome {{out this.firstname + " " + this.lastname /}}</h3>
 	<div style="background: #fff; padding:10px; border:1px solid;">
-		{{out vars._tag /}}
+		{{out vars._output /}}
 	</div>
 {{endtemplate}}
 

@@ -110,15 +110,8 @@ env._parent		The parent environement ?
 
 Custom Tags
 
-? What would be the "this" object ?
+- The this object is the collection of named arguments
 - arguments and alternate blocks for passing prefixed vars
-
-{{tag "welcomeBox", "first", "last", "color"}}
-	<p>Welcome {{out this.first + " " + this.last /}}</p>
-	<div style="padding:20px; border:1px solid; background: #fff;">
-		{{out vars._tag /}}
-	</div>
-{{endtag}}
 
 data= {
 	first: "John",
@@ -126,6 +119,13 @@ data= {
 	favoriteColor: "green",
 	unreadMessages: 4
 }
+
+{{tag "welcomeBox", "first", "last", "color"}}
+	<p>Welcome {{out this.first + " " + this.last /}}</p>
+	<div style="padding:20px; border:1px solid; background: #fff;">
+		{{out vars._output /}}
+	</div>
+{{endtag}}
 
 {{var "messageCount", this.unreadMessages /}}
 {{welcomeBox this.firstname, this.lastname, this.favoriteColor }}
@@ -135,15 +135,33 @@ data= {
 
 -----
 
-Ability to use tags as functions:
+Ability to use any tag as functions:
+- last argument can be used to pass vars
 
-{{out welcomeUser}}
+{{var "welcomeMessage"}}
+	<p style="color:{{out this.color /}}">You have {{out vars.messageCount /}} new messages in your inbox!</p>
+{{/var}}
+
+{{out welcomeBox("John", "Doe", 4, {_output: welcomeMessage}) >> uppercase /}}
+
+-----
+
+void decorator to process a tag, but cancel it's output
+
+{{out "Dude..." >> void }}
+	where's my car!
+{{endout}}
 
 -----
 
 Reusability tags:
-{{load "templateName" }}
-{{include "templatenName" /}}
+{{load "templateName" }}	For loading vars, templates, custom tags but without affecting rendering
+
+Syntax like:
+	{{include "templatenName" /}}
+	{{partial "templatenName" /}}
+Is made obsolete with the richer :
+	{{render "templateName" /}}
 
 -------
 

@@ -25,11 +25,11 @@
 
 {{template "basePage"}}
 	{{render "html5"}}
-		This default block will be available as the _tag variable!<br/>
+		This default block will be available as the _ouput variable!<br/>
 		For page templates, it might be usefull to pass meta-data such as
 		build version, render time, credits or other secondary information
 		to be hidden to the user but available to the devs.</br></br>
-		the _tag var is not really semantically suited to be used like
+		the _output var is not really semantically suited to be used like
 		for the content of a body.
 	{{render-var "_head" }}
 		<div class="title">Welcome :: {{out vars._title /}}</div>
@@ -71,7 +71,7 @@
 		</div>
 	</div>
 	<div style="font-size: 0.8em; margin-top: 10px; color: #999">
-		{{out vars._tag /}}
+		{{out vars._output /}}
 	</div>
 {{endtemplate}}
 

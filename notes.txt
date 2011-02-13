@@ -3,31 +3,27 @@ TO BE A CROSS-LANGUAGE TOOL DALI WILL HAVE TO IMPLEMENT A
 SIMPLIFIED EXPRESSION PARSER INSTEAD OF PERMITTING NATIVE
 JAVASCRIPT EXPRESSION
 
----------
+---------------------------------------------
 VARIOUS TASKS TO BE SORTED:
-	- Make asynchronous?
-	- Fancy logo and color scheme
-	- Rename whole project to "Dali"
+
 	- Readme document for GitHub
 	- Homepage hosted on GitHub
-	- Formal roadmap
-	- Better character espcaping routines.
-	- More complete jQuery API
-	- Error on "too many recursion" or MaxiumRecursionDepth
-	- Support both withspace and spaceless syntax: {{if -}} ... {{endif}}
-	- Consider callbacks vs event subscription
-	- Caching?
+	- Document a more complete roadmap
 
 ---------------------------------------------
 
 	VERSION 1
 	Objectives:
-	- Support typical templating syntax
+	- Support common templating syntax
 	- No blindspot that would make it impossible to render some scenarios
 	- Good error reporting
 	- Stable enough so that versions 1.X are backward compatible
 
 ---------------------------------------------
+
+	Support for JAJA expression parser/runner
+
+	-----------
 
 	Complete _loop object
 
@@ -54,7 +50,11 @@ VARIOUS TASKS TO BE SORTED:
 
 ---------------------------------------------
 	
-	An event API for onTag, onFilter, onWhatever, etc
+	An event API for onTag, onFilter, onWhatever, onError, etc
+
+	-----------
+
+	Complete and coherent API integration for jQuery, Mootools, Dojo, YUI.
 
 	-----------
 
@@ -147,7 +147,21 @@ VARIOUS TASKS TO BE SORTED:
 
 ---------------------------------------------
 
+	Implement caching
+
+	-----------
+
+	Test asynchronous execution
+
+	-----------
+
+	Better character espcaping routines.
+
 	{{cycle "odd", "even" }}  (like django)
+
+	-----------
+
+	Error on "too many recursion" or MaxiumRecursionDepth
 
 	-----------
 

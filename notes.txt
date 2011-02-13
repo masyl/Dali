@@ -29,18 +29,6 @@ VARIOUS TASKS TO BE SORTED:
 
 ---------------------------------------------
 
-	Alternate tags for if
-
-	{{if 2 > 3}}
-		yaaata!
-	{{if-else 2 = 2}}  <--- more than one
-		Pfff...
-	{{if-not}}
-		Pfff...
-	{{endif}}
-
-	-----------
-
 	Syntax for a "-}}" tag suffix to disregard a tags content and only use arguments. Usefull when using alternate tag syntax:
 
 	{{if 2 > 3, "YES!" -}}

@@ -1,0 +1,21 @@
+<div id="sample-chainingFilters" class="daliSample">
+	<div class="title">Chaining Filters</div>
+	<div class="description">
+		<p>
+			Multiple filters can be chained together to apply multiple changes at once.
+		</p>
+		<p>
+			Each filter is applied in sequence, from left to right.
+		</p>
+	</div>
+<script id="sample-chainingFilters-data" type="application/json">
+{
+	"label": "  This is a LABEL with Various cApItAlIzAtIoN!!  "
+}
+</script>
+<script id="sample-chainingFilters-template" type="text/x-dali-template">
+<p>
+	{{out this.label >> uppercase >> trim /}}
+</p>
+</script>
+</div>

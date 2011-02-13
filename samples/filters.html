@@ -1,0 +1,25 @@
+<div id="sample-Filters" class="daliSample">
+	<div class="title">Filters</div>
+	<div class="description">
+		<p>Filters are a way to modify the output of a tag before it gets rendered.</p>
+		<p>There are many predefined filters and it is easy to create your own custom filters.</p>
+		<p>Note that using the "out" tag with filters can be usefull when applied to whole blocks.</p>
+	</div>
+<script id="sample-Filters-data" type="application/json">
+{
+	"label": "  This is a LABEL with Various cApItAlIzAtIoN!!  "
+}
+</script>
+<script id="sample-Filters-template" type="text/x-dali-template">
+<p>uppercase :<br />{{out this.label >> uppercase /}}</p>
+<p>trim :<br />{{out this.label >> trim /}}</p>
+<p>lowercase :<br />{{out this.label >> lowercase /}}</p>
+<p>void :<br />{{out this.label >> void /}}(this voids the output)</p>
+<p>
+	uppercase block:<br />
+	{{out >> uppercase}}
+		[uppercase this: {{out this.label /}}]
+	{{endout}}
+</p>
+</script>
+</div>

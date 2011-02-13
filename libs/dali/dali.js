@@ -605,13 +605,16 @@ exports = (typeof exports === "object") ? exports : null;
 	};
 
 	var filters = {
-		trim: function(args) {
+		"void": function(args) {
+			return "";
+		},
+		"trim": function(args) {
 			return (this+"").trim();
 		},
-		uppercase: function(args) {
+		"uppercase": function(args) {
 			return (this+"").toUpperCase();
 		},
-		lowercase: function(args) {
+		"lowercase": function(args) {
 			return (this+"").toLowerCase();
 		}
 	};

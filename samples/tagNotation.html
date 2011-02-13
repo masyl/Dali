@@ -23,5 +23,19 @@
 <p>An open tag:  {{out}} Wooopy! {{endout}}</p>
 <p>A tag in a tag:  {{if true}} {{out this.sample/}} {{endif}}</p>
 <p>A tag with multiple arguments:  {{if true, "Yes!", "No!" /}}</p>
+<p>Close a tag with "#&#125;&#125;" to comment out its content block:<br/>
+	{{if 2 > 3, "YES!" #}}
+		yes..
+	{{if-else 2 == 2, "EQUAL!" #}}
+		equal...
+	{{endif}}
+</p>
+<p>Open a tag with "&#123;&#123;#" to comment out the whole tag and all its alternate tags:<br/>
+	{{#if 2 > 3, "YES!"}}
+		yes..
+	{{if-else 2 == 2, "EQUAL!"}}
+		equal...
+	{{endif}}
+</p>
 </script>
 </div>

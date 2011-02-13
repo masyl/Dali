@@ -181,6 +181,8 @@ exports = (typeof exports === "object") ? exports : null;
 			filtersTags,
 			i,
 			j,
+			ignoreBlock,
+			ignoreTag,
 			tagName,  // ex.: if, endif
 			tagNameExtension, // ex.: if-elseif, if-else
 			tagType,
@@ -195,7 +197,7 @@ exports = (typeof exports === "object") ? exports : null;
 		treeStack = [];
 
 		// Create the root TagNode
-		tagNode = tagNodePointer = new TagNode("out", "", "", "");
+		tagNode = tagNodePointer = new TagNode("out", "", "", "", false, false);
 		tree.push(tagNode);
 		treeStack.push(tagNode);
 		for (i in tagsMatch) {
@@ -205,7 +207,7 @@ exports = (typeof exports === "object") ? exports : null;
 				lastTagStart = template.indexOf(tag, lastTagEnd);
 				before = template.substring(lastTagEnd, lastTagStart);
 				if (before.length) {
-					tagNodePointer.children.push(new TagNode("raw", "", "'" + escape(before) + "'", before));
+					tagNodePointer.children.push(new TagNode("raw", "", "'" + escape(before) + "'", before, false, false));
 				}
 				tagName = tag.split(/ +/)[0];
 				// If the braces and tag name are separated by spaces
@@ -214,6 +216,7 @@ exports = (typeof exports === "object") ? exports : null;
 				} else {
 					tagName = tag.split(/ +/)[0].substring(2);
 				}
+				ignoreTag = false;
 				if (tagName.substring(0,3) === "end") {
 					tagType = "closeTag";
 					// Remove the trailing brace
@@ -229,7 +232,25 @@ exports = (typeof exports === "object") ? exports : null;
 
 				var tagEnd = (tagType === "tag") ? "/}}" : "}}";
 				content = tag.substring(tag.indexOf("{{")+2, tag.lastIndexOf(tagEnd));
+
+				// See if the "#" comment character has been used to comment out the tag
+				ignoreBlock = false;
+				if (content[content.length-1] === "#") {
+					ignoreBlock = true;
+					content = content.substring(0, content.length-1);
+				}
+
+				// See if the "#" comment character has been used to comment out the tag
+				ignoreTag = false;
+				if (tagName[0] === "#") {
+					ignoreTag = true;
+					tagName = tagName.substring(1);
+				}
+
+				// Parse segments for filters
 				segments = content.split(">>");
+
+				// Parse arguments
 				args = "";
 				if (segments[0].trim().indexOf(" ") > -1) {
 					args = segments[0].trim().substring(segments[0].trim().indexOf(" "));
@@ -250,7 +271,7 @@ exports = (typeof exports === "object") ? exports : null;
 // TODO: HANDLE CASE OF CLOSE-TAG + ALT-TAG
 
 				if (tagType === "tag") {
-					tagNode = new TagNode(tagName, "", args, tag);
+					tagNode = new TagNode(tagName, "", args, tag, ignoreTag, ignoreBlock);
 					tagNodePointer.children.push(tagNode);
 				} else if (tagType === "openTag" || tagType === "closeTag") {
 					if (tagType === "openTag") {
@@ -258,14 +279,14 @@ exports = (typeof exports === "object") ? exports : null;
 							// Both close the current tag and open a new one.
 							tagNodePointer = treeStack.pop();
 							tagNodePointer = treeStack[treeStack.length-1];
-							tagNode = new TagNode(tagName, tagNameExtension, args, tag);
+							tagNode = new TagNode(tagName, tagNameExtension, args, tag, ignoreTag, ignoreBlock);
 							tagNode.xyz = 0;
 							tagNodePointer.children.push(tagNode);
 							treeStack.push(tagNode);
 							tagNodePointer = tagNode;
 
 						} else {
-							tagNode = new TagNode(tagName, "", args, tag);
+							tagNode = new TagNode(tagName, "", args, tag, ignoreTag, ignoreBlock);
 							tagNodePointer.children.push(tagNode);
 							treeStack.push(tagNode);
 							tagNodePointer = tagNode;
@@ -295,7 +316,7 @@ exports = (typeof exports === "object") ? exports : null;
 						args = "[]";
 					}
 					if (typeof(filters[tagName]) !== "function") throw(new Err("UnknownFilter", "Encountered unknown filter \"" + tagName + "\""));
-					tagNode.filters.push(new TagNode(tagName, "", args, ""));
+					tagNode.filters.push(new TagNode(tagName, "", args, "", false, false));
 
 				}
 				// move the cursor forward
@@ -305,7 +326,7 @@ exports = (typeof exports === "object") ? exports : null;
 		// Add a raw tag for the last piece to be renderec or if not tag are found
 		before = template.substring(lastTagEnd, template.length);
 		if (before.length) {
-			tagNodePointer.children.push(new TagNode("raw", "", "'" + escape(before) + "'", before));
+			tagNodePointer.children.push(new TagNode("raw", "", "'" + escape(before) + "'", before, false, false));
 		}
 		return compileNode(tree[0]);
 	}
@@ -315,7 +336,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 * @param name
 	 * @param argString
 	 */
-	function TagNode(name, nameExtension, argString, raw) {
+	function TagNode(name, nameExtension, argString, raw, ignoreTag, ignoreBlock) {
 		this.name = name;
 		this.nameExtension = nameExtension;
 		this.argString = argString;
@@ -324,6 +345,8 @@ exports = (typeof exports === "object") ? exports : null;
 		this.alternateBlocks = [];
 		this.raw = raw;
 		this.rawEnd = "";
+		this.ignoreBlock = ignoreBlock;
+		this.ignoreTag = ignoreTag;
 	}
 
 	function Tag(id, handler, options) {
@@ -368,24 +391,34 @@ exports = (typeof exports === "object") ? exports : null;
 				while (nextChild && nextChild.nameExtension) {
 					//console.log("collapsing alternate tag", nextChild);
 					args = unescape(nextChild.argString).trim();
-					alternateBlock = (nextChild.children.length || nextChild.filters.length) ? compileNode(nextChild) : "";
-					alternateBlock = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + alternateBlock + "}" : "null";
-					alternateBlock =
-						"{\nname: '" + nextChild.nameExtension + "',\n" +
-						"args: [" + args + "],\n" +
-						"handler: "+ alternateBlock + "\n" +
-						"}";
-					alternateBlocks = alternateBlocks + ", " + alternateBlock;
+					if (!nextChild.ignoreBlock) {
+						alternateBlock = (nextChild.children.length || nextChild.filters.length) ? compileNode(nextChild) : "";
+						alternateBlock = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + alternateBlock + "}" : "null";
+						alternateBlock =
+							"{\nname: '" + nextChild.nameExtension + "',\n" +
+							"args: [" + args + "],\n" +
+							"handler: "+ alternateBlock + "\n" +
+							"}";
+						alternateBlocks = alternateBlocks + ", " + alternateBlock;
+					}
 					i = i + 1;
 					nextChild = node.children[i + 1];
 				}
-				args = unescape(child.argString).trim();
 				alternateBlocks = "[" + alternateBlocks.substring(2) + "]";
-				block = (child.children.length || child.filters.length) ? compileNode(child) : "";
-				block = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + block + "}" : "null";
-			}
-			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + block  + ", " + alternateBlocks + ");\n");
 
+				// If there is no "#" ignore, process the tags main block.
+				// Otherwise, the block is rendered as null
+				if (child.ignoreBlock) {
+					block = "null";
+				} else {
+					block = (child.children.length || child.filters.length) ? compileNode(child) : "";
+					block = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + block + "}" : "null";
+				}
+			}
+			if (!child.ignoreTag) {
+				args = unescape(child.argString).trim();
+				stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + block  + ", " + alternateBlocks + ");\n");
+			}
 		}
 		// Apply filter functions
 		for (i in node.filters) {
@@ -461,7 +494,8 @@ exports = (typeof exports === "object") ? exports : null;
 				"else": []
 			}
 		}),
-		"comment" : new Tag("comment",
+		// Empty tag... form comment sytax {{# /}} {{#}}!
+		"" : new Tag("comment",
 			function(args, env, block, alternateBlocks) {
 				return "";
 			},{
@@ -572,17 +606,14 @@ exports = (typeof exports === "object") ? exports : null;
 				varBlock = varBlocks[i];
 				varName = varBlock.args[0];
 				env.flush();
-				//console.log(">>>> ", env.vars);
 				varBlock.handler.apply({}, [env, args]);
-				//console.log(">>>>2 ", env.vars, env.stream()+ "8"+varName, varBlock.handler.toString());
 				env.vars[varName] = env.stream();
 			}
 			if (block) {
 				env.flush();
 				block.apply(this, [env, args]);
 			}
-			env.vars._tag = env.stream();
-			//console.log("vars::: ", env.vars, args);
+			env.vars._output = env.stream();
 			output = env.render(args[0], args[1], env.vars);
 			return output;
 		}, {

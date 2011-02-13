@@ -38,15 +38,14 @@ VARIOUS TASKS TO BE SORTED:
 
 	-----------
 
-	{{each-odd}} alternate tag
+	Dash to comment/ignore a whole tag (simpler than {{comment}} )
+	{{-out "someText" }}
+		some more text...
+	{{endout}}
 
 	-----------
 
-	void filter to process a tag, but cancel it's output
-
-	{{out "Dude..." >> void }}
-		where's my car!
-	{{endout}}
+	{{each-odd}} alternate tag
 
 	-----------
 

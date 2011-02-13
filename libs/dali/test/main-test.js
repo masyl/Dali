@@ -130,8 +130,8 @@ vows.describe("Raw Output").addBatch({
 	}
 }).export(module);
 
-vows.describe("Decorators").addBatch({
-	'A template containing a "uppercase" decorator': {
+vows.describe("Filter").addBatch({
+	'A template containing a "uppercase" filter': {
 		topic: function() {
 			return dali.add("test", "<div>{{out this.ok >> uppercase /}}</div>");
 		},
@@ -139,7 +139,7 @@ vows.describe("Decorators").addBatch({
 			assert.equal(template.render(sampleData), "<div>ALL OK!</div>");
 		}
 	},
-	'A template containing a "lowercase" decorator': {
+	'A template containing a "lowercase" filter': {
 		topic: function() {
 			return dali.add("test", "<div>{{out this.ok >> lowercase /}}</div>");
 		},
@@ -147,7 +147,7 @@ vows.describe("Decorators").addBatch({
 			assert.equal(template.render(sampleData), "<div>all ok!</div>");
 		}
 	},
-	'A template containing a "trim" decorator': {
+	'A template containing a "trim" filter': {
 		topic: function() {
 			return dali.add("test", "<div>{{out this.okWithWhitespaces >> trim /}}</div>");
 		},
@@ -155,7 +155,7 @@ vows.describe("Decorators").addBatch({
 			assert.equal(template.render(sampleData), "<div>All Ok!</div>");
 		}
 	},
-	'A template containing a "uppercase" decorator inside an "if" statement': {
+	'A template containing a "uppercase" filter inside an "if" statement': {
 		topic: function() {
 			return dali.add("test", "<div>{{if this.alwaysTrue >> uppercase}}True{{/if}}{{if this.alwaysFalse}}False{{/if}}</div>");
 		},

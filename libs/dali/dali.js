@@ -17,8 +17,8 @@ exports = (typeof exports === "object") ? exports : null;
 
 		this.templates = {};
 		this.tags = tags;
-		this.decorators = decorators;
-		this.version = "0.1";
+		this.filters = filters;
+		this.version = "0.??a";
 
 		/**
 		 * Constructor for individual templates
@@ -145,17 +145,17 @@ exports = (typeof exports === "object") ? exports : null;
 				return this;
 			};
 			/**
-			 * Apply a decorator function to the available arguments
-			 * @param decoratorName
+			 * Apply a filter function to the available arguments
+			 * @param filterName
 			 * @param args
 			 */
-			this.applyDecorator = function(decoratorName, args) {
+			this.applyFilter = function(filterName, args) {
 				var str,
-					decorator = decorators[decoratorName],
+					filter = filters[filterName],
 					oldArray = this._stream,
 					newArray = [];
 				for (var i in oldArray) {
-					str = decorator.apply(oldArray[i] + "", args);
+					str = filter.apply(oldArray[i] + "", args);
 					newArray.push(str);
 				}
 				this._stream = newArray;
@@ -177,8 +177,8 @@ exports = (typeof exports === "object") ? exports : null;
 			content,
 			segments,
 			args,
-			decoratorTag,
-			decoratorsTags,
+			filterTag,
+			filtersTags,
 			i,
 			j,
 			tagName,  // ex.: if, endif
@@ -281,21 +281,21 @@ exports = (typeof exports === "object") ? exports : null;
 					}
 				}
 
-				// Process chained decorators
-				decoratorsTags = segments.slice(1);
-				for (j in decoratorsTags) {
-					decoratorTag = decoratorsTags[j].trim();
-					if (decoratorTag.indexOf("(") > -1) {
-						tagName = decoratorTag.substring(0, decoratorTag.indexOf("("));
-						args = decoratorTag.substring(decoratorTag.indexOf("("));
+				// Process chained filters
+				filtersTags = segments.slice(1);
+				for (j in filtersTags) {
+					filterTag = filtersTags[j].trim();
+					if (filterTag.indexOf("(") > -1) {
+						tagName = filterTag.substring(0, filterTag.indexOf("("));
+						args = filterTag.substring(filterTag.indexOf("("));
 						args = "[" + args.substring(1, args.lastIndexOf(")")) + "]";
 					} else {
 						// todo: setup a better and stricter parsing
-						tagName = decoratorTag;
+						tagName = filterTag;
 						args = "[]";
 					}
-					if (typeof(decorators[tagName]) !== "function") throw(new Err("UnknownDecorator", "Encountered unknown decorator \"" + tagName + "\""));
-					tagNode.decorators.push(new TagNode(tagName, "", args, ""));
+					if (typeof(filters[tagName]) !== "function") throw(new Err("UnknownFilter", "Encountered unknown filter \"" + tagName + "\""));
+					tagNode.filters.push(new TagNode(tagName, "", args, ""));
 
 				}
 				// move the cursor forward
@@ -320,7 +320,7 @@ exports = (typeof exports === "object") ? exports : null;
 		this.nameExtension = nameExtension;
 		this.argString = argString;
 		this.children = [];
-		this.decorators = [];
+		this.filters = [];
 		this.alternateBlocks = [];
 		this.raw = raw;
 		this.rawEnd = "";
@@ -368,7 +368,7 @@ exports = (typeof exports === "object") ? exports : null;
 				while (nextChild && nextChild.nameExtension) {
 					//console.log("collapsing alternate tag", nextChild);
 					args = unescape(nextChild.argString).trim();
-					alternateBlock = (nextChild.children.length || nextChild.decorators.length) ? compileNode(nextChild) : "";
+					alternateBlock = (nextChild.children.length || nextChild.filters.length) ? compileNode(nextChild) : "";
 					alternateBlock = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + alternateBlock + "}" : "null";
 					alternateBlock =
 						"{\nname: '" + nextChild.nameExtension + "',\n" +
@@ -381,16 +381,16 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 				args = unescape(child.argString).trim();
 				alternateBlocks = "[" + alternateBlocks.substring(2) + "]";
-				block = (child.children.length || child.decorators.length) ? compileNode(child) : "";
+				block = (child.children.length || child.filters.length) ? compileNode(child) : "";
 				block = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + block + "}" : "null";
 			}
 			stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + block  + ", " + alternateBlocks + ");\n");
 
 		}
-		// Apply decorator functions
-		for (i in node.decorators) {
-			child = node.decorators[i];
-			stream.push("env.applyDecorator('" + child.name + "', " + child.argString + ");\n");
+		// Apply filter functions
+		for (i in node.filters) {
+			child = node.filters[i];
+			stream.push("env.applyFilter('" + child.name + "', " + child.argString + ");\n");
 		}
 		return stream.join("");
 	}
@@ -574,7 +574,7 @@ exports = (typeof exports === "object") ? exports : null;
 		}, {})
 	};
 
-	var decorators = {
+	var filters = {
 		trim: function(args) {
 			return (this+"").trim();
 		},

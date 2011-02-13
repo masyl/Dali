@@ -11,7 +11,6 @@ VARIOUS TASKS TO BE SORTED:
 	- Readme document for GitHub
 	- Homepage hosted on GitHub
 	- Formal roadmap
-	- Sould decorators be called filters ?
 	- Better character espcaping routines.
 	- More complete jQuery API
 	- Error on "too many recursion" or MaxiumRecursionDepth
@@ -55,7 +54,7 @@ VARIOUS TASKS TO BE SORTED:
 
 	-----------
 
-	void decorator to process a tag, but cancel it's output
+	void filter to process a tag, but cancel it's output
 
 	{{out "Dude..." >> void }}
 		where's my car!
@@ -88,7 +87,7 @@ VARIOUS TASKS TO BE SORTED:
 
 	-----------
 
-	Methods to register decorators and tags.
+	Methods to register filters and tags.
 
 
 ---------------------------------------------
@@ -100,7 +99,7 @@ VARIOUS TASKS TO BE SORTED:
 
 ---------------------------------------------
 	
-	An event API for onTag, onDecorator, onWhatever, etc
+	An event API for onTag, onFilter, onWhatever, etc
 
 	-----------
 
@@ -179,7 +178,7 @@ VARIOUS TASKS TO BE SORTED:
 
 	-----------
 
-	Ability to use any decorator as functions:
+	Ability to use any filter as functions:
 
 	{{out deco.uppercase(this.value) /}}
 
@@ -188,7 +187,7 @@ VARIOUS TASKS TO BE SORTED:
 	VERSIONS 1.2
 	Objectives:
 		- Support for more edge case
-		- More complete set of native decorators and utilities
+		- More complete set of native filters and utilities
 
 ---------------------------------------------
 
@@ -202,7 +201,7 @@ VARIOUS TASKS TO BE SORTED:
 
 	Define a variable using JSON and store as an object
 
-	NOT POSSIBLE FOR NOW BECAUSE DECORATORS ARE PARSED
+	NOT POSSIBLE FOR NOW BECAUSE FILTERS ARE PARSED
 	OUTSIDE OF THE TAG HANDLER ITSELF
 
 	{{var "messageCount" >> json /}}

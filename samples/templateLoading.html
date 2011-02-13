@@ -1,0 +1,46 @@
+<div id="sample-templateLoading" class="daliSample">
+	<div class="title">Template rendering</div>
+	<div class="description">
+		<p>
+			One very usefull way to reuse material is to define your common elements into
+			a template and then "load" that template. This will process the template but
+			its output will be disregarded.
+		</p>
+		<p>
+			This allows you load create vars, templates or any other tags that affect the
+			environment and vars of the rendering process.
+		</p>
+	</div>
+<script id="sample-templateLoading-data" type="application/json">
+{user: {
+	firstname: "John",
+	lastname: "Doe"
+}}
+</script>
+<script id="sample-templateLoading-template" type="text/x-dali-template">
+{{#
+
+	Imaging that this "awesomeTemplate" was defined is some other javascript
+
+	file called "common-templates.js"
+
+	/}}
+{{template "awesomeTemplate"}}
+	{{var "awesomeVar", "This awesome template is loaded!" /}}
+	{{template "box"}}
+		<span style="border: 1px solid; background: white; padding: 5px;">
+			{{out vars._output /}}
+		</span>
+	{{endtemplate}}
+{{endtemplate}}
+
+{{# Here start the file that needs to reuse material /}}
+{{load "awesomeTemplate" /}}
+<p>
+	Loaded:
+	{{render "box"}}
+		{{out vars.awesomeVar /}}
+	{{endrender}}
+</p>
+</script>
+</div>

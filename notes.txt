@@ -29,22 +29,6 @@ VARIOUS TASKS TO BE SORTED:
 
 ---------------------------------------------
 
-	Loading templates
-
-	{{load "templateName" }}	For loading vars, templates, custom tags but without affecting rendering
-
-	Syntax like:
-		{{include "templatenName" /}}
-		{{partial "templatenName" /}}
-	Is made obsolete with the richer :
-		{{render "templateName" /}}
-
-	-----------
-
-	{{each-odd}} alternate tag
-
-	-----------
-
 	Complete _loop object
 
 	** SOULD be a prefixed var like so _loop

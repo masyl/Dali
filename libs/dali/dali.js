@@ -32,13 +32,19 @@ exports = (typeof exports === "object") ? exports : null;
 			this.vars = {};
 			extend(this.vars, vars);
 
-			this.render = function render(data, vars) {
+			this.render = function render(data, vars, env) {
 				var newVars = {},
 					output,
 					env;
 				extend(newVars, this.vars);
 				extend(newVars, vars);
-				env = new Env(newVars);
+				if (env) {
+					// Use environment provided
+					extend(env.vars, vars)
+				} else {
+					// Create new environment
+					env = new Env(newVars);
+				}
 
 				try {
 					output = this.handler.call(data, env);
@@ -53,7 +59,7 @@ exports = (typeof exports === "object") ? exports : null;
 					err,
 					source =
 					"var vars = env.vars;\n" +
-					lexer(escape(template.source)) +
+					lexer(template.source) +
 					"return env.stream();\n";
 				//console.log("Template source: \n", source);
 				try {
@@ -101,10 +107,10 @@ exports = (typeof exports === "object") ? exports : null;
 		function Env(vars) {
 			this.dali = dali;
 			this.vars = vars || {}; // TODO: REFACTOR: Should this be extended? And restricted to local scope ?
-			this.render = function (id, data, env) {
+			this.render = function (id, data, vars, env) {
 				var template = dali.get(id);
 				if (!template) throw new Err("TemplateNotFound", "Template not found: " + id);
-				return template.render(data, env);
+				return template.render(data, vars, env);
 			};
 			this.addTemplate = function (id, source, vars, optionsParam) {
 				return dali.add(id, source, vars, optionsParam);
@@ -186,12 +192,13 @@ exports = (typeof exports === "object") ? exports : null;
 			tagName,  // ex.: if, endif
 			tagNameExtension, // ex.: if-elseif, if-else
 			tagType,
+			linefeedCount,
 			tree, // a tree representing the tag structure to be rendered
 			treeStack, // A stack of tagNodePointers used during recursion
 			tagNode, // to store newly created tagNodes
 			tagNodePointer; // points to the last tagNode being processed
 
-		tagsMatch = template.match(/{{(.*?)}}/gm) || [];
+		tagsMatch = template.match(/{{([\s\S]*?)}}/gm) || [];
 		lastTagEnd = 0;
 		tree = [];
 		treeStack = [];
@@ -204,7 +211,10 @@ exports = (typeof exports === "object") ? exports : null;
 
 			if (tagsMatch.hasOwnProperty(i)) {
 				tag = tagsMatch[i];
-				lastTagStart = template.indexOf(tag, lastTagEnd);
+				// Replace all "whitespaces" characters with normal spaces for easier
+				// parsing of multiline tags
+				tag = tag.replace(/\s/g, " ");
+				lastTagStart = template.replace(/\s/g, " ").indexOf(tag, lastTagEnd);
 				before = template.substring(lastTagEnd, lastTagStart);
 				if (before.length) {
 					tagNodePointer.children.push(new TagNode("raw", "", "'" + escape(before) + "'", before, false, false));
@@ -625,6 +635,18 @@ exports = (typeof exports === "object") ? exports : null;
 				"var": []
 			}
 		}),
+		"load" : new Tag("load", function(args, env, block, alternateBlocks) {
+			var i, output, vars, varName;
+			if (block) {
+				env.flush();
+				block.apply(this, [env, args]);
+			}
+			// render the template with current environment
+			// and disregard its output
+			env.render(args[0], args[1], {}, env);
+			console.log(env);
+			return "";
+		}, {}),
 		"var" : new Tag("var", function(args, env, block, alternateBlocks) {
 			var val;
 			if (typeof(args[1]) !== "undefined") {

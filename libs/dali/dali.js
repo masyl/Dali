@@ -420,6 +420,14 @@ exports = (typeof exports === "object") ? exports : null;
 			return args.join("");
 		}, {}),
 		"if" : new Tag("if", function(args, env, block, alternateBlocks) {
+			//TODO: objectfyAlternateBlocks shouldnt hav to be manual called in each tag
+			var altBlocksObj, elseBlocks, notBlock;
+			altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
+				"else": [],
+				"not": []
+			});
+			elseBlocks = altBlocksObj["else"];
+			notBlock = altBlocksObj["not"][0];
 			var output = "";
 			if (args[0]) {
 				output = output + (args[1] || "");
@@ -427,10 +435,32 @@ exports = (typeof exports === "object") ? exports : null;
 					block.apply(this, [env, args]);
 				}
 			} else {
-				output = output + (args[2] || "");
+				var isTrue, elseBlock;
+				for (var i in elseBlocks) {
+					elseBlock = elseBlocks[i];
+					if (elseBlock) {
+						if (elseBlock.args[0]) {
+							isTrue = true;
+							output = output + (elseBlock.args[1] || "");
+							elseBlock.handler.apply(this, [env, args]);
+							break;
+						}
+					}
+				}
+				if (!isTrue) {
+					// If no if-else tag was true, apply any if-not tag and/or
+					// secondary param
+					output = output + (args[2] || "");
+					if (notBlock) notBlock.handler.apply(this, [env, args]);
+				}
 			}
 			return output + env.stream();
-		}, {}),
+		}, {
+			"alternateBlocks": {
+				"not": [],
+				"else": []
+			}
+		}),
 		"comment" : new Tag("comment",
 			function(args, env, block, alternateBlocks) {
 				return "";

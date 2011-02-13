@@ -14,10 +14,16 @@
 			You can also provide a block of content to display
 			if the expression is true.
 		</p>
+		<h3>Alternate tags:</h3>
+		<ul>
+			<li>{{if-else someExpression}} : Try to match another condition if precedent one wasnt.</li>
+			<li>{{if-not}} : If no previous condition have been true, fallback on this tag.</li>
+		</ul>
 	</div>
 <script id="sample-if-data" type="application/json">
 {
-	"TrueIsTrue": true
+	"TrueIsTrue": true,
+	"Banana": "split!"
 }
 </script>
 <script id="sample-if-template" type="text/x-dali-template">
@@ -30,6 +36,24 @@
 </p>
 <p>Inline output if false:<br />
 	{{if !this.TrueIsTrue, "if it was true!", "It's false that it's not true!" /}}
+</p>
+<p>If-not tag output:<br />
+	{{if !this.TrueIsTrue}}
+		It's true!
+	{{if-not}}
+		It's not!
+	{{endif}}
+</p>
+<p>If-else tag output:<br />
+	{{if !this.TrueIsTrue}}
+		It's true!
+	{{if-else this.Banana === "joe!"}}
+		First if was false but this new condition is also false!
+	{{if-else this.Banana === "split!"}}
+		First and second if were false but this third if is true!
+	{{if-not}}
+		It's not!
+	{{endif}}
 </p>
 </script>
 </div>

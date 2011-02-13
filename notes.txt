@@ -29,26 +29,6 @@ VARIOUS TASKS TO BE SORTED:
 
 ---------------------------------------------
 
-	Syntax for a "-}}" tag suffix to disregard a tags content and only use arguments. Usefull when using alternate tag syntax:
-
-	{{if 2 > 3, "YES!" -}}
-	{{if-else 2 = 2, "EQUAL!" -}}
-	{{if-not "NOT!" -}}
-	{{endif}}
-
-	-----------
-
-	Dash to comment/ignore a whole tag (simpler than {{comment}} )
-	{{-out "someText" }}
-		some more text...
-	{{endout}}
-
-	-----------
-
-	{{each-odd}} alternate tag
-
-	-----------
-
 	Loading templates
 
 	{{load "templateName" }}	For loading vars, templates, custom tags but without affecting rendering
@@ -58,6 +38,10 @@ VARIOUS TASKS TO BE SORTED:
 		{{partial "templatenName" /}}
 	Is made obsolete with the richer :
 		{{render "templateName" /}}
+
+	-----------
+
+	{{each-odd}} alternate tag
 
 	-----------
 
@@ -173,12 +157,17 @@ VARIOUS TASKS TO BE SORTED:
 
 	VERSIONS 1.2
 	Objectives:
-		- Support for more edge case
+		- More syntactic sugar
 		- More complete set of native filters and utilities
+		- Support for more edge case
 
 ---------------------------------------------
 
 	{{cycle "odd", "even" }}  (like django)
+
+	-----------
+
+	Syntaxt for auto trimming white spaces
 
 	-----------
 

@@ -518,6 +518,7 @@ exports = (typeof exports === "object") ? exports : null;
 					"begin": [],
 					"end": [],
 					"first": [],
+					"odd": [],
 					"between": [],
 					"last": []
 				});
@@ -542,8 +543,10 @@ exports = (typeof exports === "object") ? exports : null;
 							} else if (i==items.length-1) {
 								// Is last item
 								block = altBlocksObj.last[0];
+							} else if (i % 2) {
+								// Is odd item
+								block = altBlocksObj.odd[0];
 							}
-							//todo: optimize this... its confusing
 							if (!block) block = _block;
 							block = (block.handler || block);
 							block.apply(item, [env, args, loop]);
@@ -570,6 +573,7 @@ exports = (typeof exports === "object") ? exports : null;
 					"begin": [],
 					"end": [],
 					"first": [],
+					"odd": [],
 					"between": [],
 					"last": []
 				}

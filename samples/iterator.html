@@ -17,7 +17,7 @@
 	</div>
 <script id="sample-Iterator-data" type="application/json">
 {
-	"allColors": ["blue", "red", "green"],
+	"allColors": ["blue", "red", "green", "cyan", "magenta", "grey"],
 	"favColor": ["red"],
 	"colorsForFunerals": []
 }
@@ -27,6 +27,8 @@
 <ul>
 	{{each this.allColors}}
 		<li style="color:{{out this /}}">{{out this /}}</li>
+	{{each-odd}}
+		<li style="color:{{out this /}}">{{out this /}} (is odd item)</li>
 	{{each-last}}
 		<li style="color:{{out this /}}">{{out this /}} (is last item)</li>
 	{{each-first}}

@@ -1,135 +1,25 @@
-Copyright Mathieu Sylvain, 2009
-This work is in the Public Domain. To view a copy of the public domain certification, visit http://creativecommons.org/licenses/publicdomain/ or send a letter to Creative Commons, 171 Second Street, Suite 300, San Francisco, California, 94105, USA.
-
------
-
-jquery.render
+Dali - Surreal Templating
 
 Descriptions:
-	Template rendering engine
+Template Rendering Engine
 	
-Usage:
-	Render a template using the specified data:
-		$(template).render(data, options)
-	Set default options:
-		$.render(options)
-
-Author & Copyright:
-	Mathieu Sylvain
+Author:
+Mathieu Sylvain
 
 License:
-	Dual licensed under the MIT or GPL Version 2 licenses.
+This work is in the Public Domain. To view a copy of the public domain
+certification, visit http://creativecommons.org/licenses/publicdomain/
+or send a letter to Creative Commons, 171 Second Street, Suite 300,
+San Francisco, California, 94105, USA.
 
-Why use this templating engine:
-	- Syntax similar to other well known templating engines
-	- Declarative and Functional syntax encourages a structured approach
-	- Can produce any type of text output: html/json/xml/etc...
-???		- Templates are compiled into fast javascript code
-???		- Its fast! By default, templates are compiled once and then cached
-???		- Its extensible. You can add your own filters, control statements.
+Documentation:
 
-Feature set:
-???		- Support for simple and secure expressions for output values
-	- Complete set of control statements: for, if
-???		- Filters : uppercase, lowercase, trim /// NOT REALLY NEEDED ANYMORE ?
-	- Raw output and comments
-	- Create a templace from a jQuery request
-	- Create a templace from a string: $.templates.add(id, source, environ, options)
-	- Render a template from another template
+Documentation is sparse for now, but you can learn with the live
+samples tool. This tools provides live sample for every aspects of
+Dali.
 
-ROADMAP
-Release 0.1:
-	- Basic Decorators with >> syntax
-	- Easily extend with new tags, new filters/decorators
-	- Support for lambda.eval expression library
-	- out tag for content blocks (to enable this kind of scenario {out >> uppercase}whaever...{/out}
-	- or maybe direct use of deorators ? {@uppercase}{/uppercase} {uppercase} {#uppercase}
-	- maybe templates should be rendered as objects with properties so that they can be instantiated, such as in an import feature. And this object model should be exposed in the current scope.
+All future development regarding syntax and features is summarized
+in the file notes.txt
 
-Release 0.2:
-	- Decouple from jQuery. But keep a jQuery plugin available
-	- A "set (varName, value)" control statement to set a variable
-	- Template inheritance using base template, placeholders/targets
-	- Partials passed as parameters
-	- escaping of brackets
-	- default behaviors for escaping html
-	- tag to define a template "on the fly" to be reused with render
-	- tag to define a tag "on the fly" to be reused with render (like jinja macros)
-	- collection of builtin filters like jinja
-	- collection of global functions like jinja
-	- ability to use decorators as functions
-
-Release 0.3:
-	- this is always current data, bu provide a context/env object for flow manipulation and others
-	- "Loop" status object
-	- "include" with an include provider ? for {include "file.html"} ?
-	- import similar to jinja ?!?!?
-
-Release 0.4:
-	- Better "Macros/Call" or functions, similar to filters ?
-	- A "filter" statement to apply a filter to a whole bock
-	- Else and ElseIf statement
-
-Release 0.5:
-	- Create a series of templace from an array of literal objects : [{id="", source="", options=""}];
-	- Create a templace from a dom node
-
-Release 0.6:
-	- A "do" statement to run code without any output
-	- Usefull error handling to debug broken templates upon compile or execution
-
-Release 0.7:
-	- i18n support via a standard callback function. Ex.: _("label")
-
-Release 0.8:
-	- Event triggering and callbacks for template compilation and rendering;
-
-Release 1.0:
-	- code functionnality independent from jquery
-	- One or two level of fallaback template/output when a template fails to render properly
-
-backlog:
-	- A "while" control statement
-	- A recursion control that can throw errors
-	- Support both withspace and spaceless syntax: "{{ someexpression() }}" vs {{someexpression()}}
-	- Template sourced from dom nodes are removed once cached to prevent id conflicts
-	- Control statement for "blocks", for naming/reusing and applying filters to output
-	- Create a templace from a callback function
-	- Template inheritance (Is this realy necessary or useful?)
-	- Whitespace control
-	- Ability to turn on/off caching of compiled templates
-	- Template redirection while rendering;
-
-Requirements:
-	- Small size
-	- No dependencies except jquery
-	- Support for callbacks and event binding
-
-SAMPLE USAGE
-
-Register one or many templates with additionnal environ variables
-	$(selector).templates(environ, options);
-Example:
-	$(".templates").templates(environ, {
-		precompile: false
-	});
-
-Obtain a template object Renders a template with a data set and additional environ variables
-	$.templates(templateId);
-Example:
-	$.templates("storeList");
-
-Renders a template with a data set and additional environ variables, and return the template object
-	template.render(data, options);
-Example:
-	template.render({ stores: this.stores }, { whitespace: false });
-
-Obtain the resulting output of the last render
-	template.out(); // As a new dom node in jquery object
-	template.out("jquery"); // As a new dom node in jquery object
-	template.out("text"); // As a text stream
-	template.out("dom"); // As a new dom node
-
-A example of chained template rendering request
-	$.templates("storeList").render({stores: this.stores}, { whitespace: false }).out(); // As a new dom node
+Also, the Vows test script can give you an idea of other scenarios.
 

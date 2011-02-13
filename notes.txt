@@ -1,185 +1,248 @@
 
-Allow event subscriptions onTag, onDecorator, onWhatever
+TO BE A CROSS-LANGUAGE TOOL DALI WILL HAVE TO IMPLEMENT A
+SIMPLIFIED EXPRESSION PARSER INSTEAD OF PERMITTING NATIVE
+JAVASCRIPT EXPRESSION
 
 ---------
+VARIOUS TASKS TO BE SORTED:
+	- Make asynchronous?
+	- Fancy logo and color scheme
+	- Rename whole project to "Dali"
+	- Readme document for GitHub
+	- Homepage hosted on GitHub
+	- Formal roadmap
+	- Sould decorators be called filters ?
+	- Better character espcaping routines.
+	- More complete jQuery API
+	- Error on "too many recursion" or MaxiumRecursionDepth
+	- Support both withspace and spaceless syntax: {{if -}} ... {{endif}}
+	- Consider callbacks vs event subscription
+	- Caching?
 
-Alternate tag for if-or, if-else, any other form ?
+---------------------------------------------
 
-{{if 2 > 3}}
-	yaaata!
-{{if-else 2 = 2}}  <--- more than one
-	Pfff...
-{{if-not}}
-	Pfff...
-{{endif}}
+	VERSION 1
+	Objectives:
+	- Support typical templating syntax
+	- No blindspot that would make it impossible to render some scenarios
+	- Good error reporting
+	- Stable enough so that versions 1.X are backward compatible
+
+---------------------------------------------
+
+	Alternate tags for if
+
+	{{if 2 > 3}}
+		yaaata!
+	{{if-else 2 = 2}}  <--- more than one
+		Pfff...
+	{{if-not}}
+		Pfff...
+	{{endif}}
+
+	-----------
+
+	Syntax for a "-}}" tag suffix to disregard a tags content and only use arguments. Usefull when using alternate tag syntax:
+
+	{{if 2 > 3, "YES!" -}}
+	{{if-else 2 = 2, "EQUAL!" -}}
+	{{if-not "NOT!" -}}
+	{{endif}}
+
+	-----------
+
+	{{each-odd}} alternate tag
+
+	-----------
+
+	void decorator to process a tag, but cancel it's output
+
+	{{out "Dude..." >> void }}
+		where's my car!
+	{{endout}}
+
+	-----------
+
+	Loading templates
+
+	{{load "templateName" }}	For loading vars, templates, custom tags but without affecting rendering
+
+	Syntax like:
+		{{include "templatenName" /}}
+		{{partial "templatenName" /}}
+	Is made obsolete with the richer :
+		{{render "templateName" /}}
+
+	-----------
+
+	Complete _loop object
+
+	** SOULD be a prefixed var like so _loop
+
+	_loop.parent 	For nested loops, this is the loop "above" the current one
+	_loop.odd()	 	true if items is odd one
+	_loop.counter() 	The current iteration of the loop (1-indexed)
+	_loop.revcounter() 	The number of iterations from the end of the loop (1-indexed)
+	_loop.first() 	True if this is the first time through the loop
+	_loop.last() 	True if this is the last time through the loop
+
+	-----------
+
+	Methods to register decorators and tags.
 
 
------------
+---------------------------------------------
 
-Is a with statement usefull ?
-Could it have practical alternateTags.
+	VERSIONS 1.1
+	Objectives:
+		- Richer API for full control
+		- Richer syntax to do more with less code
 
-{{with this.reservation.days }}
-	{{out this.length /}} days left
-{{with-empty}}
-	No days left!
-{{endwith}}
+---------------------------------------------
+	
+	An event API for onTag, onDecorator, onWhatever, etc
 
------------
+	-----------
 
-// output items in a var
+	// Each tag argument to output iterated items in vars
+	// for easy access in nested statements
 
-{{each this.items, "parentItem"}}
-	{{each this.children, "child"}}
-		{{out var.parentItem.name /}} is parent of {{out var.child.name /}}
+	{{each this.items, "dad"}}
+		{{each vars.dad.children, "child"}}
+			{{out vars.parentItem.name /}} is parent of {{out vars.child.name /}}
+		{{/each}}
 	{{/each}}
-{{/each}}
 
-or alternate syntax
+	Is equivalent to  :
 
-{{each this.items @@ "parentItem"}}
-	{{each this.children, "child"}}
-		{{out var.parentItem.name /}} is parent of {{out var.child.name /}}
+	{{each this.items}}
+		{{define "dad", this /}}
+		{{each vars.dad.children}}
+			{{define "child", this /}}
+			{{out vars.dad.name /}} is dad of {{out vars.child.name /}}
+		{{/each}}
 	{{/each}}
-{{/each}}
 
-or with decorator ?
+	-----------
 
-{{each this.items >> var "parentItem"}}
-	{{each this.children >> var "child"}}
-		{{out var.parentItem.name /}} is parent of {{out var.child.name /}}
-	{{/each}}
-{{/each}}
+	Access to parent data and environment
 
-same as :
+	vars._parent	The parent data context
+	env._parent		The parent environement ?
 
-{{each this.items}}
-	{{define "parentItem", this /}}
-	{{each this.children}}
-		{{define "child", this /}}
-		{{out var.parentItem.name /}} is parent of {{out var.child.name /}}
-	{{/each}}
-{{/each}}
+	---------
 
+	Custom Tags
 
+	- The this object is the collection of named arguments
+	- arguments and alternate blocks for passing prefixed vars
 
-
-{{cycle "odd", "even" }}  (like django)
-
--------
-Define a variable using JSON and store as an object
-
-NOT POSSIBLE FOR NOW BECAUSE DECORATORS ARE PARSED
-OUTSIDE OF THE TAG HANDLER ITSELF
-
-{{var "messageCount" >> json /}}
-	{
-		a: 1,
-		b: 2
+	data= {
+		first: "John",
+		last: "Doe",
+		favoriteColor: "green",
+		unreadMessages: 4
 	}
-{{/var}}
 
--------
-i18n could be a template global
+	{{tag "welcomeBox", "first", "last", "color"}}
+		<p>Welcome {{out this.first + " " + this.last /}}</p>
+		<div style="padding:20px; border:1px solid; background: #fff;">
+			{{out vars._output /}}
+		</div>
+	{{endtag}}
 
-{{out i18n("Bonjour à vous les amis!")/}}
-{{out "Bonjour à vous les amis!" >> i18n /}}
-{{i18n}}Bonjour à vous les amis!{{/i18n}}
-{{i18n "bonjour"}}Bonjour à vous les amis!{{/i18n}}
-{{out >> i18n "bonjourAvous"}}Bonjour à vous les amis!{{/i18n}}
+	{{var "messageCount", this.unreadMessages /}}
+	{{welcomeBox this.firstname, this.lastname, this.favoriteColor }}
+		<p style="color:{{out this.color /}}">You have {{out vars.messageCount /}} new messages in your inbox!</p>
+	{{endwelcomeBox}}
 
-------
+	---------
 
-More complete Loop object
+	i18n could be a template global
 
-** SOULD be a prefixed var like so _loop
+	{{out i18n("Bonjour à vous les amis!")/}}
+	{{out "Bonjour à vous les amis!" >> i18n /}}
+	{{i18n}}Bonjour à vous les amis!{{/i18n}}
+	{{i18n "bonjour"}}Bonjour à vous les amis!{{/i18n}}
+	{{out >> i18n "bonjourAvous"}}Bonjour à vous les amis!{{/i18n}}
 
-_loop.counter 	The current iteration of the loop (1-indexed)
-_loop.revcounter 	The number of iterations from the end of the loop (1-indexed)
-_loop.first 	True if this is the first time through the loop
-_loop.last 	True if this is the last time through the loop
-_loop.parent 	For nested loops, this is the loop "above" the current one
+	-----------
 
-----------
-Special vars
+	Ability to use any tag as functions:
+	- last argument can be used to pass vars
 
-vars._parent	The parent data context
-env._parent		The parent environement ?
+	{{var "welcomeMessage"}}
+		<p style="color:{{out this.color /}}">You have {{out vars.messageCount /}} new messages in your inbox!</p>
+	{{/var}}
 
-----------
+	{{out tags.welcomeBox("John", "Doe", 4, {_output: welcomeMessage}) >> uppercase /}}
 
-Custom Tags
+	-----------
 
-- The this object is the collection of named arguments
-- arguments and alternate blocks for passing prefixed vars
+	Ability to use any decorator as functions:
 
-data= {
-	first: "John",
-	last: "Doe",
-	favoriteColor: "green",
-	unreadMessages: 4
-}
+	{{out deco.uppercase(this.value) /}}
 
-{{tag "welcomeBox", "first", "last", "color"}}
-	<p>Welcome {{out this.first + " " + this.last /}}</p>
-	<div style="padding:20px; border:1px solid; background: #fff;">
-		{{out vars._output /}}
-	</div>
-{{endtag}}
+---------------------------------------------
 
-{{var "messageCount", this.unreadMessages /}}
-{{welcomeBox this.firstname, this.lastname, this.favoriteColor }}
-	<p style="color:{{out this.color /}}">You have {{out vars.messageCount /}} new messages in your inbox!</p>
-{{endwelcomeBox}}
+	VERSIONS 1.2
+	Objectives:
+		- Support for more edge case
+		- More complete set of native decorators and utilities
 
+---------------------------------------------
 
------
+	{{cycle "odd", "even" }}  (like django)
 
-Ability to use any tag as functions:
-- last argument can be used to pass vars
+	-----------
 
-{{var "welcomeMessage"}}
-	<p style="color:{{out this.color /}}">You have {{out vars.messageCount /}} new messages in your inbox!</p>
-{{/var}}
+	{{each-every 4, -1}} alternate tag for alternating items
 
-{{out welcomeBox("John", "Doe", 4, {_output: welcomeMessage}) >> uppercase /}}
+	-----------
 
------
+	Define a variable using JSON and store as an object
 
-void decorator to process a tag, but cancel it's output
+	NOT POSSIBLE FOR NOW BECAUSE DECORATORS ARE PARSED
+	OUTSIDE OF THE TAG HANDLER ITSELF
 
-{{out "Dude..." >> void }}
-	where's my car!
-{{endout}}
+	{{var "messageCount" >> json /}}
+		{
+			a: 1,
+			b: 2
+		}
+	{{/var}}
 
------
+	-----------
 
-Reusability tags:
-{{load "templateName" }}	For loading vars, templates, custom tags but without affecting rendering
+	"with" tag
 
-Syntax like:
-	{{include "templatenName" /}}
-	{{partial "templatenName" /}}
-Is made obsolete with the richer :
-	{{render "templateName" /}}
+	Is a with statement usefull ?
+	Could it have practical alternateTags.
 
--------
+	{{with this.reservation.days }}
+		{{out this.length /}} days left
+	{{with-empty}}
+		No days left!
+	{{endwith}}
+
 
 
 ------------------------------------------
-SYNTAXIC EQUIVALENCIES
+SYNTAXIC EQUIVALENCIES - To make as sample
+Whay to emulate behavior of other templating engine without using
+special purpose tags, and favor standard javascript
 ------------------------------------------
 
-Example for this syntax:
-{{ firstof var1, var2, var3, "fallback value" /}}  from django
-done like this : {{ out (0 || 0 || 0 || 2 || 1) }}
+	Example for this syntax:
+	{{ firstof var1, var2, var3, "fallback value" /}}  from django
+	done like this : {{ out (0 || 0 || 0 || 2 || 1) }}
 
--------
+	-------
 
-/**
- * Sample to show a Loop 31 times without data
- */
- Or {{each spawn(31) }} or similar ?
- Or {{each new Array(31) }}
+	/**
+	 * Sample to show a Loop 31 times without data
+	 */
+	 Or {{each spawn(31) }} or similar ?
+	 Or {{each new Array(31) }}
 
-----
+	----

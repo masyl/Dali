@@ -29,30 +29,30 @@
 <script id="sample-if-template" type="text/x-dali-template">
 <h3>True in many forms:</h3>
 <p>Block output:<br />
-	{{if this.TrueIsTrue}}It's true!{{endif}}
+	{{if _item.TrueIsTrue}}Its true!{{endif}}
 </p>
 <p>Inline output:<br />
-	{{if this.TrueIsTrue, "It's true again!" /}}
+	{{if _item.TrueIsTrue, "Its true again!" /}}
 </p>
 <p>Inline output if false:<br />
-	{{if !this.TrueIsTrue, "if it was true!", "It's false that it's not true!" /}}
+	{{if is.not(_item.TrueIsTrue), "if it was true!", "Its false that its not true!" /}}
 </p>
 <p>If-not tag output:<br />
-	{{if !this.TrueIsTrue}}
-		It's true!
+	{{if is.not(_item.TrueIsTrue)}}
+		Its true!
 	{{if-not}}
-		It's not!
+		Its not!
 	{{endif}}
 </p>
 <p>If-else tag output:<br />
-	{{if !this.TrueIsTrue}}
-		It's true!
-	{{if-else this.Banana === "joe!"}}
+	{{if is.not(_item.TrueIsTrue)}}
+		Its true!
+	{{if-else is.equal(_item.Banana, "joe!")}}
 		First if was false but this new condition is also false!
-	{{if-else this.Banana === "split!"}}
+	{{if-else is.equal(_item.Banana, "split!")}}
 		First and second if were false but this third if is true!
 	{{if-not}}
-		It's not!
+		Its not!
 	{{endif}}
 </p>
 </script>

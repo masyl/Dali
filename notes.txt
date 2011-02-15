@@ -54,6 +54,14 @@ VARIOUS TASKS TO BE SORTED:
 
 	-----------
 
+	Jaja support for more than two attribute pointers ex.: data.user.name.first
+
+	-----------
+
+	Support for double quotes and single quotes in expression evaluation
+
+	-----------
+
 	Complete and coherent API integration for jQuery, Mootools, Dojo, YUI.
 
 	-----------

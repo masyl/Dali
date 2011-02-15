@@ -5,8 +5,12 @@
 	See readme.txt for documentation
 
 */
+jaja = (typeof jaja === "object") ? jaja : null;
 exports = (typeof exports === "object") ? exports : null;
-(function (global, $, exports) {
+(function (global, $, exports, jaja) {
+
+	if (!jaja) throw(new Err("MissingDependency", "Jaja library is missing"));
+
 	/**
 	 * Create an Dali instance. Each instance has its own set templates and config.
 	 * @constructor
@@ -61,7 +65,7 @@ exports = (typeof exports === "object") ? exports : null;
 					"var vars = env.vars;\n" +
 					lexer(template.source) +
 					"return env.stream();\n";
-				//console.log("Template source: \n", source);
+					//console.log("Template source: \n", source);
 				try {
 					fn = new Function("env", source);
 				} catch(err) {
@@ -140,28 +144,33 @@ exports = (typeof exports === "object") ? exports : null;
 			 * @param data
 			 * @param blockHandler
 			 */
-			this.applyTag = function (tagName, args, data, blockHandler, alternateBlocks) {
-				var content,
-					newEnv = new Env(this.vars),
-					//newEnv = this,
-					tag = tags[tagName].handler;
-				//console.log("WTF>>>>", this.vars, newEnv.vars, tagName, args);
+			this.applyTag = function (tagName, argString, data, blockHandler, alternateBlocks) {
+				var content, newEnv, args, tag;
+				newEnv = new Env(this.vars);
+				newEnv._item = data;
+				args = evaluate(argString, newEnv);
+				tag = tags[tagName].handler;
 				content = tag.apply(data, [args, newEnv, blockHandler, alternateBlocks]);
-				this.out(content);
+				this.out(unescapeQuotes(content));
 				return this;
 			};
+
 			/**
 			 * Apply a filter function to the available arguments
 			 * @param filterName
 			 * @param args
 			 */
-			this.applyFilter = function(filterName, args) {
+			this.applyFilter = function(filterName, argString) {
 				var str,
 					filter = filters[filterName],
 					oldArray = this._stream,
-					newArray = [];
+					newArray = [],
+					args,
+					newEnv;
+				newEnv = new Env(this.vars);
+				args = evaluate(argString, newEnv);
 				for (var i in oldArray) {
-					str = filter.apply(oldArray[i] + "", args);
+					str = filter.apply(oldArray[i], args);
 					newArray.push(str);
 				}
 				this._stream = newArray;
@@ -217,7 +226,7 @@ exports = (typeof exports === "object") ? exports : null;
 				lastTagStart = template.replace(/\s/g, " ").indexOf(tag, lastTagEnd);
 				before = template.substring(lastTagEnd, lastTagStart);
 				if (before.length) {
-					tagNodePointer.children.push(new TagNode("raw", "", "'" + escape(before) + "'", before, false, false));
+					tagNodePointer.children.push(new TagNode("raw", "", '"' + escape(before) + '"', before, false, false));
 				}
 				tagName = tag.split(/ +/)[0];
 				// If the braces and tag name are separated by spaces
@@ -336,7 +345,7 @@ exports = (typeof exports === "object") ? exports : null;
 		// Add a raw tag for the last piece to be renderec or if not tag are found
 		before = template.substring(lastTagEnd, template.length);
 		if (before.length) {
-			tagNodePointer.children.push(new TagNode("raw", "", "'" + escape(before) + "'", before, false, false));
+			tagNodePointer.children.push(new TagNode("raw", "", '"' + escape(before) + '"', before, false, false));
 		}
 		return compileNode(tree[0]);
 	}
@@ -399,14 +408,13 @@ exports = (typeof exports === "object") ? exports : null;
 				alternateBlocks = "";
 				nextChild = node.children[i + 1];
 				while (nextChild && nextChild.nameExtension) {
-					//console.log("collapsing alternate tag", nextChild);
 					args = unescape(nextChild.argString).trim();
 					if (!nextChild.ignoreBlock) {
 						alternateBlock = (nextChild.children.length || nextChild.filters.length) ? compileNode(nextChild) : "";
 						alternateBlock = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + alternateBlock + "}" : "null";
 						alternateBlock =
 							"{\nname: '" + nextChild.nameExtension + "',\n" +
-							"args: [" + args + "],\n" +
+							"args: '[" + args + "]',\n" +
 							"handler: "+ alternateBlock + "\n" +
 							"}";
 						alternateBlocks = alternateBlocks + ", " + alternateBlock;
@@ -427,13 +435,13 @@ exports = (typeof exports === "object") ? exports : null;
 			}
 			if (!child.ignoreTag) {
 				args = unescape(child.argString).trim();
-				stream.push("env.applyTag('" + tagName + "', [" + args + "], this, " + block  + ", " + alternateBlocks + ");\n");
+				stream.push("env.applyTag('" + tagName + "', '[" + args + "]', this, " + block  + ", " + alternateBlocks + ");\n");
 			}
 		}
 		// Apply filter functions
 		for (i in node.filters) {
 			child = node.filters[i];
-			stream.push("env.applyFilter('" + child.name + "', " + child.argString + ");\n");
+			stream.push("env.applyFilter('" + child.name + "', '[" + child.argString + "]');\n");
 		}
 		return stream.join("");
 	}
@@ -464,7 +472,7 @@ exports = (typeof exports === "object") ? exports : null;
 		}, {}),
 		"if" : new Tag("if", function(args, env, block, alternateBlocks) {
 			//TODO: objectfyAlternateBlocks shouldnt hav to be manual called in each tag
-			var altBlocksObj, elseBlocks, notBlock;
+			var altBlocksObj, elseBlocks, notBlock, args;
 			altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
 				"else": [],
 				"not": []
@@ -484,7 +492,7 @@ exports = (typeof exports === "object") ? exports : null;
 					if (elseBlock) {
 						if (elseBlock.args[0]) {
 							isTrue = true;
-							output = output + (elseBlock.args[1] || "");
+							output = output + (args[1] || "");
 							elseBlock.handler.apply(this, [env, args]);
 							break;
 						}
@@ -604,21 +612,22 @@ exports = (typeof exports === "object") ? exports : null;
 
 			var vars = {};
 			extend(vars, env.vars);
-			source = block;
+			source = unescapeQuotes(block);
 			template = env.addTemplate(id, source, vars, optionsParam);
 			return "";
 		}, {
 			isInnert: true
 		}),
 		"render" : new Tag("render", function(args, env, block, alternateBlocks) {
-			var i, output, vars, varName, varBlocks, varBlock, altBlocksObj;
+			var i, output, blockArgs, vars, varName, varBlocks, varBlock, altBlocksObj;
 			altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
 				"var": []
 			});
 			varBlocks = altBlocksObj["var"];
 			for (i in varBlocks) {
 				varBlock = varBlocks[i];
-				varName = varBlock.args[0];
+				blockArgs = evaluate(varBlock.args);
+				varName = blockArgs[0];
 				env.flush();
 				varBlock.handler.apply({}, [env, args]);
 				env.vars[varName] = env.stream();
@@ -644,7 +653,6 @@ exports = (typeof exports === "object") ? exports : null;
 			// render the template with current environment
 			// and disregard its output
 			env.render(args[0], args[1], {}, env);
-			console.log(env);
 			return "";
 		}, {}),
 		"var" : new Tag("var", function(args, env, block, alternateBlocks) {
@@ -716,6 +724,15 @@ exports = (typeof exports === "object") ? exports : null;
 		}
 	}
 
+	var is = {
+		"equal": function(a, b) {
+			return (a == b);
+		},
+		"not": function (a) {
+			return !a;
+		}
+	}
+
 	/**
 	 * Extend an object with the properties of another
 	 * @param obj
@@ -734,6 +751,38 @@ exports = (typeof exports === "object") ? exports : null;
 		return obj;
 	}
 
+	function evaluate(argString, _context) {
+		var context,
+			fn,
+			i,
+			code,
+			results = null;
+		argString = argString || "";
+		argString = argString.replace(/\n/gm," ");
+		context = {
+			"is": is
+		};
+		extend(context, _context);
+
+		var argNames = [],
+			argValues = [];
+		for (i in context) {
+			argNames.push(i);
+			argValues.push(context[i]);
+		}
+
+		try {
+			code = "return " + argString + ";";
+			argNames.push(code);
+			fn = Function.apply(this, argNames);
+			results = fn.apply(context, argValues);
+
+		} catch (err) {
+			throw(err);
+		}
+		return results;
+	}
+
 	/**
 	 * Escape special characters so that it doesnt come in conflits with parsing and compilation
 	 * @param str
@@ -741,7 +790,8 @@ exports = (typeof exports === "object") ? exports : null;
 	function escape(str) {
 		// Linefeeds
 		str = (str+"").replace(/\n/g, "&#10;");
-		str = str.replace(/'/g, "&rsquo;");
+//		str = str.replace(/'/g, "&rsquo;");
+		str = str.replace(/"/g, "&rdquo;");
 		return str;
 	}
 
@@ -757,6 +807,15 @@ exports = (typeof exports === "object") ? exports : null;
 		return str;
 	}
 
+	/**
+	 * Removed escaping rules that have been applied with the "escape" function
+	 * @param str
+	 */
+	function unescapeQuotes(str) {
+		// html entities
+		str = str.replace(/&rdquo;/g, "\"");
+		return str;
+	}
 	/**
 	 * Makes Dali available as a jQuery plugin
 	 * @param $ {jQuery} A jQuery instance
@@ -787,6 +846,4 @@ exports = (typeof exports === "object") ? exports : null;
 	if (exports) exportJSCommons(exports);
 	global.Dali = Dali;
 
-})(this, this.jQuery, exports);
-
-
+})(this, this.jQuery, exports, jaja);

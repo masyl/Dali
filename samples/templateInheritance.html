@@ -1,7 +1,14 @@
 <div id="sample-templateInheritance" class="daliSample">
-	<div class="title">Template rendering</div>
+	<div class="title">Template Inheritance</div>
 	<div class="description">
 		<p>
+			Here is how you can achieve complexe template inheritance with
+			the correct combination of the "template", "render" and "var" tags.
+		</p>
+		<p>
+			The template defines 3 templates and starts by rendering the "page" template, which render "basePage",
+			which then renders the "html5" template. In each steps, variables and rendered content is passed as
+			normal variables with the "render-var" and "var" tags.
 		</p>
 	</div>
 <script id="sample-templateInheritance-data" type="application/json">
@@ -25,10 +32,10 @@
 
 {{template "basePage"}}
 	{{render "html5"}}
-		This default block will be available as the _ouput variable!<br/>
+		This default block will be available as the _ouput variable!<br />
 		For page templates, it might be usefull to pass meta-data such as
 		build version, render time, credits or other secondary information
-		to be hidden to the user but available to the devs.</br></br>
+		to be hidden to the user but available to the devs.<br /><br />
 		the _output var is not really semantically suited to be used like
 		for the content of a body.
 	{{render-var "_head" }}

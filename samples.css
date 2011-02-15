@@ -57,10 +57,22 @@ html .full-frame {
 label {
 	display: block;
 	position: absolute;
-	bottom: 8px;
-	right: 13px;
+	top: -1.8em;
+	right: 0;
 	z-index: 1000;
-	font-size: 1.3em;
+	font-size: 0.8em;
+	font-weight: bold;
+	color: #776655;
+	height: 1.5em;
+	padding: 0.3em 10px 0px 10px;
+	behavior: url(libs/css3pie/PIE.htc);
+	-webkit-border-radius: 10px 10px 0 0;
+	-moz-border-radius: 10px 10px 0 0;
+	border-radius: 10px 10px 0 0;
+	background: #ddccbb;
+}
+.template label {
+	background: #eeddcc;
 }
 
 html body .data .ace_editor .ace_scroller {

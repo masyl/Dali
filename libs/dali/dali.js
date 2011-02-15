@@ -5,11 +5,8 @@
 	See readme.txt for documentation
 
 */
-jaja = (typeof jaja === "object") ? jaja : null;
 exports = (typeof exports === "object") ? exports : null;
-(function (global, $, exports, jaja) {
-
-	if (!jaja) throw(new Err("MissingDependency", "Jaja library is missing"));
+(function (global, $, exports) {
 
 	/**
 	 * Create an Dali instance. Each instance has its own set templates and config.
@@ -846,4 +843,4 @@ exports = (typeof exports === "object") ? exports : null;
 	if (exports) exportJSCommons(exports);
 	global.Dali = Dali;
 
-})(this, this.jQuery, exports, jaja);
+})(this, this.jQuery, exports);

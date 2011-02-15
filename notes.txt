@@ -21,10 +21,6 @@ VARIOUS TASKS TO BE SORTED:
 
 ---------------------------------------------
 
-	Support for JAJA expression parser/runner
-
-	-----------
-
 	Complete _loop object
 
 	** SOULD be a prefixed var like so _loop
@@ -49,12 +45,12 @@ VARIOUS TASKS TO BE SORTED:
 		- Richer syntax to do more with less code
 
 ---------------------------------------------
-	
-	An event API for onTag, onFilter, onWhatever, onError, etc
+
+	Error messages that behave as a sort of stack-trace
 
 	-----------
 
-	Jaja support for more than two attribute pointers ex.: data.user.name.first
+	An event API for onTag, onFilter, onWhatever, onError, etc
 
 	-----------
 
@@ -205,6 +201,18 @@ VARIOUS TASKS TO BE SORTED:
 	{{with-empty}}
 		No days left!
 	{{endwith}}
+
+---------------------------------------------
+
+	VERSIONS 1.3
+	Objectives:
+		- Remove the need for the "Function" constructor, by "running" instructions
+		instead of compiling javascript functions.
+		- Better sandboxing of execution
+
+---------------------------------------------
+
+	To be determined....
 
 
 

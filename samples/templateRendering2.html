@@ -18,14 +18,14 @@
 </script>
 <script id="sample-templateRendering-template" type="text/x-dali-template">
 {{template "welcomeUser"}}
-	<h3>Welcome {{out _item.firstname + " " + _item.lastname /}}</h3>
+	<h3>Welcome {{out item.firstname + " " + item.lastname /}}</h3>
 	<div style="background: #fff; padding:10px; border:1px solid;">
 		{{out vars._output /}}
 	</div>
 {{endtemplate}}
 
 {{var "messageCount", 4 /}}
-{{render "welcomeUser", _item.user}}
+{{render "welcomeUser", item.user}}
 	You have {{out vars.messageCount /}} new messages in your inbox!
 {{endrender}}
 

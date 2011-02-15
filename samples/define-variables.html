@@ -18,12 +18,12 @@
 }
 </script>
 <script id="sample-defineVariables-template" type="text/x-dali-template">
-	{{var "onePlusOne", _item.one + " + " + _item.one /}}
+	{{var "onePlusOne", item.one + " + " + item.one /}}
 	<p>
 		{{out vars.onePlusOne /}} = three!
 	</p>
 	{{var "twoPlusTwoWithABlock" }}
-		{{out _item.two /}} + {{out _item.two /}}
+		{{out item.two /}} + {{out item.two /}}
 	{{endvar}}
 	<p>
 		{{out vars.twoPlusTwoWithABlock /}} = four!

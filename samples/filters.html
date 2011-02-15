@@ -11,14 +11,14 @@
 }
 </script>
 <script id="sample-Filters-template" type="text/x-dali-template">
-<p>uppercase :<br />{{out _item.label >> uppercase /}}</p>
-<p>trim :<br />{{out _item.label >> trim /}}</p>
-<p>lowercase :<br />{{out _item.label >> lowercase /}}</p>
-<p>void :<br />{{out _item.label >> void /}}(this voids the output)</p>
+<p>uppercase :<br />{{out item.label >> uppercase /}}</p>
+<p>trim :<br />{{out item.label >> trim /}}</p>
+<p>lowercase :<br />{{out item.label >> lowercase /}}</p>
+<p>void :<br />{{out item.label >> void /}}(this voids the output)</p>
 <p>
 	uppercase block:<br />
 	{{out >> uppercase}}
-		[uppercase this: {{out _item.label /}}]
+		[uppercase this: {{out item.label /}}]
 	{{endout}}
 </p>
 </script>

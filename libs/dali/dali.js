@@ -147,7 +147,7 @@ exports = (typeof exports === "object") ? exports : null;
 			this.applyTag = function (tagName, argString, data, blockHandler, alternateBlocks) {
 				var content, newEnv, args, tag;
 				newEnv = new Env(this.vars);
-				newEnv._item = data;
+				newEnv.item = data;
 				args = evaluate(argString, newEnv);
 				tag = tags[tagName].handler;
 				content = tag.apply(data, [args, newEnv, blockHandler, alternateBlocks]);

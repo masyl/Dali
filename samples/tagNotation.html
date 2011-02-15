@@ -18,10 +18,10 @@
 }
 </script>
 <script id="sample-tagNotation-template" type="text/x-dali-template">
-<p>A closed tag:  {{out _item.sample/}}</p>
-<p>A closed with some extra spaces:  {{  out _item.sample   /}}</p>
+<p>A closed tag:  {{out item.sample/}}</p>
+<p>A closed with some extra spaces:  {{  out item.sample   /}}</p>
 <p>An open tag:  {{out}} Wooopy! {{endout}}</p>
-<p>A tag in a tag:  {{if true}} {{out _item.sample /}} {{endif}}</p>
+<p>A tag in a tag:  {{if true}} {{out item.sample /}} {{endif}}</p>
 <p>A tag with multiple arguments:  {{if true, "Yes!", "No!" /}}</p>
 <p>Close a tag with "#}<span>}</span>" to comment out its content block:<br/>
 	{{if (2 > 3), "YES!" #}}

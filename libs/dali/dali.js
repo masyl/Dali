@@ -558,8 +558,9 @@ exports = (typeof exports === "object") ? exports : null;
 				});
 				items = args[0];
 				if (typeof(_block) === "function") {
-					loop = new Loop(items.length);
-
+					// Create a new Loop status object
+					loop = new Loop(items);
+					env.vars.loop = loop;
 					// to insert before all items
 					if (altBlocksObj.begin[0]) {
 						altBlocksObj.begin[0].handler.apply({}, [env, args, loop]);
@@ -734,13 +735,49 @@ exports = (typeof exports === "object") ? exports : null;
 	 * Iterator state object
 	 * @param count {number} The number of items in the iteration
 	 */
-	function Loop(count) {
-		this.count = count;
-		this.last = false;
-		this.current = 0;
+	function Loop(_items) {
+		var i,
+			items = _items,
+			length = 0,
+			index = -1;
+
+		// count how many items there are
+		for (i in items) length = length + 1;
+
+		this.items = function() {
+			return items;
+		};
+		this.isOdd = function() {
+			return this.isNth(2,0);
+		};
+		this.isNth = function(nth, offset) {
+			offset = offset || 0;
+			return !((index+1-offset) % nth);
+		};
+		this.first = function() {
+			return items[0];
+		};
+		this.last = function() {
+			return items[length-1];
+		};
+		this.isFirst = function() {
+			return index === 0;
+		};
+		this.isLast = function() {
+			return (index + 1) === length;
+		};
+		this.length = function() {
+			return length;
+		};
+		this.counter = function() {
+			return index;
+		};
+		this.revCounter = function() {
+			return length - (index+1)
+		};
 		this.step = function() {
-			this.current = this.current + 1;
-			if (this.current >= this.count) this.last = true;
+			index = index + 1;
+			return this;
 		}
 	}
 

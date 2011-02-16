@@ -1,0 +1,72 @@
+<div id="sample-iteratorLoop" class="daliSample">
+	<div class="title">Iterator (each)</div>
+	<div class="description">
+		<p>To iterate across arrays and object members, you can use the "each" tag.</p>
+		<p>This tag behaves similarly to a javascript "for" statement, but does more by automatically setting the current item to the "this" object.</p>
+		<p>Also, a "loop" object is made available to access the current state of the iteration.</p>
+		<h3>Alternate tags:</h3>
+		<ul>
+			<li>{{each-first}} : Used for the first item.</li>
+			<li>{{each-last}} : Used for the last item.</li>
+			<li>{{each-begin}} : Content to append before all items if not empty.</li>
+			<li>{{each-between}} : Content to append between each item.</li>
+			<li>{{each-end}} : Content to append after all items if not empty.</li>
+			<li>{{each-single}} : Used when the collection has a single item.</li>
+			<li>{{each-empty}} : Used when the collection to iterate is empty.</li>
+		</ul>
+	</div>
+<script id="sample-iteratorLoop-data" type="application/json">
+{
+	"allColors": ["blue", "red", "green", "cyan", "magenta", "grey", "black", "white", "yellow"]
+}
+</script>
+<script id="sample-iteratorLoop-template" type="text/x-dali-template">
+<h3>Loop status object:</h3>
+<br/>
+	<div style="font-size: 0.8em;">
+{{each item.allColors}}
+	<tr>
+		<th>{{ out item /}}</th>
+		<td>{{ out vars.loop.counter() /}}</td>
+		<td>{{ out vars.loop.revCounter() /}}</td>
+		<td>{{ out vars.loop.isFirst() /}}</td>
+		<td>{{ out vars.loop.isLast() /}}</td>
+		<td>{{ out vars.loop.isOdd() /}}</td>
+		<td>{{ out vars.loop.isNth(2) /}}</td>
+		<td>{{ out vars.loop.isNth(3) /}}</td>
+		<td>{{ out vars.loop.isNth(4) /}}</td>
+	</tr>
+{{each-begin}}
+	<div>
+		loop.length() = {{out vars.loop.length() /}}
+	</div>
+	<div>
+		loop.items() = {{out vars.loop.items().join("+") /}}
+	</div>
+	<div>
+		loop.first() = {{out vars.loop.first() /}}
+	</div>
+	<div>
+		loop.last() = {{out vars.loop.last() /}}
+	</div>
+	<table>
+		<thead>
+			<th>item</th>
+			<th>counter</th>
+			<th>revCounter</th>
+			<th>isFirst</th>
+			<th>isLast</th>
+			<th>isOdd</th>
+			<th>isNth(2)</th>
+			<th>isNth(3)</th>
+			<th>isNth(4)</th>
+		</thead>
+		<tbody>
+{{each-end}}
+		</tbody>
+	</table>
+{{endeach}}
+
+	</div>
+</script>
+</div>

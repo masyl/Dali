@@ -41,8 +41,10 @@ VARIOUS TASKS TO BE SORTED:
 
 	VERSIONS 1.1
 	Objectives:
-		- Richer API for full control
+		- Richer API for full control and ease of use
 		- Richer syntax to do more with less code
+		- More unit and integration tests
+		- Better error reporting
 
 ---------------------------------------------
 

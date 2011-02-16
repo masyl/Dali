@@ -520,12 +520,14 @@ exports = (typeof exports === "object") ? exports : null;
 		"each" : new Tag("each",
 			function(args, env, _block, alternateBlocks) {
 				var i,
+					itemCount = 0,
 					item,
 					items,
 					block,
 					loop,
 					altBlocksObj,
-					altBlock;
+					altBlock,
+					oldItem = env.item;
 
 				altBlocksObj = objectfyAlternateBlocks(alternateBlocks,{
 					"empty": [],
@@ -539,47 +541,51 @@ exports = (typeof exports === "object") ? exports : null;
 				});
 				items = args[0];
 				if (typeof(_block) === "function") {
-					if (items && items.length) {
-						loop = new Loop(items.length);
-						// to insert after all items
-						if (altBlocksObj.begin[0]) {
-							altBlocksObj.begin[0].handler.apply(item, [env, args, loop]);
-						}
-						for (i=0; i<items.length; i = i + 1) {
-							loop.step();
-							item = items[i];
-							block = null;
-							if (i==0 && items.length==1) {
-								// Is single item
-								block = altBlocksObj.single[0];
-							} else if (i==0) {
-								// Is first item
-								block = altBlocksObj.first[0];
-							} else if (i==items.length-1) {
-								// Is last item
-								block = altBlocksObj.last[0];
-							} else if (i % 2) {
-								// Is odd item
-								block = altBlocksObj.odd[0];
-							}
-							if (!block) block = _block;
-							block = (block.handler || block);
-							block.apply(item, [env, args, loop]);
+					loop = new Loop(items.length);
 
-							// to insert between each item
-							if (altBlocksObj.between[0] && i<items.length-1) {
-								altBlocksObj.between[0].handler.apply(item, [env, args, loop]);
-							}
+					// to insert before all items
+					if (altBlocksObj.begin[0]) {
+						altBlocksObj.begin[0].handler.apply({}, [env, args, loop]);
+					}
+					for (i in items) {
+						itemCount = itemCount + 1;
+						env.item = item;
+						item = items[i];
+						loop.step();
+						block = null;
+						if (i==0 && items.length==1) {
+							// Is single item
+							block = altBlocksObj.single[0];
+						} else if (i==0) {
+							// Is first item
+							block = altBlocksObj.first[0];
+						} else if (i==items.length-1) {
+							// Is last item
+							block = altBlocksObj.last[0];
+						} else if (i % 2) {
+							// Is odd item
+							block = altBlocksObj.odd[0];
 						}
+						if (!block) block = _block;
+						block = (block.handler || block);
+						block.apply(item, [env, args, loop]);
+
+						// to insert between each item
+						if (altBlocksObj.between[0] && i<items.length-1) {
+							altBlocksObj.between[0].handler.apply({}, [env, args, loop]);
+						}
+					}
+					if (!itemCount) {
 						// to insert after all items
 						if (altBlocksObj.end[0]) {
-							altBlocksObj.end[0].handler.apply(item, [env, args, loop]);
+							altBlocksObj.end[0].handler.apply({}, [env, args, loop]);
 						}
-					} else {
-						altBlock = altBlocksObj.empty[0];
-						if (altBlock) altBlock.handler.apply({}, [env, args, null]);
 					}
+					altBlock = altBlocksObj.empty[0];
+					if (altBlock) altBlock.handler.apply({}, [env, args, null]);
 				}
+				// Reset to the old item before iterating
+				env.item = oldItem;
 				return env.stream();
 			}, {
 				"alternateBlocks": {

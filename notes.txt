@@ -159,6 +159,17 @@ VARIOUS TASKS TO BE SORTED:
 
 	-----------
 
+	Tag instruction for different way out outscaping linefeeds
+
+	Tag instructions come in the form of a list of coma separated keywords
+	that appear after arguments and filters. Simply user the doulbe @.
+	Ex.:
+
+	{{out "these line feeds\n will not\n be escaped" >> lowersace @@ keeplinefeeds /}}
+
+
+	-----------
+
 	Better character espcaping routines.
 
 	{{cycle "odd", "even" }}  (like django)

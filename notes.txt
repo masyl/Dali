@@ -64,6 +64,14 @@ VARIOUS TASKS TO BE SORTED:
 
 	-----------
 
+	A filter to send tag output into a var
+
+	{{out >> var "dontCareMessage"}}
+		Yeah whatever dude... I dont care!
+	{{endout}}
+
+	-----------
+
 	// Each tag argument to output iterated items in vars
 	// for easy access in nested statements
 

@@ -50,7 +50,11 @@ exports = (typeof exports === "object") ? exports : null;
 				try {
 					output = this.handler.call(data, env);
 				} catch(err) {
-					throw(new Err("RenderingFailed", "Template rendering failed, with following error:\n" + err.name + "\n" + err.message));
+					logError(err);
+					throw(new Err("RenderingFailed", "Template rendering failed, with following error:\n" +
+					"error: " + err.name + "\n" +
+					"message: " + err.message + "\n\n" +
+					"Failed template name: \n" + this.id));
 				}
 				return output;
 			};
@@ -58,15 +62,28 @@ exports = (typeof exports === "object") ? exports : null;
 			function compile() {
 				var fn,
 					err,
-					source =
-					"var vars = env.vars;\n" +
-					lexer(template.source) +
-					"return env.stream();\n";
+					source;
 					//console.log("Template source: \n", source);
+
+				try {
+					source =
+						"var vars = env.vars;\n" +
+						lexer(template.source) +
+						"return env.stream();\n"
+				} catch(err) {
+					throw(new Err("TemplateParsingFailed", "Template parsing failed, with following error:\n" +
+					"error: " + err.name + "\n" +
+					"message: " + err.message + "\n\n" +
+					"Failed Template source: \n" + template.source));
+				}
+
 				try {
 					fn = new Function("env", source);
 				} catch(err) {
-					throw(new Err("CompilationFailed", "Template compilation failed, with following error:\n" + err.name + "\n" + err.message));
+					throw(new Err("TemplateCompilationFailed", "Template compilation failed, with following error:\n" +
+					"error: " + err.name + "\n" +
+					"message: " + err.message + "\n\n" +
+					"Compiled template source: \n" + source));
 				}
 				return fn;
 			}
@@ -754,14 +771,14 @@ exports = (typeof exports === "object") ? exports : null;
 		return obj;
 	}
 
-	function evaluate(argString, _context) {
+	function evaluate(expression, _context) {
 		var context,
 			fn,
 			i,
 			code,
 			results = null;
-		argString = argString || "";
-		argString = argString.replace(/\n/gm," ");
+		expression = expression || "";
+		expression = expression.replace(/\n/gm," ");
 		context = {
 			"is": is
 		};
@@ -774,14 +791,25 @@ exports = (typeof exports === "object") ? exports : null;
 			argValues.push(context[i]);
 		}
 
+		code = "return " + expression + ";";
+		argNames.push(code);
 		try {
-			code = "return " + argString + ";";
-			argNames.push(code);
 			fn = Function.apply(this, argNames);
-			results = fn.apply(context, argValues);
-
 		} catch (err) {
-			throw(err);
+			logError(err);
+			throw(new Err("ExpressionCompilationFailed", "Failed to compile an expression into proper javascript.\n\n" +
+					"error: " + err.name + "\n" +
+					"message: " + err.message + "\n\n" +
+					"Expression to compile: \n" + expression));
+		}
+		try {
+			results = fn.apply(context, argValues);
+		} catch (err) {
+			logError(err);
+			throw(new Err("ExpressionEvaluationFailed", "An exception occured while evaluating a javascript expression.\n\n" +
+					"error: " + err.name + "\n" +
+					"message: " + err.message + "\n\n" +
+					"Expression to evaluate: \n" + expression));
 		}
 		return results;
 	}
@@ -842,6 +870,10 @@ exports = (typeof exports === "object") ? exports : null;
 		exports.dali = function (options) {
 			return new Dali(options)
 		}
+	}
+
+	function logError(err) {
+		if (typeof(console)!="undefined" && console.error) console.error(err);
 	}
 
 	// apply exports

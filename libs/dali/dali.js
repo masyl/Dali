@@ -122,9 +122,16 @@ exports = (typeof exports === "object") ? exports : null;
 		 * @constructor
 		 * @param vars
 		 */
-		function Env(vars) {
+		function Env(vars, parentEnv) {
 			this.dali = dali;
 			this.vars = vars || {}; // TODO: REFACTOR: Should this be extended? And restricted to local scope ?
+			this.parent = parentEnv || null;
+			if (this.parent) {
+				this.loop = parentEnv.loop;
+			} else {
+				this.loop = new Loop();
+			}
+
 			this.render = function (id, data, vars, env) {
 				var template = dali.get(id);
 				if (!template) throw new Err("TemplateNotFound", "Template not found: " + id);
@@ -160,9 +167,11 @@ exports = (typeof exports === "object") ? exports : null;
 			 */
 			this.applyTag = function (tagName, argString, data, blockHandler, alternateBlocks) {
 				var content, newEnv, args, tag;
-				newEnv = new Env(this.vars);
+				newEnv = new Env(this.vars, this);
 				newEnv.item = data;
-				args = evaluate(argString, newEnv);
+				args = function () {
+					return evaluate(argString, newEnv)
+				};
 				tag = tags[tagName].handler;
 				content = tag.apply(data, [args, newEnv, blockHandler, alternateBlocks]);
 				this.out(unescapeQuotes(content));
@@ -181,7 +190,7 @@ exports = (typeof exports === "object") ? exports : null;
 					newArray = [],
 					args,
 					newEnv;
-				newEnv = new Env(this.vars);
+				newEnv = new Env(this.vars, this);
 				args = evaluate(argString, newEnv);
 				for (var i in oldArray) {
 					str = filter.apply(oldArray[i], args);
@@ -425,7 +434,7 @@ exports = (typeof exports === "object") ? exports : null;
 					args = unescape(nextChild.argString).trim();
 					if (!nextChild.ignoreBlock) {
 						alternateBlock = (nextChild.children.length || nextChild.filters.length) ? compileNode(nextChild) : "";
-						alternateBlock = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + alternateBlock + "}" : "null";
+						alternateBlock = (block) ? "function (env, args) {\nvar vars = env.vars;\n" + alternateBlock + "}" : "null";
 						alternateBlock =
 							"{\nname: '" + nextChild.nameExtension + "',\n" +
 							"args: '[" + args + "]',\n" +
@@ -444,7 +453,7 @@ exports = (typeof exports === "object") ? exports : null;
 					block = "null";
 				} else {
 					block = (child.children.length || child.filters.length) ? compileNode(child) : "";
-					block = (block) ? "function (env, args, loop) {\nvar vars = env.vars;\n" + block + "}" : "null";
+					block = (block) ? "function (env, args) {\nvar vars = env.vars;\n" + block + "}" : "null";
 				}
 			}
 			if (!child.ignoreTag) {
@@ -481,8 +490,11 @@ exports = (typeof exports === "object") ? exports : null;
 	}
 
 	var tags = {
-		"raw" : new Tag("raw", function(args, env, block, alternateBlocks) {
-			return args.join("");
+		"raw" : new Tag("raw", function(_args, env, block, alternateBlocks) {
+			var output,
+				args = _args();
+			output = (typeof(args.join) === "function") ? args.join("") : "";
+			return output;
 		}, {}),
 		"if" : new Tag("if", function(args, env, block, alternateBlocks) {
 			//TODO: objectfyAlternateBlocks shouldnt hav to be manual called in each tag
@@ -535,7 +547,7 @@ exports = (typeof exports === "object") ? exports : null;
 			}
 		),
 		"each" : new Tag("each",
-			function(args, env, _block, alternateBlocks) {
+			function(_args, env, _block, alternateBlocks) {
 				var i,
 					itemCount = 0,
 					item,
@@ -544,6 +556,7 @@ exports = (typeof exports === "object") ? exports : null;
 					loop,
 					altBlocksObj,
 					altBlock,
+					args,
 					oldItem = env.item;
 
 				altBlocksObj = objectfyAlternateBlocks(alternateBlocks,{
@@ -556,11 +569,12 @@ exports = (typeof exports === "object") ? exports : null;
 					"between": [],
 					"last": []
 				});
-				items = args[0];
+				args = _args();
 				if (typeof(_block) === "function") {
 					// Create a new Loop status object
-					loop = new Loop(items);
-					env.vars.loop = loop;
+					items = args[0];
+					loop = env.loop;
+					loop.items(items);
 					// to insert before all items
 					if (altBlocksObj.begin[0]) {
 						altBlocksObj.begin[0].handler.apply({}, [env, args, loop]);
@@ -590,13 +604,13 @@ exports = (typeof exports === "object") ? exports : null;
 
 						// to insert between each item
 						if (altBlocksObj.between[0] && i<items.length-1) {
-							altBlocksObj.between[0].handler.apply({}, [env, args, loop]);
+							altBlocksObj.between[0].handler.apply({}, [env, args]);
 						}
 					}
 					if (!itemCount) {
 						// to insert after all items
 						if (altBlocksObj.end[0]) {
-							altBlocksObj.end[0].handler.apply({}, [env, args, loop]);
+							altBlocksObj.end[0].handler.apply({}, [env, args]);
 						}
 					}
 					altBlock = altBlocksObj.empty[0];
@@ -618,15 +632,17 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 			}
 		),
-		"out" : new Tag("out", function(args, env, block, alternateBlocks) {
+		"out" : new Tag("out", function(_args, env, block, alternateBlocks) {
+			var args = _args();
 			env.out(args.join(""));
 			if (block) {
 				block.apply(this, [env, args]);
 			}
 			return env.stream();
 		}, {}),
-		"template": new Tag("template", function(args, env, block, alternateBlocks) {
-			var template,
+		"template": new Tag("template", function(_args, env, block, alternateBlocks) {
+			var args = _args(),
+				template,
 				id = args[0],
 				source = "", //todo: reuse env or instantiate a new one ??
 				optionsParam = {};
@@ -639,8 +655,8 @@ exports = (typeof exports === "object") ? exports : null;
 		}, {
 			isInnert: true
 		}),
-		"render" : new Tag("render", function(args, env, block, alternateBlocks) {
-			var i, output, blockArgs, vars, varName, varBlocks, varBlock, altBlocksObj;
+		"render" : new Tag("render", function(_args, env, block, alternateBlocks) {
+			var i, output, blockArgs, vars, varName, varBlocks, varBlock, altBlocksObj, args = _args();
 			altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
 				"var": []
 			});
@@ -665,8 +681,8 @@ exports = (typeof exports === "object") ? exports : null;
 				"var": []
 			}
 		}),
-		"load" : new Tag("load", function(args, env, block, alternateBlocks) {
-			var i, output, vars, varName;
+		"load" : new Tag("load", function(_args, env, block, alternateBlocks) {
+			var i, output, vars, varName, args=_args();
 			if (block) {
 				env.flush();
 				block.apply(this, [env, args]);
@@ -676,8 +692,9 @@ exports = (typeof exports === "object") ? exports : null;
 			env.render(args[0], args[1], {}, env);
 			return "";
 		}, {}),
-		"var" : new Tag("var", function(args, env, block, alternateBlocks) {
-			var val;
+		"var" : new Tag("var", function(_args, env, block, alternateBlocks) {
+			var val,
+				args = _args();
 			if (typeof(args[1]) !== "undefined") {
 				val = args[1];
 			}
@@ -735,16 +752,21 @@ exports = (typeof exports === "object") ? exports : null;
 	 * Iterator state object
 	 * @param count {number} The number of items in the iteration
 	 */
-	function Loop(_items) {
+	function Loop() {
 		var i,
-			items = _items,
-			length = 0,
-			index = -1;
+			items,
+			length,
+			index;
 
-		// count how many items there are
-		for (i in items) length = length + 1;
+		this.items = function(_items) {
+			if (_items) {
+				items = _items;
+				length = 0;
+				index = -1;
+				// count how many items there are
+				for (i in items) length = length + 1;
 
-		this.items = function() {
+			}
 			return items;
 		};
 		this.isOdd = function() {
@@ -781,6 +803,7 @@ exports = (typeof exports === "object") ? exports : null;
 		}
 	}
 
+	// Utility for assertions and value comparisons
 	var is = {
 		"equal": function(a, b) {
 			return (a == b);

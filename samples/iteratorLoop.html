@@ -27,27 +27,27 @@
 {{each item.allColors}}
 	<tr>
 		<th>{{ out item /}}</th>
-		<td>{{ out vars.loop.counter() /}}</td>
-		<td>{{ out vars.loop.revCounter() /}}</td>
-		<td>{{ out vars.loop.isFirst() /}}</td>
-		<td>{{ out vars.loop.isLast() /}}</td>
-		<td>{{ out vars.loop.isOdd() /}}</td>
-		<td>{{ out vars.loop.isNth(2) /}}</td>
-		<td>{{ out vars.loop.isNth(3) /}}</td>
-		<td>{{ out vars.loop.isNth(4) /}}</td>
+		<td>{{ out loop.counter() /}}</td>
+		<td>{{ out loop.revCounter() /}}</td>
+		<td>{{ out loop.isFirst() /}}</td>
+		<td>{{ out loop.isLast() /}}</td>
+		<td>{{ out loop.isOdd() /}}</td>
+		<td>{{ out loop.isNth(2) /}}</td>
+		<td>{{ out loop.isNth(3) /}}</td>
+		<td>{{ out loop.isNth(4) /}}</td>
 	</tr>
 {{each-begin}}
 	<div>
-		loop.length() = {{out vars.loop.length() /}}
+		loop.length() = {{out loop.length() /}}
 	</div>
 	<div>
-		loop.items() = {{out vars.loop.items().join("+") /}}
+		loop.items() = {{out loop.items().join("+") /}}
 	</div>
 	<div>
-		loop.first() = {{out vars.loop.first() /}}
+		loop.first() = {{out loop.first() /}}
 	</div>
 	<div>
-		loop.last() = {{out vars.loop.last() /}}
+		loop.last() = {{out loop.last() /}}
 	</div>
 	<table>
 		<thead>

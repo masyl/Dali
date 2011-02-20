@@ -496,9 +496,10 @@ exports = (typeof exports === "object") ? exports : null;
 			output = (typeof(args.join) === "function") ? args.join("") : "";
 			return output;
 		}, {}),
-		"if" : new Tag("if", function(args, env, block, alternateBlocks) {
+		"if" : new Tag("if", function(_args, env, block, alternateBlocks) {
 			//TODO: objectfyAlternateBlocks shouldnt hav to be manual called in each tag
 			var altBlocksObj, elseBlocks, notBlock, args;
+			args = _args();
 			altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
 				"else": [],
 				"not": []
@@ -506,6 +507,7 @@ exports = (typeof exports === "object") ? exports : null;
 			elseBlocks = altBlocksObj["else"];
 			notBlock = altBlocksObj["not"][0];
 			var output = "";
+			console.log("if args: ", args);
 			if (args[0]) {
 				output = output + (args[1] || "");
 				if (typeof(block) === "function") {
@@ -948,8 +950,10 @@ exports = (typeof exports === "object") ? exports : null;
 		this.Controller = function (id, _handler) {
 			var handler = _handler;
 			this.run = function (model, view, outputHandler) {
-				var output = handler(model, view);
-				outputHandler(output);
+				handler(model, view, callback);
+				function callback (output) {
+					outputHandler(output);
+				}
 			};
 		};
 

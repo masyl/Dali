@@ -19,7 +19,7 @@ exports = (typeof exports === "object") ? exports : null;
 		this.templates = {};
 		this.tags = tags;
 		this.filters = filters;
-		this.version = "0.??a";
+		this.version = "0.9.1";
 
 		/**
 		 * Constructor for individual templates
@@ -674,6 +674,8 @@ exports = (typeof exports === "object") ? exports : null;
 				block.apply(this, [env, args]);
 			}
 			env.vars._output = env.stream();
+			console.log("env: ", env);
+			console.log("env.vars: ", env.vars);
 			output = env.render(args[0], args[1], env.vars);
 			return output;
 		}, {
@@ -811,7 +813,7 @@ exports = (typeof exports === "object") ? exports : null;
 		"not": function (a) {
 			return !a;
 		}
-	}
+	};
 
 	/**
 	 * Extend an object with the properties of another
@@ -907,6 +909,66 @@ exports = (typeof exports === "object") ? exports : null;
 		str = str.replace(/&rdquo;/g, "\"");
 		return str;
 	}
+
+
+
+
+
+
+	Dali.MVC = function (_options) {
+		var mvc = this;
+
+		this.options = {};
+
+		extend(this.options, _options);
+
+		this.dali = new Dali({});
+		this.controllers = {};
+
+		this.Model = function (model) {
+			$.extend(this, model);
+		};
+
+		this.View = function (id) {
+
+			this.render = function(model) {
+				return this.template.render(model);
+			};
+
+			this.resolve = function(id) {
+				return $("script#view-" + this.id).html();
+			};
+
+			this.id = id;
+			this.root = $("#" + this.id);
+			this.source = this.resolve(id);
+			this.template = mvc.dali.add(this.id, this.source);
+		};
+
+		this.Controller = function (id, _handler) {
+			var handler = _handler;
+			this.run = function (model, view, outputHandler) {
+				var output = handler(model, view);
+				outputHandler(output);
+			};
+		};
+
+		this.register = function(controllers) {
+			extend(this.controllers, controllers);
+		};
+
+		this.run = function (_model, _view, _controller, outputHandler) {
+			var model, view;
+			model = new mvc.Model(_model);
+			view = new mvc.View(_view);
+			mvc.controllers[_controller].run(model, view, outputHandler);
+		}
+	};
+
+	
+
+
+
 	/**
 	 * Makes Dali available as a jQuery plugin
 	 * @param $ {jQuery} A jQuery instance

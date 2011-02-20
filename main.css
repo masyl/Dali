@@ -1,0 +1,58 @@
+.page {
+	position: relative;
+	text-align: left;
+	width: 700px;
+	margin: 0px auto;
+}
+
+.page .page-header {
+}
+
+.page .page-header h1 {
+}
+
+.page .page-footer {
+}
+.page .page-body {
+}
+
+.logo {
+	text-align: center;
+	padding: 20px 0 0 0;
+}
+.hidden {
+	position: absolute;
+	top: -10000em;
+	left: -10000em;
+}
+
+
+.block {
+	width: auto;
+	background: #000;
+	-moz-box-shadow: #000 10px 10px;
+	box-shadow: #000 10px 10px;
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+	min-height: 1px;
+	border: 1px solid;
+}
+
+.blockContent {
+	width: 60%;
+	font-size: 1.1em;
+	float: left;
+	background: #444;
+	padding: 20px;
+}
+
+.blockContentMenu {
+	width: 40%;
+	float: left;
+	padding: 20px;
+}
+.clearfix {
+	clear: left;
+	height: 1px;
+	overflow: hidden;
+}

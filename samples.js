@@ -25,26 +25,32 @@ TODO:
 
 	$(function () {
 		var JavaScriptMode = require("ace/mode/javascript").Mode;
+		console.log(1);
 
-		sampleData = ace.edit("sampleData");
-		sampleData.setTheme("ace/theme/twilight");
-		sampleData.getSession().setMode(new JavaScriptMode());
+		try {
+			sampleData = ace.edit("sampleData");
+			sampleData.setTheme("ace/theme/twilight");
+			sampleData.getSession().setMode(new JavaScriptMode());
 
-		sampleTemplate = ace.edit("sampleTemplate");
-		sampleTemplate.setTheme("ace/theme/twilight");
-		sampleTemplate.getSession().setMode(new JavaScriptMode());
+			sampleTemplate = ace.edit("sampleTemplate");
+			sampleTemplate.setTheme("ace/theme/twilight");
+			sampleTemplate.getSession().setMode(new JavaScriptMode());
 
-		sampleOutput = ace.edit("sampleOutput");
-		sampleOutput.setTheme("ace/theme/twilight");
-		sampleOutput.setReadOnly(true);
-		sampleOutput.getSession().setMode(new JavaScriptMode());
+			sampleOutput = ace.edit("sampleOutput");
+			sampleOutput.setTheme("ace/theme/twilight");
+			sampleOutput.setReadOnly(true);
+			sampleOutput.getSession().setMode(new JavaScriptMode());
 
-		sampleData.getSession().on('change', function(){
-			runSample();
-		});
-		sampleTemplate.getSession().on('change', function(){
-			runSample();
-		});
+			sampleData.getSession().on('change', function(){
+				runSample();
+			});
+			sampleTemplate.getSession().on('change', function(){
+				runSample();
+			});
+		} catch (err) {
+
+		}
+		console.log(2);
 
 		$(".sampleList a").click(function (e) {
 			e.preventDefault();
@@ -52,14 +58,15 @@ TODO:
 		});
 
 		$(window).bind("hashchange", function (e) {
+			console.log(4);
 			var sample = $.bbq.getState( "sample" );
 			if (!sample) {
 				sample = $(".defaultSample").attr("href");
 			}
 			loadSample(sample);
 		});
-
-		$(window).trigger("hashchange");
+console.log(3);
+		$(window).triggerHandler("hashchange");
 	});
 
 	function onLoadEditor() {}
@@ -82,6 +89,7 @@ TODO:
 				sample.description = root.find(".description").html();
 				sample.data = $("#" + id + "-data").text();
 				sample.template = $("#" + id + "-template").text();
+				console.log(sample, sampleTemplate);
 				applySample(sample);
 			}
 		});

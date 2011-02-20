@@ -161,6 +161,23 @@ VARIOUS TASKS TO BE SORTED:
 
 ---------------------------------------------
 
+	Syntax for progressive enhancement inside HTML
+
+	<!--{{render "commons"}}-->
+	<!--{{rendervar}}-->
+	<!--{{endrendervar}}-->
+
+	or
+
+	<tag tag="render" args="" filters="">
+		Default output goest here...
+		<rendervar args="">
+			Alternate tags like this
+		</rendervar>
+	</tag>
+
+	-----------
+
 	Implement caching
 
 	-----------

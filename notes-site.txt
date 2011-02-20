@@ -1,0 +1,17 @@
+
+NOTES ON THE DALI SITE
+
+	- First welcome page
+	- Logo + Branding
+	- Introduction Text
+	- Main links to github, twitter
+	- A few sample blocks linked to the sampler
+	- Add Disqus
+	- Add twitter links
+	- Add link to my linkedIn
+	- Find node hosting
+	- Documentation page with metadata linked to reference and/or samples
+	- Reference as Rendered Data
+
+
+

@@ -17,8 +17,8 @@ exports = (typeof exports === "object") ? exports : null;
 		var dali = this;
 
 		this.templates = {};
-		this.tags = tags;
-		this.filters = filters;
+		this.tags = Tags;
+		this.filters = Filters;
 		this.version = "0.9.1";
 
 		/**
@@ -172,7 +172,7 @@ exports = (typeof exports === "object") ? exports : null;
 				args = function () {
 					return evaluate(argString, newEnv)
 				};
-				tag = tags[tagName].handler;
+				tag = Tags[tagName].handler;
 				content = tag.apply(data, [args, newEnv, blockHandler, alternateBlocks]);
 				this.out(unescapeQuotes(content));
 				return this;
@@ -185,7 +185,7 @@ exports = (typeof exports === "object") ? exports : null;
 			 */
 			this.applyFilter = function(filterName, argString) {
 				var str,
-					filter = filters[filterName],
+					filter = Filters[filterName],
 					oldArray = this._stream,
 					newArray = [],
 					args,
@@ -202,6 +202,26 @@ exports = (typeof exports === "object") ? exports : null;
 		}
 
 	}
+
+	var Filters = Dali.Filters = {};
+
+
+	var Tags = Dali.Tags = {};
+
+	Dali.register = function(addons) {
+		addons = addons || {};
+		extend(this.Filters, addons.Filters || {});
+		extend(this.Tags, addons.Tags || {});
+	};
+
+	var Tag = Dali.Tag = function (id, handler, options) {
+		this.isInnert = false; // determines if the tags content should be parsed or not
+		this.alternateBlocks = {};
+		extend(this, options);
+		// The following attributes cannot be overriden with the options param
+		this.id = id;
+		this.handler = handler;
+	};
 
 
 	// todo: Refactor: Cut the lexer in smaller functions
@@ -303,10 +323,10 @@ exports = (typeof exports === "object") ? exports : null;
 				tagName = tagName.split("-")[0];
 
 				// Test if tag exists
-				if (!tags[tagName])
+				if (!Tags[tagName])
 					throw(new Err("UnknownTag", "Encountered unknown tag \"" + tagName + "\""));
 				// If the tag is an alternate tag, test if it is applicable
-				if (tagNameExtension && !tags[tagName].alternateBlocks[tagNameExtension])
+				if (tagNameExtension && !Tags[tagName].alternateBlocks[tagNameExtension])
 					throw(new Err("UnknownAlternateTag", "Encountered unknown alternate tag \"" + tagName + "-" + tagNameExtension + "\""));
 
 // TODO: HANDLE CASE OF SELF-CLOSING ALT TAGS
@@ -357,7 +377,7 @@ exports = (typeof exports === "object") ? exports : null;
 						tagName = filterTag;
 						args = "[]";
 					}
-					if (typeof(filters[tagName]) !== "function") throw(new Err("UnknownFilter", "Encountered unknown filter \"" + tagName + "\""));
+					if (typeof(Filters[tagName]) !== "function") throw(new Err("UnknownFilter", "Encountered unknown filter \"" + tagName + "\""));
 					tagNode.filters.push(new TagNode(tagName, "", args, "", false, false));
 
 				}
@@ -391,15 +411,6 @@ exports = (typeof exports === "object") ? exports : null;
 		this.ignoreTag = ignoreTag;
 	}
 
-	function Tag(id, handler, options) {
-		this.isInnert = false; // determines if the tags content should be parsed or not
-		this.alternateBlocks = {};
-		extend(this, options);
-		// The following attributes cannot be overriden with the options param
-		this.id = id;
-		this.handler = handler;
-	}
-
 	/**
 	 * Compile a tagNode and all its children into a javascript function
 	 * @param node
@@ -420,7 +431,7 @@ exports = (typeof exports === "object") ? exports : null;
 		for (i = 0; i < node.children.length; i = i + 1) {
 			child = node.children[i];
 			tagName = child.name;
-			tag = tags[tagName];
+			tag = Tags[tagName];
 			if (tag.isInnert) {
 				args = unescape(child.argString).trim();
 				block = "'" + escape(compileInnertNode(child)) + "'";
@@ -488,243 +499,6 @@ exports = (typeof exports === "object") ? exports : null;
 		}
 		return stream.join("");
 	}
-
-	var tags = {
-		"raw" : new Tag("raw", function(_args, env, block, alternateBlocks) {
-			var output,
-				args = _args();
-			output = (typeof(args.join) === "function") ? args.join("") : "";
-			return output;
-		}, {}),
-		"if" : new Tag("if", function(_args, env, block, alternateBlocks) {
-			//TODO: objectfyAlternateBlocks shouldnt hav to be manual called in each tag
-			var altBlocksObj, elseBlocks, notBlock, args;
-			args = _args();
-			altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
-				"else": [],
-				"not": []
-			});
-			elseBlocks = altBlocksObj["else"];
-			notBlock = altBlocksObj["not"][0];
-			var output = "";
-			console.log("if args: ", args);
-			if (args[0]) {
-				output = output + (args[1] || "");
-				if (typeof(block) === "function") {
-					block.apply(this, [env, args]);
-				}
-			} else {
-				var isTrue, elseBlock;
-				for (var i in elseBlocks) {
-					elseBlock = elseBlocks[i];
-					if (elseBlock) {
-						if (elseBlock.args[0]) {
-							isTrue = true;
-							output = output + (args[1] || "");
-							elseBlock.handler.apply(this, [env, args]);
-							break;
-						}
-					}
-				}
-				if (!isTrue) {
-					// If no if-else tag was true, apply any if-not tag and/or
-					// secondary param
-					output = output + (args[2] || "");
-					if (notBlock) notBlock.handler.apply(this, [env, args]);
-				}
-			}
-			return output + env.stream();
-		}, {
-			"alternateBlocks": {
-				"not": [],
-				"else": []
-			}
-		}),
-		// Empty tag... form comment sytax {{# /}} {{#}}!
-		"" : new Tag("comment",
-			function(args, env, block, alternateBlocks) {
-				return "";
-			},{
-				isInnert: true
-			}
-		),
-		"each" : new Tag("each",
-			function(_args, env, _block, alternateBlocks) {
-				var i,
-					itemCount = 0,
-					item,
-					items,
-					block,
-					loop,
-					altBlocksObj,
-					altBlock,
-					args,
-					oldItem = env.item;
-
-				altBlocksObj = objectfyAlternateBlocks(alternateBlocks,{
-					"empty": [],
-					"single": [],
-					"begin": [],
-					"end": [],
-					"first": [],
-					"odd": [],
-					"between": [],
-					"last": []
-				});
-				args = _args();
-				if (typeof(_block) === "function") {
-					// Create a new Loop status object
-					items = args[0];
-					loop = env.loop;
-					loop.items(items);
-					// to insert before all items
-					if (altBlocksObj.begin[0]) {
-						altBlocksObj.begin[0].handler.apply({}, [env, args, loop]);
-					}
-					for (i in items) {
-						itemCount = itemCount + 1;
-						env.item = item;
-						item = items[i];
-						loop.step();
-						block = null;
-						if (i==0 && items.length==1) {
-							// Is single item
-							block = altBlocksObj.single[0];
-						} else if (i==0) {
-							// Is first item
-							block = altBlocksObj.first[0];
-						} else if (i==items.length-1) {
-							// Is last item
-							block = altBlocksObj.last[0];
-						} else if (i % 2) {
-							// Is odd item
-							block = altBlocksObj.odd[0];
-						}
-						if (!block) block = _block;
-						block = (block.handler || block);
-						block.apply(item, [env, args, loop]);
-
-						// to insert between each item
-						if (altBlocksObj.between[0] && i<items.length-1) {
-							altBlocksObj.between[0].handler.apply({}, [env, args]);
-						}
-					}
-					if (!itemCount) {
-						// to insert after all items
-						if (altBlocksObj.end[0]) {
-							altBlocksObj.end[0].handler.apply({}, [env, args]);
-						}
-					}
-					altBlock = altBlocksObj.empty[0];
-					if (altBlock) altBlock.handler.apply({}, [env, args, null]);
-				}
-				// Reset to the old item before iterating
-				env.item = oldItem;
-				return env.stream();
-			}, {
-				"alternateBlocks": {
-					"empty": [],
-					"single": [],
-					"begin": [],
-					"end": [],
-					"first": [],
-					"odd": [],
-					"between": [],
-					"last": []
-				}
-			}
-		),
-		"out" : new Tag("out", function(_args, env, block, alternateBlocks) {
-			var args = _args();
-			env.out(args.join(""));
-			if (block) {
-				block.apply(this, [env, args]);
-			}
-			return env.stream();
-		}, {}),
-		"template": new Tag("template", function(_args, env, block, alternateBlocks) {
-			var args = _args(),
-				template,
-				id = args[0],
-				source = "", //todo: reuse env or instantiate a new one ??
-				optionsParam = {};
-
-			var vars = {};
-			extend(vars, env.vars);
-			source = unescapeQuotes(block);
-			template = env.addTemplate(id, source, vars, optionsParam);
-			return "";
-		}, {
-			isInnert: true
-		}),
-		"render" : new Tag("render", function(_args, env, block, alternateBlocks) {
-			var i, output, blockArgs, vars, varName, varBlocks, varBlock, altBlocksObj, args = _args();
-			altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
-				"var": []
-			});
-			varBlocks = altBlocksObj["var"];
-			for (i in varBlocks) {
-				varBlock = varBlocks[i];
-				blockArgs = evaluate(varBlock.args);
-				varName = blockArgs[0];
-				env.flush();
-				varBlock.handler.apply({}, [env, args]);
-				env.vars[varName] = env.stream();
-			}
-			if (block) {
-				env.flush();
-				block.apply(this, [env, args]);
-			}
-			env.vars._output = env.stream();
-			console.log("env: ", env);
-			console.log("env.vars: ", env.vars);
-			output = env.render(args[0], args[1], env.vars);
-			return output;
-		}, {
-			"alternateBlocks": {
-				"var": []
-			}
-		}),
-		"load" : new Tag("load", function(_args, env, block, alternateBlocks) {
-			var i, output, vars, varName, args=_args();
-			if (block) {
-				env.flush();
-				block.apply(this, [env, args]);
-			}
-			// render the template with current environment
-			// and disregard its output
-			env.render(args[0], args[1], {}, env);
-			return "";
-		}, {}),
-		"var" : new Tag("var", function(_args, env, block, alternateBlocks) {
-			var val,
-				args = _args();
-			if (typeof(args[1]) !== "undefined") {
-				val = args[1];
-			}
-			if (block) {
-				block.apply(this, [env, args]);
-				val = env.stream();
-			}
-			env.vars[args[0]] = val;
-			return "";
-		}, {})
-	};
-
-	var filters = {
-		"void": function(args) {
-			return "";
-		},
-		"trim": function(args) {
-			return (this+"").trim();
-		},
-		"uppercase": function(args) {
-			return (this+"").toUpperCase();
-		},
-		"lowercase": function(args) {
-			return (this+"").toLowerCase();
-		}
-	};
 
 	/**
 	 * Convert an array of alternate tags to an dictionnary object
@@ -912,11 +686,11 @@ exports = (typeof exports === "object") ? exports : null;
 		return str;
 	}
 
-
-
-
-
-
+	/**
+	 * Lightweight MVC api built around Dali
+	 * Especially usefull with jQuery mobile
+	 * @param _options
+	 */
 	Dali.MVC = function (_options) {
 		var mvc = this;
 
@@ -1006,5 +780,259 @@ exports = (typeof exports === "object") ? exports : null;
 	if ($) exportjQuery($);
 	if (exports) exportJSCommons(exports);
 	global.Dali = Dali;
+
+
+
+
+	/**
+	 * Register core filters
+	 */
+
+	Dali.register({
+		Filters: {
+			"void": function(args) {
+				return "";
+			},
+			"trim": function(args) {
+				return (this+"").trim();
+			},
+			"uppercase": function(args) {
+				return (this+"").toUpperCase();
+			},
+			"lowercase": function(args) {
+				return (this+"").toLowerCase();
+			}
+		}
+	});
+
+
+
+	/**
+	 * Register core tags
+	 */
+
+	Dali.register({
+		Tags: {
+			"raw" : new Tag("raw", function(_args, env, block, alternateBlocks) {
+				var output,
+					args = _args();
+				output = (typeof(args.join) === "function") ? args.join("") : "";
+				return output;
+			}, {}),
+			"if" : new Tag("if", function(_args, env, block, alternateBlocks) {
+				//TODO: objectfyAlternateBlocks shouldnt hav to be manual called in each tag
+				var altBlocksObj, elseBlocks, notBlock, args;
+				args = _args();
+				altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
+					"else": [],
+					"not": []
+				});
+				elseBlocks = altBlocksObj["else"];
+				notBlock = altBlocksObj["not"][0];
+				var output = "";
+				console.log("if args: ", args);
+				if (args[0]) {
+					output = output + (args[1] || "");
+					if (typeof(block) === "function") {
+						block.apply(this, [env, args]);
+					}
+				} else {
+					var isTrue, elseBlock;
+					for (var i in elseBlocks) {
+						elseBlock = elseBlocks[i];
+						if (elseBlock) {
+							if (elseBlock.args[0]) {
+								isTrue = true;
+								output = output + (args[1] || "");
+								elseBlock.handler.apply(this, [env, args]);
+								break;
+							}
+						}
+					}
+					if (!isTrue) {
+						// If no if-else tag was true, apply any if-not tag and/or
+						// secondary param
+						output = output + (args[2] || "");
+						if (notBlock) notBlock.handler.apply(this, [env, args]);
+					}
+				}
+				return output + env.stream();
+			}, {
+				"alternateBlocks": {
+					"not": [],
+					"else": []
+				}
+			}),
+			// Empty tag... form comment sytax {{# /}} {{#}}!
+			"" : new Tag("comment",
+				function(args, env, block, alternateBlocks) {
+					return "";
+				},{
+					isInnert: true
+				}
+			),
+			"each" : new Tag("each",
+				function(_args, env, _block, alternateBlocks) {
+					var i,
+						itemCount = 0,
+						item,
+						items,
+						block,
+						loop,
+						altBlocksObj,
+						altBlock,
+						args,
+						oldItem = env.item;
+
+					altBlocksObj = objectfyAlternateBlocks(alternateBlocks,{
+						"empty": [],
+						"single": [],
+						"begin": [],
+						"end": [],
+						"first": [],
+						"odd": [],
+						"between": [],
+						"last": []
+					});
+					args = _args();
+					if (typeof(_block) === "function") {
+						// Create a new Loop status object
+						items = args[0];
+						loop = env.loop;
+						loop.items(items);
+						// to insert before all items
+						if (altBlocksObj.begin[0]) {
+							altBlocksObj.begin[0].handler.apply({}, [env, args, loop]);
+						}
+						for (i in items) {
+							itemCount = itemCount + 1;
+							env.item = item;
+							item = items[i];
+							loop.step();
+							block = null;
+							if (i==0 && items.length==1) {
+								// Is single item
+								block = altBlocksObj.single[0];
+							} else if (i==0) {
+								// Is first item
+								block = altBlocksObj.first[0];
+							} else if (i==items.length-1) {
+								// Is last item
+								block = altBlocksObj.last[0];
+							} else if (i % 2) {
+								// Is odd item
+								block = altBlocksObj.odd[0];
+							}
+							if (!block) block = _block;
+							block = (block.handler || block);
+							block.apply(item, [env, args, loop]);
+
+							// to insert between each item
+							if (altBlocksObj.between[0] && i<items.length-1) {
+								altBlocksObj.between[0].handler.apply({}, [env, args]);
+							}
+						}
+						if (!itemCount) {
+							// to insert after all items
+							if (altBlocksObj.end[0]) {
+								altBlocksObj.end[0].handler.apply({}, [env, args]);
+							}
+						}
+						altBlock = altBlocksObj.empty[0];
+						if (altBlock) altBlock.handler.apply({}, [env, args, null]);
+					}
+					// Reset to the old item before iterating
+					env.item = oldItem;
+					return env.stream();
+				}, {
+					"alternateBlocks": {
+						"empty": [],
+						"single": [],
+						"begin": [],
+						"end": [],
+						"first": [],
+						"odd": [],
+						"between": [],
+						"last": []
+					}
+				}
+			),
+			"out" : new Tag("out", function(_args, env, block, alternateBlocks) {
+				var args = _args();
+				env.out(args.join(""));
+				if (block) {
+					block.apply(this, [env, args]);
+				}
+				return env.stream();
+			}, {}),
+			"template": new Tag("template", function(_args, env, block, alternateBlocks) {
+				var args = _args(),
+					template,
+					id = args[0],
+					source = "", //todo: reuse env or instantiate a new one ??
+					optionsParam = {};
+
+				var vars = {};
+				extend(vars, env.vars);
+				source = unescapeQuotes(block);
+				template = env.addTemplate(id, source, vars, optionsParam);
+				return "";
+			}, {
+				isInnert: true
+			}),
+			"render" : new Tag("render", function(_args, env, block, alternateBlocks) {
+				var i, output, blockArgs, vars, varName, varBlocks, varBlock, altBlocksObj, args = _args();
+				altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
+					"var": []
+				});
+				varBlocks = altBlocksObj["var"];
+				for (i in varBlocks) {
+					varBlock = varBlocks[i];
+					blockArgs = evaluate(varBlock.args);
+					varName = blockArgs[0];
+					env.flush();
+					varBlock.handler.apply({}, [env, args]);
+					env.vars[varName] = env.stream();
+				}
+				if (block) {
+					env.flush();
+					block.apply(this, [env, args]);
+				}
+				env.vars._output = env.stream();
+				console.log("env: ", env);
+				console.log("env.vars: ", env.vars);
+				output = env.render(args[0], args[1], env.vars);
+				return output;
+			}, {
+				"alternateBlocks": {
+					"var": []
+				}
+			}),
+			"load" : new Tag("load", function(_args, env, block, alternateBlocks) {
+				var i, output, vars, varName, args=_args();
+				if (block) {
+					env.flush();
+					block.apply(this, [env, args]);
+				}
+				// render the template with current environment
+				// and disregard its output
+				env.render(args[0], args[1], {}, env);
+				return "";
+			}, {}),
+			"var" : new Tag("var", function(_args, env, block, alternateBlocks) {
+				var val,
+					args = _args();
+				if (typeof(args[1]) !== "undefined") {
+					val = args[1];
+				}
+				if (block) {
+					block.apply(this, [env, args]);
+					val = env.stream();
+				}
+				env.vars[args[0]] = val;
+				return "";
+			}, {})
+		}
+	});
 
 })(this, this.jQuery, exports);

@@ -13,28 +13,18 @@ VARIOUS TASKS TO BE SORTED:
 ---------------------------------------------
 
 	VERSION 1
-	Objectives:
+
+	Already has:
 	- Support common templating syntax
 	- No blindspot that would make it impossible to render some scenarios
 	- Good error reporting
 	- Stable enough so that versions 1.X are backward compatible
 
----------------------------------------------
-
-	Complete _loop object
-
-	** SOULD be a prefixed var like so _loop
-
-	_loop.parent 	For nested loops, this is the loop "above" the current one
-	_loop.odd()	 	true if items is odd one
-	_loop.counter() 	The current iteration of the loop (1-indexed)
-	_loop.revcounter() 	The number of iterations from the end of the loop (1-indexed)
-	_loop.first() 	True if this is the first time through the loop
-	_loop.last() 	True if this is the last time through the loop
-
-	-----------
-
-	Methods to register filters and tags.
+	Version 1 beta needs:
+	- Documented API
+	- Homepage
+	- Repo in order
+	- Fully documented code
 
 
 ---------------------------------------------
@@ -60,6 +50,19 @@ VARIOUS TASKS TO BE SORTED:
 
 	-----------
 
+	Find out what the "this" reference should be... since the data is now "item"
+
+	-----------
+
+	More options/api calls for auto-loading templates
+
+	-----------
+
+	Default "dali" instance in the global scope
+
+
+	-----------
+
 	Complete and coherent API integration for jQuery, Mootools, Dojo, YUI.
 
 	-----------
@@ -75,7 +78,7 @@ VARIOUS TASKS TO BE SORTED:
 	// Each tag argument to output iterated items in vars
 	// for easy access in nested statements
 
-	{{each this.items, "dad"}}
+	{{each item.items, "dad"}}
 		{{each vars.dad.children, "child"}}
 			{{out vars.parentItem.name /}} is parent of {{out vars.child.name /}}
 		{{/each}}
@@ -83,10 +86,10 @@ VARIOUS TASKS TO BE SORTED:
 
 	Is equivalent to  :
 
-	{{each this.items}}
-		{{define "dad", this /}}
+	{{each item.items}}
+		{{var "dad", item /}}
 		{{each vars.dad.children}}
-			{{define "child", this /}}
+			{{var "child", item /}}
 			{{out vars.dad.name /}} is dad of {{out vars.child.name /}}
 		{{/each}}
 	{{/each}}

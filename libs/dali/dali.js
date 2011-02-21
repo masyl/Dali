@@ -772,6 +772,10 @@ exports = (typeof exports === "object") ? exports : null;
 		}
 	}
 
+	/**
+	 * Log errors if a console is available
+	 * @param err Error object to throw
+	 */
 	function logError(err) {
 		if (typeof(console)!="undefined" && console.error) console.error(err);
 	}

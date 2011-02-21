@@ -21,8 +21,9 @@ VARIOUS TASKS TO BE SORTED:
 	- Stable enough so that versions 1.X are backward compatible
 
 	Version 1 beta needs:
-	- Documented API
 	- Homepage
+	- Documented API
+	- Generated JSDoc
 	- Repo in order
 	- Fully documented code
 
@@ -202,6 +203,8 @@ VARIOUS TASKS TO BE SORTED:
 
 	Better character espcaping routines.
 
+	-----------
+
 	{{cycle "odd", "even" }}  (like django)
 
 	-----------
@@ -215,6 +218,7 @@ VARIOUS TASKS TO BE SORTED:
 	-----------
 
 	{{each-every 4, -1}} alternate tag for alternating items
+	{{each-nth 4, -1}}
 
 	-----------
 

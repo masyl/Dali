@@ -26,6 +26,7 @@ VARIOUS TASKS TO BE SORTED:
 	- Generated JSDoc
 	- Repo in order
 	- Fully documented code
+	- Minified sources
 
 
 ---------------------------------------------
@@ -44,6 +45,14 @@ VARIOUS TASKS TO BE SORTED:
 	-----------
 
 	An event API for onTag, onFilter, onWhatever, onError, etc
+
+	-----------
+
+	Loading of templates in ajax using empty <script tags>
+
+	-----------
+
+	Load templates "on demand"
 
 	-----------
 

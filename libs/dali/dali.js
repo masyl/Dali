@@ -698,7 +698,9 @@ exports = (typeof exports === "object") ? exports : null;
 
 		extend(this.options, _options);
 
-		this.dali = new Dali({});
+		// Keep a reference to either the global dali instance
+		// or the one provided in options
+		this.dali = this.options.dali || dali;
 		this.controllers = {};
 
 		this.Model = function (model) {
@@ -752,7 +754,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 * @param $ {jQuery} A jQuery instance
 	 */
 	function exportjQuery($) {
-		$.dali = new Dali({});
+		$.dali = dali;
 		$.fn.extend({
 			dali: function (environParam, options) {
 				this.each(function () {
@@ -767,9 +769,8 @@ exports = (typeof exports === "object") ? exports : null;
 	 * @param exports Export object from the JSCommons api
 	 */
 	function exportJSCommons(exports) {
-		exports.dali = function (options) {
-			return new Dali(options)
-		}
+		exports.Dali = Dali;
+		exports.dali = dali;
 	}
 
 	/**
@@ -781,10 +782,10 @@ exports = (typeof exports === "object") ? exports : null;
 	}
 
 	// apply exports
+	global.Dali = Dali;
+	var dali = global.dali = new Dali({});
 	if ($) exportjQuery($);
 	if (exports) exportJSCommons(exports);
-	global.Dali = Dali;
-	global.dali = new Dali({});
 
 
 

@@ -24,7 +24,6 @@ TODO:
 
 	$(function () {
 		var JavaScriptMode = require("ace/mode/javascript").Mode;
-		console.log(1);
 
 		try {
 			sampleData = ace.edit("sampleData");
@@ -49,7 +48,6 @@ TODO:
 		} catch (err) {
 
 		}
-		console.log(2);
 
 		$(".sampleList a").click(function (e) {
 			e.preventDefault();
@@ -57,14 +55,14 @@ TODO:
 		});
 
 		$(window).bind("hashchange", function (e) {
-			console.log(4);
+
 			var sample = $.bbq.getState( "sample" );
 			if (!sample) {
 				sample = $(".defaultSample").attr("href");
 			}
 			loadSample(sample);
 		});
-console.log(3);
+
 		$(window).triggerHandler("hashchange");
 	});
 
@@ -88,7 +86,7 @@ console.log(3);
 				sample.description = root.find(".description").html();
 				sample.data = $("#" + id + "-data").text();
 				sample.template = $("#" + id + "-template").text();
-				console.log(sample, sampleTemplate);
+
 				applySample(sample);
 			}
 		});

@@ -5,11 +5,10 @@
 // Todo: test multiple "if" statement hierarchy
 // Todo: test comments
 
-var Dali = require(__dirname +"/../"),
+var Dali = require(__dirname +"/../").Dali,
+	dali = require(__dirname +"/../").dali,
 	vows = require("vows"),
 	assert = require("assert");
-
-dali = Dali.dali();
 
 var sampleData  = {
 	ok: "All Ok!",

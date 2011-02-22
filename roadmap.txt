@@ -27,18 +27,31 @@ VARIOUS TASKS TO BE SORTED:
 	- Repo in order
 	- Fully documented code
 	- Minified sources
+	- Link doc to samples
+	- Clean Up code tree
 
 
 ---------------------------------------------
 
-	VERSIONS 1.1
+	VERSIONS 1.X
 	Objectives:
+		- Be 99% backward compatible to 1.0
 		- Richer API for full control and ease of use
+		- Better performance
+		- Simpler loading of resources
 		- Richer syntax to do more with less code
-		- More unit and integration tests
-		- Better error reporting
+		- More unit tests and integration tests
+		- Even better error reporting
 
 ---------------------------------------------
+
+	Filter to log output to the console
+
+	-----------
+
+	Filter to debug dali to the console
+
+	-----------
 
 	Error messages that behave as a sort of stack-trace
 
@@ -49,6 +62,7 @@ VARIOUS TASKS TO BE SORTED:
 	-----------
 
 	Loading of templates in ajax using empty <script tags>
+	<script id="templateABC" src="templateABC.dali.html" type="text/x-dali-template"></script>
 
 	-----------
 
@@ -70,6 +84,13 @@ VARIOUS TASKS TO BE SORTED:
 
 	Default "dali" instance in the global scope
 
+	-----------
+
+	A set of external filters, with a tool to select/build a custom set.
+
+	-----------
+
+	Integrate Showdown as a filter : http://softwaremaniacs.org/playground/showdown-highlight/
 
 	-----------
 
@@ -164,15 +185,7 @@ VARIOUS TASKS TO BE SORTED:
 
 	{{out deco.uppercase(this.value) /}}
 
----------------------------------------------
-
-	VERSIONS 1.2
-	Objectives:
-		- More syntactic sugar
-		- More complete set of native filters and utilities
-		- Support for more edge case
-
----------------------------------------------
+	-----------
 
 	Syntax for progressive enhancement inside HTML
 
@@ -255,19 +268,6 @@ VARIOUS TASKS TO BE SORTED:
 	{{with-empty}}
 		No days left!
 	{{endwith}}
-
----------------------------------------------
-
-	VERSIONS 1.3
-	Objectives:
-		- Remove the need for the "Function" constructor, by "running" instructions
-		instead of compiling javascript functions.
-		- Better sandboxing of execution
-
----------------------------------------------
-
-	To be determined....
-
 
 
 ------------------------------------------

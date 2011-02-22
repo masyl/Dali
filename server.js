@@ -1,3 +1,9 @@
+/**
+ * This is a lightweight node.js server for static files.
+ * Requires the 'node-static' package
+ * Usage:  node server.js
+ */
+var port = 8011;
 var sys = require('sys');
 var static = require('node-static');
 
@@ -21,6 +27,6 @@ require('http').createServer(function (request, response) {
             }
         });
     });
-}).listen(8011);
+}).listen(port);
 
-sys.puts("> node-static is listening on http://127.0.0.1:8011");
+sys.puts("> node-static is listening on http://127.0.0.1:" + port);

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet"  href="../themes/2011/samples.css" />
+
+	</head>
+	<body class="full-frame">
+		<div class="page full-frame">
+			<div class="page-header">
+				<h1>Dali Templating Engine Interactive Samples</h1>
+			</div>
+			<div class="page-body full-frame">
+
+				<div class="testBoard full-frame">
+					<div class="data">
+						<label>Data</label>
+						<div id="sampleData"></div>
+					</div>
+					<div class="template">
+						<label>Template</label>
+						<div id="sampleTemplate"></div>
+					</div>
+					<div class="output">
+						<div id="sampleOutput"></div>
+						<div id="sampleOutputHTML"></div>
+					</div>
+					<div class="samples">
+						<div class="sampleList">
+							<ul>
+								<li><a class="defaultSample" href="welcome.html">Welcome</a></li>
+								<li><a href="tagNotation.html">Tag notation {{}}</a></li>
+								<li><a href="comments.html">Commenting - {{# ... /}}</a></li>
+								<li><a href="output-data.html">Outputing values - {{out}}</a></li>
+								<li><a href="if.html">Conditionnal - {{if}}</a></li>
+								<li><a href="iterator.html">Iterator - {{each}}</a></li>
+								<li><a href="iteratorLoop.html">Iterator Loop</a></li>
+								<li><a href="define-variables.html">Defining variables - {{var}}</a></li>
+								<li><a href="filters.html">Filters - {{ >> }}</a></li>
+								<li><a href="chaining-filters.html">Chaining filters - {{ >> >> }}</a></li>
+								<li><a href="templateRendering.html">Template rendering - {{template}} {{render}}</a></li>
+								<li><a href="templateInheritance.html">Template Inheritance</a></li>
+								<li><a href="templateLoading.html">Template Loading</a></li>
+								<li><a href="environment-variables.html">Environment variables</a></li>
+								<li><a href="errors-badlyClosedTag.html">Error: Badly closed tag</a></li>
+								<li><a href="errors-unknownTag.html">Error: Unknown tag</a></li>
+								<li><a href="errors-unknownFilter.html">Error: Unknown filter</a></li>
+								<li><a href="errors-compilationFailed.html">Error: Compilation failed</a></li>
+								<li><a href="errors-renderingFailed.html">Error: Rendering failed</a></li>
+							</ul>
+						</div>
+					</div>
+					<div class="description">
+						<div class="descriptionWrapper"></div>
+					</div>
+				</div>
+			</div>
+			<div class="page-footer"></div>
+		</div>
+
+		<a href="https://github.com/masyl/Dali/"><img style="position: absolute; top: 0; right: 0; border: 0; z-index: 1000" src="../themes/2011/images/github-ribbon.png" alt="Fork me on GitHub"></a>
+
+		<script src="../libs/jquery-1.5.js"></script>
+		<script src="libs/jquery.ba-throttle-debounce.min.js"></script>
+		<script src="../libs/jquery.json/jquery.json-2.2.js"></script>
+		<script src="../libs/jquery.ba-bbq/jquery.ba-bbq.js"></script>
+		<script src="../libs/dali/dali.js"></script>
+
+		<script src="../libs/ace/src/ace.js"></script>
+		<script src="../libs/ace/src/theme-twilight.js"></script>
+		<script src="../libs/ace/src/mode-javascript.js"></script>
+
+		<script src="../scripts/samples.js"></script>
+	</body>
+</html>

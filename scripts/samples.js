@@ -20,8 +20,7 @@ TODO:
 		err,
 		editorData,
 		editorTemplate,
-		editorOutput,
-		dali = new Dali();
+		editorOutput;
 
 	$(function () {
 		var JavaScriptMode = require("ace/mode/javascript").Mode;

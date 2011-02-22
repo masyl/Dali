@@ -784,6 +784,7 @@ exports = (typeof exports === "object") ? exports : null;
 	if ($) exportjQuery($);
 	if (exports) exportJSCommons(exports);
 	global.Dali = Dali;
+	global.dali = new Dali({});
 
 
 

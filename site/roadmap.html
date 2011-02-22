@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<script id="commons" type="text/x-dali-template" src="commons.dali.html"></script>
+		<script id="defaultLayout" type="text/x-dali-template" src="defaultLayout.dali.html"></script>
+		<script src="../libs/jquery-1.5.js"></script>
+		<script src="../libs/dali/dali.js"></script>
+		<script data-template="defaultLayout" class="x-dali" type="text/x-dali-template">
+			{{load "commons" /}}
+			{{render "head"}}
+				{{out vars.hideLoading /}}
+				<title>Dali - Surreal Templating</title>
+			{{endrender}}
+		</script>
+		<script src="../libs/dali/dali.auto.js"></script>
+	</head>
+	<body id="home">
+		<div data-template="defaultLayout" class="x-dali">
+			{{load "commons" /}}
+			{{render "defaultLayout"}}
+			{{render-var "header"}}
+				<div class="logo">
+					<img src="../themes/2011/images/dali-logo.png" width="471" height="226" alt="Dali - Surreal Templating" />
+					<h1>Dali - Surreal Templating</h1>
+				</div>
+			{{render-var "body"}}
+				<div class="block">
+					<div class="blockContent">
+						<p>
+							Dali is a modern web templating engine. It aims to provides an powerfull syntax, a rich javascript API and many ways for you to extend its capabilities to your own specific needs.
+						</p>
+						<p>
+							You can use it “client-side” on any browser and on the “server-side” with the Node.Js application server.
+						</p>
+					</div>
+					<div class="blockContent">
+						<div class="classToAction">
+							<a href="https://github.com/masyl/Dali/zipball/0.9.0">Download Dali 0.9.0</a>
+						</div>
+						<ul>
+							<li><a href="../themes/2011/samples.css">Try Dali Samples</a></li>
+							<li><a href="https://github.com/masyl/Dali">Code on Github</a></li>
+						</ul>
+					</div>
+				</div>
+			{{render-var "footer"}}
+				Dali is a Public Domains work
+			{{endrender}}
+		</div>
+	</body>
+</html>

@@ -19,7 +19,7 @@ The Dali engine is available for Download and for collaborations at : [https://g
 Introduction
 ------------
 
-Dali is templating engine for javscript. It can run on the client in any browser and on servers such as [node.js](http://nodejs.org/).
+Dali is templating engine for javascript. It can run on the client in any browser and on servers such as [node.js](http://nodejs.org/).
 
 Dali has the following characteristics:
 
@@ -323,7 +323,7 @@ Sample MVC Mobile App
 
 Along side the Dali api, there is a sample mobile application that is used to showcase how it can greatly simplify writing mobile apps. It combines jQuery Mobile, Dali and the Dali MVC api.
 
-This sample is available to download and contribute to on GitHub at [https://github.com/masyl/jquery.mobile.mvc](https://github.com/masyl/jquery.mobile.mvc). And you can sample it online at [https://github.com/masyl/jquery.mobile.mvc](https://github.com/masyl/jquery.mobile.mvc).
+This sample is available to download and contribute to on GitHub at [https://github.com/masyl/jquery.mobile.mvc](https://github.com/masyl/jquery.mobile.mvc). And you can sample it online at [http://http://masyl.github.com/jquery.mobile.mvc/](http://http://masyl.github.com/jquery.mobile.mvc/).
 
 ---
 

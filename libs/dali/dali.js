@@ -186,17 +186,15 @@ exports = (typeof exports === "object") ? exports : null;
 			this.applyFilter = function(filterName, argString) {
 				var str,
 					filter = Filters[filterName],
-					oldArray = this._stream,
 					newArray = [],
 					args,
 					newEnv;
 				newEnv = new Env(this.vars, this);
 				args = evaluate(argString, newEnv);
-				for (var i in oldArray) {
-					str = filter.apply(oldArray[i], args);
-					newArray.push(str);
-				}
-				this._stream = newArray;
+
+				str = filter.call(newEnv, this._stream.join(""), args);
+
+				this._stream = [str];
 				return this;
 			};
 		}
@@ -789,24 +787,43 @@ exports = (typeof exports === "object") ? exports : null;
 
 
 
-
 	/**
 	 * Register core filters
 	 */
 
 	Dali.register({
 		Filters: {
-			"void": function(args) {
+			"void": function(stream, args) {
 				return "";
 			},
-			"trim": function(args) {
-				return (this+"").trim();
+			"trim": function(stream, args) {
+				return (stream).trim();
 			},
-			"uppercase": function(args) {
-				return (this+"").toUpperCase();
+			"uppercase": function(stream, args) {
+				return (stream).toUpperCase();
 			},
-			"lowercase": function(args) {
-				return (this+"").toLowerCase();
+			"lowercase": function(stream, args) {
+				return (stream).toLowerCase();
+			},
+			"log": function(stream, args) {
+				if (console) {
+					console.info(stream);
+				}
+				return this;
+			},
+			"debug": function(stream, args) {
+				if (console) {
+					if (args.length) console.log.apply(args);
+					console.log("stream: ", stream);
+					console.log("args: ", args);
+					console.info("item:");
+					console.dir(this.item || this.parent.item);
+					console.info( "vars: ");
+					console.dir(this.vars);
+					console.info( "env: ");
+					console.dir(this);
+				}
+				return stream;
 			}
 		}
 	});
@@ -836,7 +853,6 @@ exports = (typeof exports === "object") ? exports : null;
 				elseBlocks = altBlocksObj["else"];
 				notBlock = altBlocksObj["not"][0];
 				var output = "";
-				console.log("if args: ", args);
 				if (args[0]) {
 					output = output + (args[1] || "");
 					if (typeof(block) === "function") {
@@ -1005,8 +1021,8 @@ exports = (typeof exports === "object") ? exports : null;
 					block.apply(this, [env, args]);
 				}
 				env.vars._output = env.stream();
-				console.log("env: ", env);
-				console.log("env.vars: ", env.vars);
+//				console.log("env: ", env);
+//				console.log("env.vars: ", env.vars);
 				output = env.render(args[0], args[1], env.vars);
 				return output;
 			}, {

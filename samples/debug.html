@@ -1,0 +1,39 @@
+<div id="sample-debug" class="daliSample">
+	<div class="title">Debuging and Logging</div>
+	<div class="description">
+		<p>
+			The "debug" and "log" tag can give you visibility on the rendering process without having to set
+			complicated breakpoint in a console.
+		</p>
+		<p>
+			The "log" tag simply show the rendered output of the tag, while the debug tags also exposes
+			the environement data such as item, vars, env.
+		</p>
+		<p>
+			You an use a web console sur as Firebug to see the logs and debug informantion.
+		</p>
+	</div>
+<script id="sample-debug-data" type="application/json">
+{
+	"animals": [{
+		id: "cat",
+		label: "Cat!"
+	},{
+		id: "dog",
+		label: "Dog..."
+	},{
+		id: "bird",
+		label: "Bird"
+	}]
+}
+</script>
+<script id="sample-debug-template" type="text/x-dali-template">
+	<ul>
+	{{var "test", "abc123" /}}
+	{{out item >> debug /}}
+	{{each item.animals}}
+		<li>{{out item.label >> log /}}</li>
+	{{endeach}}
+	</ul>
+</script>
+</div>

@@ -108,10 +108,7 @@ exports = (typeof exports === "object") ? exports : null;
 		 */
 		this.add = function add(id, source, _vars, optionsParam) {
 			var options = {},
-				vars = {
-//					Env: Env,
-//zzz					dali: dali
-				};
+				vars = {};
 			extend(options, optionsParam);
 			extend(vars, vars);
 			return dali.templates[id] = new dali.Template(id, source, vars, options);
@@ -201,15 +198,30 @@ exports = (typeof exports === "object") ? exports : null;
 
 	}
 
+	/**
+	 * The collection of filters available during rendering
+	 */
 	var Filters = Dali.Filters = {};
+
+	/**
+	 * The collection of tags available during rendering
+	 */
 	var Tags = Dali.Tags = {};
 
+	/**
+	 * Register custom addons such as filters and tags
+	 * @param addons
+	 */
 	Dali.register = function(addons) {
 		addons = addons || {};
 		extend(this.Filters, addons.Filters || {});
 		extend(this.Tags, addons.Tags || {});
 	};
 
+	/**
+	 * The tag object used to page the templates
+	 * @constructor
+	 */
 	var Tag = Dali.Tag = function (id, handler, options) {
 		this.isInnert = false; // determines if the tags content should be parsed or not
 		this.alternateBlocks = {};
@@ -221,6 +233,10 @@ exports = (typeof exports === "object") ? exports : null;
 
 
 	// todo: Refactor: Cut the lexer in smaller functions
+	/**
+	 * The lexer is used to cut a template into smaller pieces and convert it into a logical tree structure.
+	 * @param template
+	 */
 	function lexer(template) {
 		var tag,
 			tagsMatch,
@@ -476,13 +492,11 @@ exports = (typeof exports === "object") ? exports : null;
 		return stream.join("");
 	}
 
-	/**
-	 * Object to provide source code for a block handler
-	 * @constructor
-	 */
-	function BlockHandler() {
 
-	}
+	/**
+	 * Used to compile an innert node, which content doesnt need parsing.
+	 * @param node
+	 */
 	function compileInnertNode(node) {
 		var i,
 			stream = [],
@@ -576,16 +590,6 @@ exports = (typeof exports === "object") ? exports : null;
 			return this;
 		}
 	}
-
-	// Utility for assertions and value comparisons
-	var is = {
-		"equal": function(a, b) {
-			return (a == b);
-		},
-		"not": function (a) {
-			return !a;
-		}
-	};
 
 	/**
 	 * Extend an object with the properties of another

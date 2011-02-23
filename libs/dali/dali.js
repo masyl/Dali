@@ -109,8 +109,8 @@ exports = (typeof exports === "object") ? exports : null;
 		this.add = function add(id, source, _vars, optionsParam) {
 			var options = {},
 				vars = {
-					Env: Env,
-					dali: dali
+//					Env: Env,
+//zzz					dali: dali
 				};
 			extend(options, optionsParam);
 			extend(vars, vars);
@@ -202,8 +202,6 @@ exports = (typeof exports === "object") ? exports : null;
 	}
 
 	var Filters = Dali.Filters = {};
-
-
 	var Tags = Dali.Tags = {};
 
 	Dali.register = function(addons) {
@@ -776,7 +774,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 * @param err Error object to throw
 	 */
 	function logError(err) {
-		if (typeof(console)!="undefined" && console.error) console.error(err);
+		if (typeof(console)!== "undefined") console.error(err);
 	}
 
 	// apply exports
@@ -806,13 +804,13 @@ exports = (typeof exports === "object") ? exports : null;
 				return (stream).toLowerCase();
 			},
 			"log": function(stream, args) {
-				if (console) {
+				if (typeof(console) !== "undefined") {
 					console.info(stream);
 				}
-				return this;
+				return stream;
 			},
 			"debug": function(stream, args) {
-				if (console) {
+				if (typeof(console) !== "undefined") {
 					if (args.length) console.log.apply(args);
 					console.log("stream: ", stream);
 					console.log("args: ", args);
@@ -841,6 +839,30 @@ exports = (typeof exports === "object") ? exports : null;
 					args = _args();
 				output = (typeof(args.join) === "function") ? args.join("") : "";
 				return output;
+			}, {}),
+			"log" : new Tag("log", function(_args, env, block, alternateBlocks) {
+				var output,
+					args = _args();
+				output = (typeof(args.join) === "function") ? args.join("") : "";
+				if (typeof(console) !== "undefined") {
+					console.log(output);
+				}
+				return "";
+			}, {}),
+			"debug" : new Tag("debug", function(_args, env, block, alternateBlocks) {
+				var output,
+					args = _args();
+				output = (typeof(args.join) === "function") ? args.join("") : "";
+				if (typeof(console) !== "undefined") {
+					console.log("output: ", output);
+					console.info("item:");
+					console.dir(env.item || this.parent.item);
+					console.info( "vars: ");
+					console.dir(env.vars);
+					console.info( "env: ");
+					console.dir(env);
+				}
+				return "";
 			}, {}),
 			"if" : new Tag("if", function(_args, env, block, alternateBlocks) {
 				//TODO: objectfyAlternateBlocks shouldnt hav to be manual called in each tag
@@ -1021,8 +1043,6 @@ exports = (typeof exports === "object") ? exports : null;
 					block.apply(this, [env, args]);
 				}
 				env.vars._output = env.stream();
-//				console.log("env: ", env);
-//				console.log("env.vars: ", env.vars);
 				output = env.render(args[0], args[1], env.vars);
 				return output;
 			}, {

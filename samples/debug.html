@@ -2,7 +2,8 @@
 	<div class="title">Debuging and Logging</div>
 	<div class="description">
 		<p>
-			The "debug" and "log" tag can give you visibility on the rendering process without having to set
+			The "debug" and "log" utilities are available both as filters and tags. They
+			can give you visibility on the rendering process without having to set
 			complicated breakpoint in a console.
 		</p>
 		<p>
@@ -30,10 +31,12 @@
 <script id="sample-debug-template" type="text/x-dali-template">
 	<ul>
 	{{var "test", "abc123" /}}
-	{{out item >> debug /}}
+	{{out >> debug >> void /}}
 	{{each item.animals}}
 		<li>{{out item.label >> log /}}</li>
 	{{endeach}}
+	{{debug /}}
+	{{log "Animal count:" + item.animals.length /}}
 	</ul>
 </script>
 </div>

@@ -35,8 +35,7 @@ exports = (typeof exports === "object") ? exports : null;
 
 			this.render = function render(data, vars, env) {
 				var newVars = {},
-					output,
-					env;
+					output;
 				extend(newVars, this.vars);
 				extend(newVars, vars);
 				if (env) {
@@ -158,19 +157,20 @@ exports = (typeof exports === "object") ? exports : null;
 			/**
 			 * Render a tag with the available arguments, contextual data and block content
 			 * @param tagName
-			 * @param args
+			 * @param argString
 			 * @param data
 			 * @param blockHandler
+			 * @param alternateBlocks
 			 */
 			this.applyTag = function (tagName, argString, data, blockHandler, alternateBlocks) {
-				var content, newEnv, args, tag;
+				var content, newEnv, args, tag, tagHandler;
 				newEnv = new Env(this.vars, this);
 				newEnv.item = data;
 				args = function () {
 					return evaluate(argString, newEnv)
 				};
-				tag = Tags[tagName].handler;
-				content = tag.apply(data, [args, newEnv, blockHandler, alternateBlocks]);
+				tag = Tags[tagName];
+				content = tag.handler(data, args, newEnv, blockHandler, alternateBlocks);
 				this.out(unescapeQuotes(content));
 				return this;
 			};
@@ -178,7 +178,7 @@ exports = (typeof exports === "object") ? exports : null;
 			/**
 			 * Apply a filter function to the available arguments
 			 * @param filterName
-			 * @param args
+			 * @param argString
 			 */
 			this.applyFilter = function(filterName, argString) {
 				var str,
@@ -513,11 +513,13 @@ exports = (typeof exports === "object") ? exports : null;
 	/**
 	 * Convert an array of alternate tags to an dictionnary object
 	 * @param blocks
-	 * @param obj
+	 * @param _obj
 	 */
-	function objectfyAlternateBlocks(blocks, obj) {
-		var block;
-		for (var iBlock in blocks) {
+	function objectfyAlternateBlocks(blocks, _obj) {
+		var iBlock, block;
+		var obj = {};
+		extend(obj, _obj);
+		for (iBlock in blocks) {
 			block = blocks[iBlock];
 			if (obj[block.name]) obj[block.name].push(block);
 		}
@@ -538,7 +540,6 @@ exports = (typeof exports === "object") ? exports : null;
 
 	/**
 	 * Iterator state object
-	 * @param count {number} The number of items in the iteration
 	 */
 	function Loop() {
 		var i,
@@ -608,6 +609,14 @@ exports = (typeof exports === "object") ? exports : null;
 		}
 		return obj;
 	}
+	function clone(obj){
+		if(obj == null || typeof(obj) != 'object')
+			return obj;
+		var temp = obj.constructor(); // changed
+		for(var key in obj)
+			temp[key] = clone(obj[key]);
+		return temp;
+	}
 
 	function evaluate(expression, _context) {
 		var context,
@@ -618,7 +627,6 @@ exports = (typeof exports === "object") ? exports : null;
 		expression = expression || "";
 		expression = expression.replace(/\n/gm," ");
 		context = {
-			"is": is
 		};
 		extend(context, _context);
 
@@ -838,13 +846,13 @@ exports = (typeof exports === "object") ? exports : null;
 
 	Dali.register({
 		Tags: {
-			"raw" : new Tag("raw", function(_args, env, block, alternateBlocks) {
+			"raw" : new Tag("raw", function(data, _args, env, block, alternateBlocks) {
 				var output,
 					args = _args();
 				output = (typeof(args.join) === "function") ? args.join("") : "";
 				return output;
 			}, {}),
-			"log" : new Tag("log", function(_args, env, block, alternateBlocks) {
+			"log" : new Tag("log", function(data, _args, env, block, alternateBlocks) {	
 				var output,
 					args = _args();
 				output = (typeof(args.join) === "function") ? args.join("") : "";
@@ -853,14 +861,14 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 				return "";
 			}, {}),
-			"debug" : new Tag("debug", function(_args, env, block, alternateBlocks) {
+			"debug" : new Tag("debug", function(data, _args, env, block, alternateBlocks) {
 				var output,
 					args = _args();
 				output = (typeof(args.join) === "function") ? args.join("") : "";
 				if (typeof(console) !== "undefined") {
 					console.log("output: ", output);
 					console.info("item:");
-					console.dir(env.item || this.parent.item);
+					console.dir(env.item || env.parent.item);
 					console.info( "vars: ");
 					console.dir(env.vars);
 					console.info( "env: ");
@@ -868,21 +876,18 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 				return "";
 			}, {}),
-			"if" : new Tag("if", function(_args, env, block, alternateBlocks) {
+			"if" : new Tag("if", function(data, _args, env, block, alternateBlocks) {
 				//TODO: objectfyAlternateBlocks shouldnt hav to be manual called in each tag
 				var altBlocksObj, elseBlocks, notBlock, args;
 				args = _args();
-				altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
-					"else": [],
-					"not": []
-				});
+				altBlocksObj = objectfyAlternateBlocks(alternateBlocks, clone(this.alternateBlocks));
 				elseBlocks = altBlocksObj["else"];
 				notBlock = altBlocksObj["not"][0];
 				var output = "";
 				if (args[0]) {
 					output = output + (args[1] || "");
 					if (typeof(block) === "function") {
-						block.apply(this, [env, args]);
+						block.apply(data, [env, args]);
 					}
 				} else {
 					var isTrue, elseBlock;
@@ -892,7 +897,7 @@ exports = (typeof exports === "object") ? exports : null;
 							if (elseBlock.args[0]) {
 								isTrue = true;
 								output = output + (args[1] || "");
-								elseBlock.handler.apply(this, [env, args]);
+								elseBlock.handler.apply(data, [env, args]);
 								break;
 							}
 						}
@@ -901,7 +906,7 @@ exports = (typeof exports === "object") ? exports : null;
 						// If no if-else tag was true, apply any if-not tag and/or
 						// secondary param
 						output = output + (args[2] || "");
-						if (notBlock) notBlock.handler.apply(this, [env, args]);
+						if (notBlock) notBlock.handler.apply(data, [env, args]);
 					}
 				}
 				return output + env.stream();
@@ -913,14 +918,14 @@ exports = (typeof exports === "object") ? exports : null;
 			}),
 			// Empty tag... form comment sytax {{# /}} {{#}}!
 			"" : new Tag("comment",
-				function(args, env, block, alternateBlocks) {
+				function(data, args, env, block, alternateBlocks) {
 					return "";
 				},{
 					isInnert: true
 				}
 			),
 			"each" : new Tag("each",
-				function(_args, env, _block, alternateBlocks) {
+				function(data, _args, env, _block, alternateBlocks) {
 					var i,
 						itemCount = 0,
 						item,
@@ -931,17 +936,12 @@ exports = (typeof exports === "object") ? exports : null;
 						altBlock,
 						args,
 						oldItem = env.item;
-
-					altBlocksObj = objectfyAlternateBlocks(alternateBlocks,{
-						"empty": [],
-						"single": [],
-						"begin": [],
-						"end": [],
-						"first": [],
-						"odd": [],
-						"between": [],
-						"last": []
-					});
+					altBlocksObj = objectfyAlternateBlocks(alternateBlocks, clone(this.alternateBlocks));
+					console.info("-------");
+					console.info(this);
+					console.info(alternateBlocks);
+					console.info(this.alternateBlocks);
+					console.dir(altBlocksObj);
 					args = _args();
 					if (typeof(_block) === "function") {
 						// Create a new Loop status object
@@ -1005,15 +1005,15 @@ exports = (typeof exports === "object") ? exports : null;
 					}
 				}
 			),
-			"out" : new Tag("out", function(_args, env, block, alternateBlocks) {
+			"out" : new Tag("out", function(data, _args, env, block, alternateBlocks) {
 				var args = _args();
 				env.out(args.join(""));
 				if (block) {
-					block.apply(this, [env, args]);
+					block.apply(data, [env, args]);
 				}
 				return env.stream();
 			}, {}),
-			"template": new Tag("template", function(_args, env, block, alternateBlocks) {
+			"template": new Tag("template", function(data, _args, env, block, alternateBlocks) {
 				var args = _args(),
 					template,
 					id = args[0],
@@ -1028,7 +1028,7 @@ exports = (typeof exports === "object") ? exports : null;
 			}, {
 				isInnert: true
 			}),
-			"render" : new Tag("render", function(_args, env, block, alternateBlocks) {
+			"render" : new Tag("render", function(data, _args, env, block, alternateBlocks) {
 				var i, output, blockArgs, vars, varName, varBlocks, varBlock, altBlocksObj, args = _args();
 				altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
 					"var": []
@@ -1044,7 +1044,7 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 				if (block) {
 					env.flush();
-					block.apply(this, [env, args]);
+					block.apply(data, [env, args]);
 				}
 				env.vars._output = env.stream();
 				output = env.render(args[0], args[1], env.vars);
@@ -1054,25 +1054,25 @@ exports = (typeof exports === "object") ? exports : null;
 					"var": []
 				}
 			}),
-			"load" : new Tag("load", function(_args, env, block, alternateBlocks) {
+			"load" : new Tag("load", function(data, _args, env, block, alternateBlocks) {
 				var i, output, vars, varName, args=_args();
 				if (block) {
 					env.flush();
-					block.apply(this, [env, args]);
+					block.apply(data, [env, args]);
 				}
 				// render the template with current environment
 				// and disregard its output
 				env.render(args[0], args[1], {}, env);
 				return "";
 			}, {}),
-			"var" : new Tag("var", function(_args, env, block, alternateBlocks) {
+			"var" : new Tag("var", function(data, _args, env, block, alternateBlocks) {
 				var val,
 					args = _args();
 				if (typeof(args[1]) !== "undefined") {
 					val = args[1];
 				}
 				if (block) {
-					block.apply(this, [env, args]);
+					block.apply(data, [env, args]);
 					val = env.stream();
 				}
 				env.vars[args[0]] = val;

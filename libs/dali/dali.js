@@ -849,13 +849,13 @@ exports = (typeof exports === "object") ? exports : null;
 			"raw" : new Tag("raw", function(data, _args, env, block, alternateBlocks) {
 				var output,
 					args = _args();
-				output = (typeof(args.join) === "function") ? args.join("") : "";
+				output = args.join("");
 				return output;
 			}, {}),
 			"log" : new Tag("log", function(data, _args, env, block, alternateBlocks) {	
 				var output,
 					args = _args();
-				output = (typeof(args.join) === "function") ? args.join("") : "";
+				output = args.join("");
 				if (typeof(console) !== "undefined") {
 					console.log(output);
 				}
@@ -864,7 +864,7 @@ exports = (typeof exports === "object") ? exports : null;
 			"debug" : new Tag("debug", function(data, _args, env, block, alternateBlocks) {
 				var output,
 					args = _args();
-				output = (typeof(args.join) === "function") ? args.join("") : "";
+				output = args.join("");
 				if (typeof(console) !== "undefined") {
 					console.log("output: ", output);
 					console.info("item:");

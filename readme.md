@@ -106,23 +106,36 @@ The basic constructs are :
 
 An open "out" tag:
 
-[code sample goes here...]
+	{{out}}
+		<span>Some text!</span>
+	{{endout}}
 
 A self-closing tag with arguments:
 
-[code sample goes here...]
+	{{out "<span>Some text!</span>" /}}
 
 A tag with additionnal alternate tags:
 
-[code sample goes here...]
+	{{if vars.count > 1 }}
+		is bigger than 1
+	{{if-not}}
+		is NOT bigger than 1
+	{{endif}}
 
-A tag with a filter:
+Tags with a filter:
 
-[code sample goes here...]
+	{{out "This will be in uppercase!" >> uppercase /}}
+
+	{{out >> uppercase}}
+		This will also be in uppercase!
+	{{endout}}
 
 A tag with linefeeds and whitespaces:
 
-[code sample goes here...]
+	{{ out
+		"Some text to output in uppercase!"
+		>> uppercase
+	/}}
 
 
 
@@ -133,17 +146,37 @@ Comment are usefull both for adding usefull information in your templates withou
 
 But the Dali approach to commenting also allows you to comment-out your code quickly during development for doing tests or disabling features temporarilly.
 
+Comment are triggered by the "#" symbol, and its behavior depends on where you place it.
+
 Comments for documentation:
 
-[code sample goes here...]
+	{{#
+		You can add multi-line comments anywhere...
+		their content is innert, so they will not
+		be parsed or evaluated.
+	/}}
 
-Commenting out a whole tag:
+Commenting out a whole tag (argument, main block and all alternate tags):
 
-[code sample goes here...]
+	{{#if a > 1 }}
+		Some text to output!
+	{{if-not}}
+		Or maybe not...
+	{{endif}}
 
-Commenting out only a tags content (while still parsing its arguments):
+Commenting out only a tags content (while still parse its arguments and alternate tags):
 
-[code sample goes here...]
+	{{out "This will output" #}}
+		But this will not
+	{{endout}}
+
+Commenting out only an alternate tag:
+
+	{{#if 2 > 1 }}
+		This will surely output
+	{{if-not #}}
+		But this will not.
+	{{endif}}
 
 
 Note: When you comment-out a tag, it will be "completely ignored", meaning that it will not even be present in the compiled template.
@@ -154,11 +187,13 @@ Note: When you comment-out a tag, it will be "completely ignored", meaning that 
 
 Most tags support arguments. Arguments are written immediatly after the name of the tag. Multiple arguments are separated by commas.
 
-[Code samples here...]
+	{{var "varNameGoesHere", "var value goes here..." /}}
+
+	{{out vars.someVar, 5 + 3, "some test!" /}}
 
 Note that elements after the ">>" prefix used for filter will not be part of your arguments. For example, here we have only 1, 2 and 3 as arguments:
 
-[Code samples here...]
+	{{out 1, 2, 3 >> void /}}
 
 Argument are evaluated as javascript expressions. When these arguments are evaluation during the rendering process, they have acces to the global scope of you application and to some objects specific to the rendering.
 
@@ -182,7 +217,7 @@ Instead, it is recommended that you pass your helper function and various variab
 
 Here is a sample scenario:
 
-[Code sample goes here...]
+	dali.
 
 ---
 
@@ -270,7 +305,28 @@ Tags:
 Creating custom tags
 --------------------
 
-To come... see samples.
+Here is how simple custom tag is built (explanations will follow):
+
+
+	alertTag = new Dali.Tag("alert", function(data, _args, env, block, alternateBlocks) {
+		var args = _args();
+		alert(args.join(", "));
+		return "";
+	}, {})
+
+	Dali.register({
+		Tags: {
+			"alert": alertTag
+		}
+	});
+
+This "alert" tag will trigger an alert dialog that shows the values of the tags argument, separated by commas.
+
+Note that before using the arguments, you must first call the "_args" argument as a function to evaluate their values.
+
+After created the tag with the Dali.Tag constructor, you simply register it with the "Dali.register" method.
+
+To see more complexe examples of tags that process block content, you can browse the Dali source code on GitHub.
 
 ---
 
@@ -285,7 +341,7 @@ In the dali sample you will find a situation where a page is rendered by a baseP
 
 This scenario is in comparable to the complex templating found in server langauges.
 
-[Template inheritance in the Dali Samples]
+__See "Template inheritance" in the Dali Samples__
 
 ---
 
@@ -323,7 +379,7 @@ Sample MVC Mobile App
 
 Along side the Dali api, there is a sample mobile application that is used to showcase how it can greatly simplify writing mobile apps. It combines jQuery Mobile, Dali and the Dali MVC api.
 
-This sample is available to download and contribute to on GitHub at [https://github.com/masyl/jquery.mobile.mvc](https://github.com/masyl/jquery.mobile.mvc). And you can sample it online at [http://http://masyl.github.com/jquery.mobile.mvc/](http://http://masyl.github.com/jquery.mobile.mvc/).
+This sample is available to download and contribute to on GitHub at [https://github.com/masyl/jquery.mobile.mvc](https://github.com/masyl/jquery.mobile.mvc). And you can sample it online at [http://masyl.github.com/jquery.mobile.mvc/](http://masyl.github.com/jquery.mobile.mvc/).
 
 ---
 

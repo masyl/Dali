@@ -151,7 +151,11 @@ exports = (typeof exports === "object") ? exports : null;
 			 * Return the stream content as a string
 			 */
 			this.stream = function () {
-				return this._stream.join("");
+				if (this._stream.length > 1) {
+					return this._stream.join("")
+				} else {
+					return this._stream[0];
+				}
 			};
 			this.flush = function() {
 				this._stream = [];
@@ -857,6 +861,17 @@ exports = (typeof exports === "object") ? exports : null;
 			},
 			"i18n": function(stream, args) {
 				return i18n(stream, this.dali.i18n || {});
+			},
+			"json": function(stream, args) {
+				var json = eval("(" + stream + ")");
+//				this.vars[args[0]];
+				return json;
+				/*
+{{var "legumes" >> json }}
+    {patate: "Yata!"} 
+{{endvar}}
+{{out vars.legumes.patate /}}
+				 */
 			}
 		}
 	});
@@ -1103,12 +1118,14 @@ exports = (typeof exports === "object") ? exports : null;
 				var val,
 					args = _args();
 				if (typeof(args[1]) !== "undefined") {
-					val = args[1];
+					env.out(args[1]);
 				}
 				if (block) {
 					block.apply([data], [env, args]);
-					val = env.stream();
 				}
+				if (filters) filters.apply([data], [env, args]);
+				val = env.stream();
+				console.log("val: ", val);
 				env.vars[args[0]] = val;
 				return "";
 			}, {})

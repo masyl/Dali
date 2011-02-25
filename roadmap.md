@@ -5,6 +5,10 @@
 
 ### VERSIONS 1.X
 
+Completed:
+	- i18n tags and filters
+	- Logging and debugging tags and filters
+
 Objectives:
 
 * Be 99% backward compatible to 1.0
@@ -32,32 +36,7 @@ Various housekeeping:
 
 ## Backlog
 
-### i18n
-
-Provive i18n as an environement function, a tag and a filter:
-
-	{{out i18n("Bonjour à vous les amis!")/}}
-	{{out "Bonjour à vous les amis!" >> i18n /}}
-	{{i18n}}Bonjour à vous les amis!{{/i18n}}
-	{{i18n "bonjour"}}Bonjour à vous les amis!{{/i18n}}
-	{{out >> i18n "bonjourAvous"}}Bonjour à vous les amis!{{/i18n}}
-
-How is the current language set ?
-
 ---
-
-### Logging and debugging
-
-Filter to log output to the console:
-
-	{{out >> log}}
-		Some test that will be logged in the console
-	{{/out}}
-
-Filter to debug dali to the console:
-
-	{{render "templateABC" >> debug /}}
-
 
 -----------
 
@@ -76,7 +55,7 @@ Filter to debug dali to the console:
 ### Loading and resource Handling
 
 * Load/parse/compile templates "on demand"
- *More options/api calls for auto-loading templates
+* More options/api calls for auto-loading templates
 * Loading of templates in ajax using empty script tags
 
 	<script id="templateABC" src="templateABC.dali.html" type="text/x-dali-template"></script>
@@ -186,7 +165,7 @@ Ability to use any tag as functions:
 
 Ability to use any filter as functions:
 
-	{{out deco.uppercase(this.value) /}}
+	{{out filters.uppercase(this.value) /}}
 
 -----------
 
@@ -238,10 +217,6 @@ Error on "too many recursion" or MaxiumRecursionDepth
 
 -----------
 
-Syntaxt for auto trimming white spaces
-
------------
-
 	{{each-every 4, -1}} alternate tag for alternating items
 	{{each-nth 4, -1}}
 
@@ -288,6 +263,14 @@ done like this :
 	{{ out (0 || 0 || 0 || 2 || 1) }}
 
 -------
+
+Syntaxt for auto trimming white spaces
+
+	{{if true >> trim }}
+		this will not output whitespaces before and after!
+	{{endif}}
+
+--------
 
 /**
  * Sample to show a Loop 31 times without data

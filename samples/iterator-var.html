@@ -1,0 +1,61 @@
+<div id="sample-iteratorVar" class="daliSample">
+	<div class="title">Iterator var and key</div>
+	<div class="description">
+		<p></p>
+	</div>
+<script id="sample-iteratorVar-data" type="application/json">
+{
+	parents : {
+		bob1: {
+			name: "Bobby Rocket",
+			children: ["timmy", "sam", "samantha"]
+		},
+		gunt1: {
+			name: "Gunter Ulrich",
+			children: ["sven", "trieb", "goulard"]
+		},
+		charl1: {
+			name: "Charlemagne II",
+			children: ["gontrand", "rogacien", "albertine"]
+		},
+	}
+}
+</script>
+<script id="sample-iteratorVar-template" type="text/x-dali-template">
+
+<h3>The two following loop are equivalent. The first is using a shorthand notation:</h3>
+<div>
+	<ul>
+		{{each item.parents, "dad"}}
+			<li>
+				{{out vars.dad.name /}}({{out loop.key() /}}) is parent of :
+				<br />
+				{{each vars.dad.children, "child"}}
+					{{out vars.child /}}
+				{{each-between }}
+					,
+				{{endeach}}
+			</li>
+		{{endeach}}
+	</ul>
+</div>
+<div>
+	<h3>The long version</h3>
+	<ul>
+		{{each item.parents}}
+			<li>
+				{{var "dad", item /}}
+				{{out vars.dad.name /}}({{out loop.key() /}}) is parent of :
+				<br />
+				{{each vars.dad.children}}
+					{{var "child", item /}}
+					{{out vars.child /}}
+				{{each-between }}
+					,
+				{{endeach}}
+			</li>
+		{{endeach}}
+	</ul>
+</div>
+</script>
+</div>

@@ -564,21 +564,34 @@ exports = (typeof exports === "object") ? exports : null;
 	 * Iterator state object
 	 */
 	function Loop() {
-		var i,
+		var key,
+			keys = [],
 			items,
 			length,
 			index;
 
 		this.items = function(_items) {
+			var i;
 			if (_items) {
 				items = _items;
 				length = 0;
 				index = -1;
+				keys = [];
+				key = null;
 				// count how many items there are
-				for (i in items) length = length + 1;
-
+				for (i in items) {
+					console.log("i >> ", i);
+					length = length + 1;
+					keys.push(i);
+				}
 			}
 			return items;
+		};
+		this.key = function() {
+			return keys[index];
+		};
+		this.keys = function() {
+			return keys;
 		};
 		this.isOdd = function() {
 			return this.isNth(2,0);
@@ -610,6 +623,7 @@ exports = (typeof exports === "object") ? exports : null;
 		};
 		this.step = function() {
 			index = index + 1;
+			key = keys[index];
 			return this;
 		}
 	}
@@ -975,7 +989,8 @@ exports = (typeof exports === "object") ? exports : null;
 			),
 			"each" : new Tag("each",
 				function(data, _args, env, _block, alternateBlocks, filters) {
-					var i,
+					var key,
+						oldKey,
 						itemCount = 0,
 						item,
 						items,
@@ -984,35 +999,51 @@ exports = (typeof exports === "object") ? exports : null;
 						altBlocksObj,
 						altBlock,
 						args,
+						varName,
 						oldItem = env.item;
 					altBlocksObj = objectfyAlternateBlocks(alternateBlocks, clone(this.alternateBlocks));
 					args = _args();
 					if (typeof(_block) === "function") {
 						// Create a new Loop status object
 						items = args[0];
+						varName = args[1];
 						loop = env.loop;
 						loop.items(items);
 						// to insert before all items
 						if (altBlocksObj.begin[0]) {
 							altBlocksObj.begin[0].handler.apply([{}], [env, args, loop]);
 						}
-						for (i in items) {
+						for (key in items) {
+							/**
+							 * CREATE A NEW ENVIRONMENT
+							 */
+
+
+							
+
+							/**
+							 *
+							 */
 							itemCount = itemCount + 1;
-							item = items[i];
+							item = items[key];
 							env.item = item;
-							env.key = i;
+							env.key = key;
+							console.log("varName: ", varName, item);
+							if (typeof(varName) !== "undefined") {
+								env.vars[varName] = item;
+							}
 							loop.step();
 							block = null;
-							if (i==0 && items.length==1) {
+							if (key==0 && items.length==1) {
 								// Is single item
 								block = altBlocksObj.single[0];
-							} else if (i==0) {
+							} else if (key==0) {
 								// Is first item
 								block = altBlocksObj.first[0];
-							} else if (i==items.length-1) {
+							} else if (key==items.length-1) {
 								// Is last item
 								block = altBlocksObj.last[0];
-							} else if (i % 2) {
+							} else if (key % 2) {
 								// Is odd item
 								block = altBlocksObj.odd[0];
 							}
@@ -1023,7 +1054,7 @@ exports = (typeof exports === "object") ? exports : null;
 							block.apply([item], [env, args, loop]);
 
 							// to insert between each item
-							if (altBlocksObj.between[0] && i<items.length-1) {
+							if (altBlocksObj.between[0] && key < items.length - 1) {
 								altBlocksObj.between[0].handler.apply([{}], [env, args]);
 							}
 						}
@@ -1038,6 +1069,7 @@ exports = (typeof exports === "object") ? exports : null;
 					}
 					// Reset to the old item before iterating
 					env.item = oldItem;
+					env.key = oldKey;
 					if (filters) filters.apply([data], [env, args]);
 					return env.stream();
 				}, {

@@ -568,7 +568,8 @@ exports = (typeof exports === "object") ? exports : null;
 			keys = [],
 			items,
 			length,
-			index;
+			index,
+			parent = {};
 
 		this.items = function(_items) {
 			var i;
@@ -586,6 +587,14 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 			}
 			return items;
+		};
+		/**
+		 * Create a new Loop instance with its parent as the current one
+		 */
+		this.iterate = function(items) {
+			var loop = new Loop();
+			loop.items(items);
+			return loop;
 		};
 		this.key = function() {
 			return keys[index];
@@ -1000,6 +1009,7 @@ exports = (typeof exports === "object") ? exports : null;
 						altBlock,
 						args,
 						varName,
+						newEnv,
 						oldItem = env.item;
 					altBlocksObj = objectfyAlternateBlocks(alternateBlocks, clone(this.alternateBlocks));
 					args = _args();
@@ -1007,23 +1017,12 @@ exports = (typeof exports === "object") ? exports : null;
 						// Create a new Loop status object
 						items = args[0];
 						varName = args[1];
-						loop = env.loop;
-						loop.items(items);
+						loop = env.loop = env.loop.iterate(items);
 						// to insert before all items
 						if (altBlocksObj.begin[0]) {
 							altBlocksObj.begin[0].handler.apply([{}], [env, args, loop]);
 						}
 						for (key in items) {
-							/**
-							 * CREATE A NEW ENVIRONMENT
-							 */
-
-
-							
-
-							/**
-							 *
-							 */
 							itemCount = itemCount + 1;
 							item = items[key];
 							env.item = item;
@@ -1070,6 +1069,7 @@ exports = (typeof exports === "object") ? exports : null;
 					// Reset to the old item before iterating
 					env.item = oldItem;
 					env.key = oldKey;
+//					env.loop = loop.parent;
 					if (filters) filters.apply([data], [env, args]);
 					return env.stream();
 				}, {

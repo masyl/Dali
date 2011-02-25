@@ -1,0 +1,27 @@
+<div id="sample-i18n" class="daliSample">
+	<div class="title">Internationalisation (i18n)</div>
+	<div class="description">
+		<p>
+		</p>
+	</div>
+<script id="sample-i18n-data" type="application/json">
+{
+	"options": {
+		"whateverActivation": true,
+		"gizmoRedirect": true,
+		"thingamabobV2": false
+	}
+}
+</script>
+<script id="sample-i18n-template" type="text/x-dali-template">
+	<h2>{{out >> i18n}}Options{{endout}}</h2>
+	<ul>
+		{{each item.options}}
+			<li>
+				{{out item >> i18n /}} :
+				{{if item, "Yes", "No" >> i18n /}}
+			</li>
+		{{endeach}}
+	</ul>
+</script>
+</div>

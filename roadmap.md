@@ -5,9 +5,16 @@
 
 ### VERSIONS 1.X
 
-Completed:
-	- i18n tags and filters
-	- Logging and debugging tags and filters
+Completed for next release:
+* Multiple bug fixes
+* i18n tags and filters
+* Logging and debugging tags and filters
+* json filter and support for filters that output data (use with var tag)
+		{{var "legumes" >> json }}
+			{patate: "Yata!"}
+		{{endvar}}
+		{{out vars.legumes.patate /}}
+
 
 Objectives:
 
@@ -38,19 +45,16 @@ Various housekeeping:
 
 ---
 
------------
-
 ### Error Handling
 
 * Error messages that behave as a sort of stack-trace
+* Error on "too many recursion" or MaxiumRecursionDepth
 
------------
 
 ### API
 
 * An event API for onTag, onFilter, onWhatever, onError, etc
-
-----
+* Complete and coherent API integration for jQuery, Mootools, Dojo, YUI.
 
 ### Loading and resource Handling
 
@@ -60,38 +64,34 @@ Various housekeeping:
 
 	<script id="templateABC" src="templateABC.dali.html" type="text/x-dali-template"></script>
 
+### Performance optimization
+
+* Implement caching
+* Test asynchronous execution
 
 -----------
+
+### Packaging
 
 * Ability to choose the delimiter and set single braces as the default.
 
------------
+### Flexibility
 
-Support for double quotes and single quotes in expression evaluation
+* A set of external filters, with a tool to select/build a custom set.
+* Access to parent data and environment
+	vars._parent	The parent data context
+	env._parent		The parent environement ?
 
------------
 
-Find out what the "this" reference should be... since the data is now "item"
+### Coherence
 
------------
-
-Default "dali" instance in the global scope
-
------------
-
-A set of external filters, with a tool to select/build a custom set.
+* Find out what the "this" reference should be... since the data is now "item"
 
 -----------
+Filters
 
-Integrate Showdown as a filter : http://softwaremaniacs.org/playground/showdown-highlight/
-
------------
-
-Complete and coherent API integration for jQuery, Mootools, Dojo, YUI.
-
------------
-
-A filter to send tag output into a var
+* Integrate Showdown as a filter : http://softwaremaniacs.org/playground/showdown-highlight/
+* A filter to send tag output into a var
 
 	{{out >> var "dontCareMessage"}}
 		Yeah whatever dude... I dont care!
@@ -118,11 +118,6 @@ Is equivalent to  :
 	{{/each}}
 
 -----------
-
-Access to parent data and environment
-
-vars._parent	The parent data context
-env._parent		The parent environement ?
 
 ---------
 
@@ -186,15 +181,12 @@ or
 
 -----------
 
-Implement caching
-
 -----------
+### Escaping
 
-Test asynchronous execution
-
------------
-
-Tag instruction for different way out outscaping linefeeds
+* Support for double quotes and single quotes in expression evaluation
+* Better, more diverse character espcaping filters (encoreIRI, escape, htmlEncode, etc).
+* Tag instruction for different way out outscaping linefeeds
 
 Tag instructions come in the form of a list of coma separated keywords
 that appear after arguments and filters. Simply user the doulbe @.
@@ -202,37 +194,18 @@ Ex.:
 
 	{{out "these line feeds\n will not\n be escaped" >> lowersace @@ keeplinefeeds /}}
 
-
 -----------
 
-Better character espcaping routines.
+### Looping
 
------------
-
+* Cycle tag
 	{{cycle "odd", "even" }}  (like django)
 
------------
+* Alternating tag
+	{{each-every 4, -1}}
 
-Error on "too many recursion" or MaxiumRecursionDepth
-
------------
-
-	{{each-every 4, -1}} alternate tag for alternating items
-	{{each-nth 4, -1}}
-
------------
-
-Define a variable using JSON and store as an object
-
-NOT POSSIBLE FOR NOW BECAUSE FILTERS ARE PARSED
-OUTSIDE OF THE TAG HANDLER ITSELF
-
-	{{var "messageCount" >> json /}}
-		{
-			a: 1,
-			b: 2
-		}
-	{{/var}}
+* Collection generator for looping
+ 	{{each loop.for(31) }} or similar ?
 
 -----------
 
@@ -269,15 +242,5 @@ Syntaxt for auto trimming white spaces
 	{{if true >> trim }}
 		this will not output whitespaces before and after!
 	{{endif}}
-
---------
-
-/**
- * Sample to show a Loop 31 times without data
- */
- Or
- 	{{each spawn(31) }} or similar ?
- Or
- 	{{each new Array(31) }}
 
 ----

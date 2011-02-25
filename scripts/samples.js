@@ -22,6 +22,14 @@ TODO:
 		editorTemplate,
 		editorOutput;
 
+	var sampleURL = "";
+	var sampleIsDirty = false;
+
+	dali.i18n = {
+		"Yes": "Oui",
+		"No": "Non"
+	};
+
 	$(function () {
 		var JavaScriptMode = require("ace/mode/javascript").Mode;
 
@@ -40,9 +48,11 @@ TODO:
 			sampleOutput.getSession().setMode(new JavaScriptMode());
 
 			sampleData.getSession().on('change', function(){
+				sampleIsDirty = true;
 				runSample();
 			});
 			sampleTemplate.getSession().on('change', function(){
+				sampleIsDirty = true;
 				runSample();
 			});
 		} catch (err) {
@@ -69,27 +79,31 @@ TODO:
 	function onLoadEditor() {}
 
 	function loadSample(url) {
-		var sample = new Sample(url);
-		$.bbq.pushState({
-					sample: url
-				});
-		$.ajax({
-			url: url,
-			dataType: "html",
-			complete: function(data) {
-				var id,
-					root = $(data.responseText);
-				id = sample.id = root.attr("id");
-				$("body").append(root);
-				root = $("#" + id);
-				sample.title = root.find(".title").text();
-				sample.description = root.find(".description").html();
-				sample.data = $("#" + id + "-data").text();
-				sample.template = $("#" + id + "-template").text();
+		if (url !== sampleURL || !sampleIsDirty) {
+			sampleURL = url;
+			sampleIsDirty = false;
+			var sample = new Sample(url);
+			$.bbq.pushState({
+				sample: url
+			});
+			$.ajax({
+				url: url,
+				dataType: "html",
+				complete: function(data) {
+					var id,
+						root = $(data.responseText);
+					id = sample.id = root.attr("id");
+					$("body").append(root);
+					root = $("#" + id);
+					sample.title = root.find(".title").text();
+					sample.description = root.find(".description").html();
+					sample.data = $("#" + id + "-data").text();
+					sample.template = $("#" + id + "-template").text();
+					applySample(sample);
+				}
+			});
 
-				applySample(sample);
-			}
-		});
+		}
 	}
 
 	function Sample(url) {
@@ -102,26 +116,36 @@ TODO:
 	}
 
 	function applySample(sample) {
+		pauseRunSample(true);
 		sampleData.getSession().setValue(sample.data+"");
 		sampleTemplate.getSession().setValue(sample.template+"");
+		pauseRunSample(false);
 		$(".descriptionWrapper").html("<h2>" + sample.title + "</h2>" + sample.description);
 	}
+	var runSampleIsPaused = false;
+	function pauseRunSample(isPaused) {
+		runSampleIsPaused = isPaused;
+		if (!isPaused) runSample();
+
+	}
 	function runSample() {
-		var data, output, template, sampleDataInput, sampleTemplateInput;
-		sampleDataInput = sampleData.getSession().getValue();
-		sampleTemplateInput = sampleTemplate.getSession().getValue();
-		newSampleCache = sampleDataInput + sampleTemplateInput;
-		if (sampleCache !== newSampleCache) {
-			sampleCache = newSampleCache;
-			try {
-				data = eval("(" + sampleDataInput + ")");
-				template = dali.add("sample", sampleTemplateInput);
-				output = template.render(data);
-			} catch (err) {
-				output = "<h2>An error occured:</h2><strong><pre>" + err.name + "\n" + "</pre></strong><pre>" + err.message +"</pre>";
+		if (!runSampleIsPaused) {
+			var data, output, template, sampleDataInput, sampleTemplateInput;
+			sampleDataInput = sampleData.getSession().getValue();
+			sampleTemplateInput = sampleTemplate.getSession().getValue();
+			newSampleCache = sampleDataInput + sampleTemplateInput;
+			if (sampleCache !== newSampleCache) {
+				sampleCache = newSampleCache;
+				try {
+					data = eval("(" + sampleDataInput + ")");
+					template = dali.add("sample", sampleTemplateInput);
+					output = template.render(data);
+				} catch (err) {
+					output = "<h2>An error occured:</h2><strong><pre>" + err.name + "\n" + "</pre></strong><pre>" + err.message +"</pre>";
+				}
+				sampleOutput.getSession().setValue(output);
+				$("#sampleOutputHTML").html(output);
 			}
-			sampleOutput.getSession().setValue(output);
-			$("#sampleOutputHTML").html(output);
 		}
 	}
 

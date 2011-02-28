@@ -173,8 +173,8 @@ exports = (typeof exports === "object") ? exports : null;
 				var content, newEnv, args, tag, tagHandler;
 				newEnv = new Env(this.vars, this);
 				newEnv.item = data;
-				args = function () {
-					return evaluate(argString, newEnv)
+				args = function (_argString) {
+					return evaluate(_argString || argString, newEnv)
 				};
 				tag = Tags[tagName];
 				content = tag.handler(data, args, newEnv, blockHandler, alternateBlocks, filtersHandler);
@@ -478,13 +478,16 @@ exports = (typeof exports === "object") ? exports : null;
 					if (!nextChild.ignoreBlock) {
 						alternateBlock = (nextChild.children.length || nextChild.filters.length) ? compileNode(nextChild) : "";
 						alternateBlock = (block) ? "function (env, args) {\nvar data = this[0];\nvar vars = env.vars;\n" + alternateBlock + "}" : "null";
-						alternateBlock =
-							"{\nname: '" + nextChild.nameExtension + "',\n" +
-							"args: '[" + args + "]',\n" +
-							"handler: "+ alternateBlock + "\n" +
-							"}";
-						alternateBlocks = alternateBlocks + ", " + alternateBlock;
+					} else {
+						alternateBlock = "function () {}";
 					}
+					alternateBlock =
+						"{\nname: '" + nextChild.nameExtension + "',\n" +
+						"args: '[" + args + "]',\n" +
+						"handler: "+ alternateBlock + "\n" +
+						"}";
+					alternateBlocks = alternateBlocks + ", " + alternateBlock;
+
 					i = i + 1;
 					nextChild = node.children[i + 1];
 				}
@@ -581,7 +584,6 @@ exports = (typeof exports === "object") ? exports : null;
 				key = null;
 				// count how many items there are
 				for (i in items) {
-					console.log("i >> ", i);
 					length = length + 1;
 					keys.push(i);
 				}
@@ -887,14 +889,7 @@ exports = (typeof exports === "object") ? exports : null;
 			},
 			"json": function(stream, args) {
 				var json = eval("(" + stream + ")");
-//				this.vars[args[0]];
 				return json;
-				/*
-{{var "legumes" >> json }}
-    {patate: "Yata!"} 
-{{endvar}}
-{{out vars.legumes.patate /}}
-				 */
 			}
 		}
 	});
@@ -1007,6 +1002,7 @@ exports = (typeof exports === "object") ? exports : null;
 						loop,
 						altBlocksObj,
 						altBlock,
+						altArgs,
 						args,
 						varName,
 						newEnv,
@@ -1027,7 +1023,6 @@ exports = (typeof exports === "object") ? exports : null;
 							item = items[key];
 							env.item = item;
 							env.key = key;
-							console.log("varName: ", varName, item);
 							if (typeof(varName) !== "undefined") {
 								env.vars[varName] = item;
 							}
@@ -1046,25 +1041,49 @@ exports = (typeof exports === "object") ? exports : null;
 								// Is odd item
 								block = altBlocksObj.odd[0];
 							}
-							if (!block) block = _block;
+							if (!block) {
+								block = _block;
+							} else {
+								altArgs = _args(block.args);
+								env.out(altArgs.join(""));
+							}
+
 							block = (block.handler || block);
+
+							//args = _args();
+
 							//note: item is passed in an array to prevent if from being converted
 							// into a weird "true {}" object
 							block.apply([item], [env, args, loop]);
 
 							// to insert between each item
-							if (altBlocksObj.between[0] && key < items.length - 1) {
-								altBlocksObj.between[0].handler.apply([{}], [env, args]);
+							altBlock = altBlocksObj.between[0];
+							if (altBlock) {
+								if (key < items.length - 1) {
+									altArgs = _args(altBlock.args);
+									env.out(altArgs.join(""));
+									altBlock.handler.apply([{}], [env, args]);
+								}
 							}
 						}
+
+						// to insert after all items
+						var endBlock = altBlocksObj.end[0];
+						if (endBlock) {
+							altArgs = _args(endBlock.args);
+							env.out(altArgs.join(""));
+							endBlock.handler.apply([{}], [env, args]);
+						}
+
+						// Alt tag when empty
 						if (!itemCount) {
-							// to insert after all items
-							if (altBlocksObj.end[0]) {
-								altBlocksObj.end[0].handler.apply([{}], [env, args]);
+							altBlock = altBlocksObj.empty[0];
+							if (altBlock) {
+								altArgs = _args(altBlock.args);
+								env.out(altArgs.join(""));
+								altBlock.handler.apply([{}], [env, args, null]);
 							}
 						}
-						altBlock = altBlocksObj.empty[0];
-						if (altBlock) altBlock.handler.apply([{}], [env, args, null]);
 					}
 					// Reset to the old item before iterating
 					env.item = oldItem;
@@ -1157,7 +1176,6 @@ exports = (typeof exports === "object") ? exports : null;
 				}
 				if (filters) filters.apply([data], [env, args]);
 				val = env.stream();
-				console.log("val: ", val);
 				env.vars[args[0]] = val;
 				return "";
 			}, {})

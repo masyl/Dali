@@ -31,9 +31,9 @@
 				{{out vars.dad.name /}} <span style="font-size: 0.8em; color: grey">({{out loop.key() /}})</span> is parent of :
 				<br />
 				{{each vars.dad.children, "child"}}
-					{{out vars.child /}}
-				{{each-between ", " #}}
-				{{each-end "." #}}
+					{{out vars.child /}}{{
+				each-between ", "}}
+				{{each-end "."}}
 				{{endeach}}
 			</li>
 		{{endeach}}
@@ -49,9 +49,9 @@
 				<br />
 				{{each vars.dad.children}}
 					{{var "child", item /}}
-					{{out vars.child /}}
-				{{each-between ", " #}}
-				{{each-end "." #}}
+					{{out vars.child /}}{{
+				each-between ", "}}
+				{{each-end "."}}
 				{{endeach}}
 			</li>
 		{{endeach}}

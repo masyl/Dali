@@ -112,7 +112,7 @@ exports = (typeof exports === "object") ? exports : null;
 			var options = {},
 				vars = {};
 			extend(options, optionsParam);
-			extend(vars, vars);
+			extend(vars, _vars);
 			return dali.templates[id] = new dali.Template(id, source, vars, options);
 		};
 
@@ -639,32 +639,6 @@ exports = (typeof exports === "object") ? exports : null;
 		}
 	}
 
-	/**
-	 * Extend an object with the properties of another
-	 * @param obj
-	 * @param extObj
-	 */
-	function extend(obj, extObj) {
-		if (arguments.length > 2) {
-			for (var i = 1; i < arguments.length; i++) {
-				extend(obj, arguments[i]);
-			}
-		} else {
-			for (var i in extObj) {
-				obj[i] = extObj[i];
-			}
-		}
-		return obj;
-	}
-	function clone(obj){
-		if(obj == null || typeof(obj) != 'object')
-			return obj;
-		var temp = obj.constructor(); // changed
-		for(var key in obj)
-			temp[key] = clone(obj[key]);
-		return temp;
-	}
-
 	function evaluate(expression, _context) {
 		var context,
 			fn,
@@ -743,68 +717,33 @@ exports = (typeof exports === "object") ? exports : null;
 		return str;
 	}
 
+
 	/**
-	 * Lightweight MVC api built around Dali
-	 * Especially usefull with jQuery mobile
-	 * @param _options
+	 * Extend an object with the properties of another
+	 * @param obj
+	 * @param extObj
 	 */
-	Dali.MVC = function (_options) {
-		var mvc = this;
-
-		this.options = {};
-
-		extend(this.options, _options);
-
-		// Keep a reference to either the global dali instance
-		// or the one provided in options
-		this.dali = this.options.dali || dali;
-		this.controllers = {};
-
-		this.Model = function (model) {
-			$.extend(this, model);
-		};
-
-		this.View = function (id) {
-
-			this.render = function(model) {
-				return this.template.render(model);
-			};
-
-			this.resolve = function(id) {
-				return $("script#view-" + this.id).html();
-			};
-
-			this.id = id;
-			this.root = $("#" + this.id);
-			this.source = this.resolve(id);
-			this.template = mvc.dali.add(this.id, this.source);
-		};
-
-		this.Controller = function (id, _handler) {
-			var handler = _handler;
-			this.run = function (model, view, outputHandler) {
-				handler(model, view, callback);
-				function callback (output) {
-					outputHandler(output);
-				}
-			};
-		};
-
-		this.register = function(controllers) {
-			extend(this.controllers, controllers);
-		};
-
-		this.run = function (_model, _view, _controller, outputHandler) {
-			var model, view;
-			model = new mvc.Model(_model);
-			view = new mvc.View(_view);
-			mvc.controllers[_controller].run(model, view, outputHandler);
+	var Utils = Dali.Utils = {};
+	var extend = Utils.extend = function (obj, extObj) {
+		if (arguments.length > 2) {
+			for (var i = 1; i < arguments.length; i++) {
+				extend(obj, arguments[i]);
+			}
+		} else {
+			for (var i in extObj) {
+				obj[i] = extObj[i];
+			}
 		}
+		return obj;
 	};
-
-	
-
-
+	var clone = Utils.clone = function (obj){
+		if(obj == null || typeof(obj) != 'object')
+			return obj;
+		var temp = obj.constructor(); // changed
+		for(var key in obj)
+			temp[key] = clone(obj[key]);
+		return temp;
+	};
 
 	/**
 	 * Makes Dali available as a jQuery plugin

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../libs/jquery-1.5.js"></script>
+		<script src="../libs/dali/dali.js"></script>
+		<script src="../libs/dali/dali.mvc.js"></script>
+		<script src="../libs/dali/dali.app.js"></script>
+		<script src="../libs/htmlMap/htmlMap.js"></script>
+		<script src="../libs/htmlMap/episodes.js"></script>
+		<script src="../libs/htmlMap/main.js"></script>
+		<!--
+		The template for the list of episodes
+		-->
+		<script id="view-episodeList" type="text/x-dali-template">
+			<h2>Episodes:</h2>
+			<ul>
+				{{each item.episodes.all() }}
+					<li><a data-episode="{{out item.id /}}" href="#{{out item.id /}}">{{out item.title /}}</a>  ({{out item.videoLength /}})</li>
+				{{endeach}}
+			</ul>
+		</script>
+		<!--
+		The template for the episode details
+		-->
+		<script id="view-episodeDetails" type="text/x-dali-template">
+			{{each [item.episode]}}
+				<div id="{{out item.id /}}" class="episode">
+					<h3>{{out item.title /}}</h3>
+					<div>
+						Length: <span class="length">{{out item.videoLength /}}</span>
+					</div>
+					<div class="description">
+						{{out item.description /}}
+					</div>
+				</div>
+			{{endeach}}
+		</script>
+		<!--
+		A small CSS rules to hide the "data" if the htmlMap is activated
+		-->
+		<style>
+			.htmlMapped[data-obj] {
+				position: absolute;
+				top: -1000em;
+				left: -1000em;
+				height: 1px;
+				overflow: hidden;
+			}
+
+			.column {
+				width: 350px;
+				padding: 20px;
+				border-right: 1px solid;
+				float: left;
+			}
+			.column:first-of-type {
+				width: 240px;
+			}
+		</style>
+	</head>
+	<body>
+		<!--
+		Placeholders where the templates will be rendered
+		-->
+		<div>
+			<div class="episodeList column"></div>
+			<div class="episodeDetails column"></div>
+		</div>
+		<!--
+		The html datasource that will be mapped to objects
+		-->
+		<div id="allEpisodes" data-obj="episodes">
+			<div id="episode1" data-obj="episode">
+				<h1 data-attr="title">Episode 1</h1>
+				<div>
+					Length: <span data-attr="videoLength">3 min</span>
+				</div>
+				<div data-attr="description">
+					<p>She finds a ancient chez full of pirate gold, but the gold is radio-active because it come from an ancient alien civilization!</p>
+				</div>
+			</div>
+			<div id="episode2" data-obj="episode">
+				<h1 data-attr="title">Episode 2</h1>
+				<div>
+					Length: <span data-attr="videoLength">3 min</span>
+				</div>
+				<div data-attr="description">
+					<p>All the water in the city is catching on fire, and she must find out why before all the water burns.</p>
+				</div>
+			</div>
+			<div id="episode3" data-obj="episode">
+				<h1 data-attr="title">Episode 3</h1>
+				<div>
+					Length: <span data-attr="videoLength">3 min</span>
+				</div>
+				<div data-attr="description">
+					<p>Her father and mother die in a plane accident and she learns her boyfriend is a vegan vampire!</p>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+

@@ -14,6 +14,13 @@ Completed for next release:
 			{patate: "Yata!"}
 		{{endvar}}
 		{{out vars.legumes.patate /}}
+* Each tag argument to output iterated items in vars for easy access in nested each statements
+	{{each item.items, "dad"}}
+		{{each vars.dad.children, "child"}}
+			{{out vars.parentItem.name /}} is parent of {{out vars.child.name /}}
+		{{/each}}
+	{{/each}}
+
 
 
 Objectives:
@@ -85,43 +92,21 @@ Various housekeeping:
 
 ### Coherence
 
-* Find out what the "this" reference should be... since the data is now "item"
+* Find out and document what the "this" reference should be... since the data is now "item" [NEXT RELEASE]
 
 -----------
 Filters
 
 * Integrate Showdown as a filter : http://softwaremaniacs.org/playground/showdown-highlight/
-* A filter to send tag output into a var
+* A filter to send tag output into a var [NEXT RELEASE]
 
 	{{out >> var "dontCareMessage"}}
 		Yeah whatever dude... I dont care!
 	{{endout}}
 
------------
-
-Each tag argument to output iterated items in vars for easy access in nested statements
-
-	{{each item.items, "dad"}}
-		{{each vars.dad.children, "child"}}
-			{{out vars.parentItem.name /}} is parent of {{out vars.child.name /}}
-		{{/each}}
-	{{/each}}
-
-Is equivalent to  :
-
-	{{each item.items}}
-		{{var "dad", item /}}
-		{{each vars.dad.children}}
-			{{var "child", item /}}
-			{{out vars.dad.name /}} is dad of {{out vars.child.name /}}
-		{{/each}}
-	{{/each}}
-
------------
-
 ---------
 
-## Tag for Custom Tags
+## Tag for Custom Tags [NEXT RELEASE]
 
 * The this object is the collection of named arguments
 * arguments and alternate blocks for passing prefixed vars
@@ -158,7 +143,7 @@ Ability to use any tag as functions:
 
 -----------
 
-Ability to use any filter as functions:
+Ability to use any filter as functions: [NEXT RELEASE]
 
 	{{out filters.uppercase(this.value) /}}
 
@@ -166,31 +151,33 @@ Ability to use any filter as functions:
 
 Syntax for progressive enhancement inside HTML
 
-	<!--{{render "commons"}}-->
-	<!--{{rendervar}}-->
+	<!--{{render "commons" >> uppercase}}-->
+	<!--{{rendervar "test"}}-->
 	<!--{{endrendervar}}-->
 
 or
 
-	<tag tag="render" args="" filters="">
-		Default output goest here...
-		<rendervar args="">
+	<dali:render args="commons">
+		<dali:filter name="uppercase" />
+		<dali:render-var args="test">
 			Alternate tags like this
-		</rendervar>
-	</tag>
+		</dali:render-var>
+		Default output goest here...
+	</dali:render>
 
 -----------
 
 -----------
 ### Escaping
 
-* Support for double quotes and single quotes in expression evaluation
+* Support for double quotes and single quotes in expression evaluation [NEXT RELEASE]
 * Better, more diverse character espcaping filters (encoreIRI, escape, htmlEncode, etc).
-* Tag instruction for different way out outscaping linefeeds
+* filters should be applied "before" linefeeds are converted to white spaces
+* Tag instruction for different way out outscaping linefeeds (keep tag instructions for internal features)
 
-Tag instructions come in the form of a list of coma separated keywords
-that appear after arguments and filters. Simply user the doulbe @.
-Ex.:
+	 Tag instructions come in the form of a list of coma separated keywords
+	that appear after arguments and filters. Simply user the doulbe @.
+	Ex.:
 
 	{{out "these line feeds\n will not\n be escaped" >> lowersace @@ keeplinefeeds /}}
 
@@ -204,7 +191,7 @@ Ex.:
 * Alternating tag
 	{{each-every 4, -1}}
 
-* Collection generator for looping
+* Collection generator for looping [NEXT RELEASE]
  	{{each loop.for(31) }} or similar ?
 
 -----------
@@ -237,10 +224,17 @@ done like this :
 
 -------
 
-Syntaxt for auto trimming white spaces
+Doument techniquess for trimming whitespaces:
+
+	{{if true >> trim }}this will not output whitespaces before and after!{{endif}}
 
 	{{if true >> trim }}
 		this will not output whitespaces before and after!
 	{{endif}}
 
+	{{if true
+		}}this will not output whitespaces before and after!{{
+	endif}}
+
 ----
+

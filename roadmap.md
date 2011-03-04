@@ -24,7 +24,7 @@ Completed for next release:
 
 
 Objectives:
-
+* API method to provide helper/util functions
 * Be 99% backward compatible to 1.0
 * Richer API for full control and ease of use
 * Better performance
@@ -41,7 +41,7 @@ Various housekeeping:
 * Generated JSDoc
 * Repo in order
 * Fully documented code
-* Minified sources
+* Minified sources witj JS Uglify
 * Link doc to samples
 * Clean Up code tree
 

@@ -71,6 +71,15 @@ But if you need either a custom dali instance or a dali instance resrained to a 
 		var privateDali = new Dali();
 	};
 
+### Secondary API's
+
+Dali also comes with a few lightweight API's to help you build apps. The is the MVC api, and the App api. Samples are available for both.
+
+Note that the secondary API require the core Dali api and that the App api require the MVC api.
+
+	<script src="libs/dali/dali.mvc.js"></script>
+	<script src="libs/dali/dali.app.js"></script>
+
 
 ### Storing templates
 
@@ -217,7 +226,7 @@ Instead, it is recommended that you pass your helper function and various variab
 
 Here is a sample scenario:
 
-	dali.
+	[code sample goes here....]
 
 ---
 

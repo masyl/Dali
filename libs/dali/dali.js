@@ -5,8 +5,19 @@
 	See readme.txt for documentation
 
 */
-exports = (typeof exports === "object") ? exports : null;
+/*jslint evil: true, forin: true, maxerr: 100, indent: 4 */
+var exports = (typeof (exports) === "object") ? exports : null;
 (function (global, $, exports) {
+
+	var Filters,
+		lexer,
+		template,
+		Err,
+		Env,
+		extend,
+		TagNode,
+		i18n,
+		Utils;
 
 	/**
 	 * Create an Dali instance. Each instance has its own set templates and config.
@@ -26,13 +37,41 @@ exports = (typeof exports === "object") ? exports : null;
 		 * @constructor
 		 */
 		this.Template = function Template(id, source, vars, options) {
+
+			function compile() {
+				var fn,
+					source;
+					//console.log("Template source: \n", source);
+
+				try {
+					source =
+						"var vars = env.vars;\n" +
+						"var data = this;\n" +
+						lexer(template.source) +
+						"return env.stream();\n";
+				} catch (err) {
+					throw (new Err("TemplateParsingFailed", "Template parsing failed, with following error:\n" +
+						"error: " + err.name + "\n" +
+						"message: " + err.message + "\n\n" +
+						"Failed Template source: \n" + template.source));
+				}
+
+				try {
+					fn = new Function("env", source);
+				} catch (err2) {
+					throw (new Err("TemplateCompilationFailed", "Template compilation failed, with following error:\n" +
+						"error: " + err2.name + "\n" +
+						"message: " + err2.message + "\n\n" +
+						"Compiled template source: \n" + source));
+				}
+				return fn;
+			}
+
 			var template = this;
 			this.id = id;
 			this.source = source;
 			this.handler = compile();
-			this.vars = {
-				i18n: {}
-			};
+			this.i18n = {};
 			extend(this.vars, vars);
 
 			this.render = function render(data, vars, env) {
@@ -42,7 +81,7 @@ exports = (typeof exports === "object") ? exports : null;
 				extend(newVars, vars);
 				if (env) {
 					// Use environment provided
-					extend(env.vars, vars)
+					extend(env.vars, vars);
 				} else {
 					// Create new environment
 					env = new Env(newVars);
@@ -50,45 +89,17 @@ exports = (typeof exports === "object") ? exports : null;
 
 				try {
 					output = this.handler.call(data, env);
-				} catch(err) {
+				} catch (err) {
 					logError(err);
-					throw(new Err("RenderingFailed", "Template rendering failed, with following error:\n" +
-					"error: " + err.name + "\n" +
-					"message: " + err.message + "\n\n" +
-					"Failed template name: \n" + this.id));
+					throw (new Err("RenderingFailed", "Template rendering failed, with following error:\n" +
+						"error: " + err.name + "\n" +
+						"message: " + err.message + "\n\n" +
+						"Failed template name: \n" + this.id));
 				}
 				return output;
 			};
 
-			function compile() {
-				var fn,
-					err,
-					source;
-					//console.log("Template source: \n", source);
 
-				try {
-					source =
-						"var vars = env.vars;\n" +
-						"var data = this;\n" +
-						lexer(template.source) +
-						"return env.stream();\n"
-				} catch(err) {
-					throw(new Err("TemplateParsingFailed", "Template parsing failed, with following error:\n" +
-					"error: " + err.name + "\n" +
-					"message: " + err.message + "\n\n" +
-					"Failed Template source: \n" + template.source));
-				}
-
-				try {
-					fn = new Function("env", source);
-				} catch(err) {
-					throw(new Err("TemplateCompilationFailed", "Template compilation failed, with following error:\n" +
-					"error: " + err.name + "\n" +
-					"message: " + err.message + "\n\n" +
-					"Compiled template source: \n" + source));
-				}
-				return fn;
-			}
 
 		};
 
@@ -97,7 +108,7 @@ exports = (typeof exports === "object") ? exports : null;
 		 * @param id
 		 * @returns a template
 		 */
-		this.get = function(id) {
+		this.get = function (id) {
 			return this.templates[id];
 		};
 
@@ -109,11 +120,13 @@ exports = (typeof exports === "object") ? exports : null;
 		 * @param optionsParam {object} options, none for now
 		 */
 		this.add = function add(id, source, _vars, optionsParam) {
-			var options = {},
+			var template,
+				options = {},
 				vars = {};
 			extend(options, optionsParam);
 			extend(vars, _vars);
-			return dali.templates[id] = new dali.Template(id, source, vars, options);
+			template = dali.templates[id] = new dali.Template(id, source, vars, options);
+			return template;
 		};
 
 		/**
@@ -123,7 +136,8 @@ exports = (typeof exports === "object") ? exports : null;
 		 */
 		function Env(vars, parentEnv) {
 			this.dali = dali;
-			this.vars = vars || {}; // TODO: REFACTOR: Should this be extended? And restricted to local scope ?
+			this.vars = vars || {};
+			// TODO: REFACTOR: Should this be extended? And restricted to local scope ?
 			this.parent = parentEnv || null;
 			if (this.parent) {
 				this.loop = parentEnv.loop;
@@ -133,7 +147,9 @@ exports = (typeof exports === "object") ? exports : null;
 
 			this.render = function (id, data, vars, env) {
 				var template = dali.get(id);
-				if (!template) throw new Err("TemplateNotFound", "Template not found: " + id);
+				if (!template) {
+					throw new Err("TemplateNotFound", "Template not found: " + id);
+				}
 				return template.render(data, vars, env);
 			};
 			this.addTemplate = function (id, source, vars, optionsParam) {
@@ -151,13 +167,15 @@ exports = (typeof exports === "object") ? exports : null;
 			 * Return the stream content as a string
 			 */
 			this.stream = function () {
+				var value;
 				if (this._stream.length > 1) {
-					return this._stream.join("")
+					value = this._stream.join("");
 				} else {
-					return this._stream[0];
+					value = this._stream[0];
 				}
+				return value;
 			};
-			this.flush = function() {
+			this.flush = function () {
 				this._stream = [];
 				return this;
 			};
@@ -174,7 +192,7 @@ exports = (typeof exports === "object") ? exports : null;
 				newEnv = new Env(this.vars, this);
 				newEnv.item = data;
 				args = function (_argString) {
-					return evaluate(_argString || argString, newEnv)
+					return evaluate(_argString || argString, newEnv);
 				};
 				tag = Tags[tagName];
 				content = tag.handler(data, args, newEnv, blockHandler, alternateBlocks, filtersHandler);
@@ -187,7 +205,7 @@ exports = (typeof exports === "object") ? exports : null;
 			 * @param filterName
 			 * @param argString
 			 */
-			this.applyFilter = function(filterName, argString) {
+			this.applyFilter = function (filterName, argString) {
 				var str,
 					filter = Filters[filterName],
 					newArray = [],
@@ -206,7 +224,7 @@ exports = (typeof exports === "object") ? exports : null;
 	/**
 	 * The collection of filters available during rendering
 	 */
-	var Filters = Dali.Filters = {};
+	Filters = Dali.Filters = {};
 
 	/**
 	 * The collection of tags available during rendering
@@ -217,7 +235,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 * Register custom addons such as filters and tags
 	 * @param addons
 	 */
-	Dali.register = function(addons) {
+	Dali.register = function (addons) {
 		addons = addons || {};
 		extend(this.Filters, addons.Filters || {});
 		extend(this.Tags, addons.Tags || {});
@@ -242,7 +260,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 * The lexer is used to cut a template into smaller pieces and convert it into a logical tree structure.
 	 * @param template
 	 */
-	function lexer(template) {
+	lexer = function (template) {
 		var tag,
 			tagsMatch,
 			before,
@@ -267,7 +285,7 @@ exports = (typeof exports === "object") ? exports : null;
 			tagNode, // to store newly created tagNodes
 			tagNodePointer; // points to the last tagNode being processed
 
-		tagsMatch = template.match(/{{([\s\S]*?)}}/gm) || [];
+		tagsMatch = template.match(/\{\{([\s\S]*?)\}\}/gm) || [];
 		lastTagEnd = 0;
 		tree = [];
 		treeStack = [];
@@ -276,130 +294,137 @@ exports = (typeof exports === "object") ? exports : null;
 		tagNode = tagNodePointer = new TagNode("out", "", "", "", false, false);
 		tree.push(tagNode);
 		treeStack.push(tagNode);
-		for (i in tagsMatch) {
+		if (tagsMatch) {
+			for (i in tagsMatch) {
+				if (tagsMatch.hasOwnProperty(i)) {
+					tag = tagsMatch[i];
+					// Replace all "whitespaces" characters with normal spaces for easier
+					// parsing of multiline tags
+					tag = tag.replace(/\s/g, " ");
+					lastTagStart = template.replace(/\s/g, " ").indexOf(tag, lastTagEnd);
+					before = template.substring(lastTagEnd, lastTagStart);
+					if (before.length) {
+						tagNodePointer.children.push(new TagNode("raw", "", '"' + escape(before) + '"', before, false, false));
+					}
+					tagName = tag.split(/ +/)[0];
+					// If the braces and tag name are separated by spaces
+					if (tagName === "{{") {
+						tagName = tag.split(/ +/)[1];
+					} else {
+						tagName = tag.split(/ +/)[0].substring(2);
+					}
+					ignoreTag = false;
+					if (tagName.substring(0, 3) === "end") {
+						tagType = "closeTag";
+						// Remove the trailing brace
+						tagName = tagName.split("}}")[0];
+						tagName = tagName.substring(3);
+					} else if (tag.substring(tag.length - 3) === "/}}") {
+						tagType = "tag";
+						tagName = tagName.split("/}}")[0];
+					} else {
+						tagName = tagName.split("}}")[0];
+						tagType = "openTag";
+					}
 
-			if (tagsMatch.hasOwnProperty(i)) {
-				tag = tagsMatch[i];
-				// Replace all "whitespaces" characters with normal spaces for easier
-				// parsing of multiline tags
-				tag = tag.replace(/\s/g, " ");
-				lastTagStart = template.replace(/\s/g, " ").indexOf(tag, lastTagEnd);
-				before = template.substring(lastTagEnd, lastTagStart);
-				if (before.length) {
-					tagNodePointer.children.push(new TagNode("raw", "", '"' + escape(before) + '"', before, false, false));
-				}
-				tagName = tag.split(/ +/)[0];
-				// If the braces and tag name are separated by spaces
-				if (tagName === "{{") {
-					tagName = tag.split(/ +/)[1];
-				} else {
-					tagName = tag.split(/ +/)[0].substring(2);
-				}
-				ignoreTag = false;
-				if (tagName.substring(0,3) === "end") {
-					tagType = "closeTag";
-					// Remove the trailing brace
-					tagName = tagName.split("}}")[0];
-					tagName = tagName.substring(3);
-				} else if (tag.substring(tag.length -3) === "/}}") {
-					tagType = "tag";
-					tagName = tagName.split("/}}")[0];
-				} else {
-					tagName = tagName.split("}}")[0];
-					tagType = "openTag";
-				}
+					var tagEnd = (tagType === "tag") ? "/}}" : "}}";
+					content = tag.substring(tag.indexOf("{{") + 2, tag.lastIndexOf(tagEnd));
 
-				var tagEnd = (tagType === "tag") ? "/}}" : "}}";
-				content = tag.substring(tag.indexOf("{{")+2, tag.lastIndexOf(tagEnd));
+					// See if the "#" comment character has been used to comment out the tag
+					ignoreBlock = false;
+					if (content[content.length - 1] === "#") {
+						ignoreBlock = true;
+						content = content.substring(0, content.length - 1);
+					}
 
-				// See if the "#" comment character has been used to comment out the tag
-				ignoreBlock = false;
-				if (content[content.length-1] === "#") {
-					ignoreBlock = true;
-					content = content.substring(0, content.length-1);
-				}
+					// See if the "#" comment character has been used to comment out the tag
+					ignoreTag = false;
+					if (tagName[0] === "#") {
+						ignoreTag = true;
+						tagName = tagName.substring(1);
+					}
 
-				// See if the "#" comment character has been used to comment out the tag
-				ignoreTag = false;
-				if (tagName[0] === "#") {
-					ignoreTag = true;
-					tagName = tagName.substring(1);
-				}
+					// Parse segments for filters
+					segments = content.split(">>");
 
-				// Parse segments for filters
-				segments = content.split(">>");
+					// Parse arguments
+					args = "";
+					if (segments[0].trim().indexOf(" ") > -1) {
+						args = segments[0].trim().substring(segments[0].trim().indexOf(" "));
+					}
 
-				// Parse arguments
-				args = "";
-				if (segments[0].trim().indexOf(" ") > -1) {
-					args = segments[0].trim().substring(segments[0].trim().indexOf(" "));
-				}
+					// split the tagName and and the tagNameExtension
+					tagNameExtension = tagName.split("-").slice(1).join("");
+					tagName = tagName.split("-")[0];
 
-				// split the tagName and and the tagNameExtension
-				tagNameExtension = tagName.split("-").slice(1).join("");
-				tagName = tagName.split("-")[0];
+					// Test if tag exists
+					if (!Tags[tagName]) {
+						throw (new Err("UnknownTag", "Encountered unknown tag \"" + tagName + "\""));
+					}
+					// If the tag is an alternate tag, test if it is applicable
+					if (tagNameExtension && !Tags[tagName].alternateBlocks[tagNameExtension]) {
+						throw (new Err("UnknownAlternateTag", "Encountered unknown alternate tag \"" + tagName + "-" + tagNameExtension + "\""));
+					}
 
-				// Test if tag exists
-				if (!Tags[tagName])
-					throw(new Err("UnknownTag", "Encountered unknown tag \"" + tagName + "\""));
-				// If the tag is an alternate tag, test if it is applicable
-				if (tagNameExtension && !Tags[tagName].alternateBlocks[tagNameExtension])
-					throw(new Err("UnknownAlternateTag", "Encountered unknown alternate tag \"" + tagName + "-" + tagNameExtension + "\""));
+	// TODO: HANDLE CASE OF SELF-CLOSING ALT TAGS
+	// TODO: HANDLE CASE OF CLOSE-TAG + ALT-TAG
 
-// TODO: HANDLE CASE OF SELF-CLOSING ALT TAGS
-// TODO: HANDLE CASE OF CLOSE-TAG + ALT-TAG
+					if (tagType === "tag") {
+						tagNode = new TagNode(tagName, "", args, tag, ignoreTag, ignoreBlock);
+						tagNodePointer.children.push(tagNode);
+					} else if (tagType === "openTag" || tagType === "closeTag") {
+						if (tagType === "openTag") {
+							if (tagNameExtension) {
+								// Both close the current tag and open a new one.
+								tagNodePointer = treeStack.pop();
+								tagNodePointer = treeStack[treeStack.length - 1];
+								tagNode = new TagNode(tagName, tagNameExtension, args, tag, ignoreTag, ignoreBlock);
+								tagNode.xyz = 0;
+								tagNodePointer.children.push(tagNode);
+								treeStack.push(tagNode);
+								tagNodePointer = tagNode;
 
-				if (tagType === "tag") {
-					tagNode = new TagNode(tagName, "", args, tag, ignoreTag, ignoreBlock);
-					tagNodePointer.children.push(tagNode);
-				} else if (tagType === "openTag" || tagType === "closeTag") {
-					if (tagType === "openTag") {
-						if (tagNameExtension) {
-							// Both close the current tag and open a new one.
-							tagNodePointer = treeStack.pop();
-							tagNodePointer = treeStack[treeStack.length-1];
-							tagNode = new TagNode(tagName, tagNameExtension, args, tag, ignoreTag, ignoreBlock);
-							tagNode.xyz = 0;
-							tagNodePointer.children.push(tagNode);
-							treeStack.push(tagNode);
-							tagNodePointer = tagNode;
-
+							} else {
+								tagNode = new TagNode(tagName, "", args, tag, ignoreTag, ignoreBlock);
+								tagNodePointer.children.push(tagNode);
+								treeStack.push(tagNode);
+								tagNodePointer = tagNode;
+							}
 						} else {
-							tagNode = new TagNode(tagName, "", args, tag, ignoreTag, ignoreBlock);
-							tagNodePointer.children.push(tagNode);
-							treeStack.push(tagNode);
-							tagNodePointer = tagNode;
+							// temporarelly move the pointer to the exiting scope and test to
+							// see if the tag was properly closed
+							tagNodePointer = treeStack.pop();
+							if (tagName !== tagNodePointer.name) {
+								throw (new Err("BadlyClosedTag", "Was expecting closing tag for \"" + tagNodePointer.name + "\" but encountered \"" + tagName + "\""));
+							}
+							tagNodePointer.rawEnd = tag;
+							tagNodePointer = treeStack[treeStack.length - 1];
 						}
-					} else {
-						// temporarelly move the pointer to the exiting scope and test to
-						// see if the tag was properly closed
-						tagNodePointer = treeStack.pop();
-						if (tagName !== tagNodePointer.name)
-							throw(new Err("BadlyClosedTag", "Was expecting closing tag for \"" + tagNodePointer.name + "\" but encountered \"" + tagName + "\""));
-						tagNodePointer.rawEnd = tag;
-						tagNodePointer = treeStack[treeStack.length-1];
 					}
-				}
 
-				// Process chained filters
-				filtersTags = segments.slice(1);
-				for (j in filtersTags) {
-					filterTag = filtersTags[j].trim();
-					if (filterTag.indexOf("(") > -1) {
-						tagName = filterTag.substring(0, filterTag.indexOf("("));
-						args = filterTag.substring(filterTag.indexOf("("));
-						args = "[" + args.substring(1, args.lastIndexOf(")")) + "]";
-					} else {
-						// todo: setup a better and stricter parsing
-						tagName = filterTag;
-						args = "[]";
+					// Process chained filters
+					filtersTags = segments.slice(1);
+					for (j in filtersTags) {
+						if (filtersTags.hasOwnProperty(j)) {
+							filterTag = filtersTags[j].trim();
+							if (filterTag.indexOf("(") > -1) {
+								tagName = filterTag.substring(0, filterTag.indexOf("("));
+								args = filterTag.substring(filterTag.indexOf("("));
+								args = "[" + args.substring(1, args.lastIndexOf(")")) + "]";
+							} else {
+								// todo: setup a better and stricter parsing
+								tagName = filterTag;
+								args = "[]";
+							}
+							if (typeof (Filters[tagName]) !== "function") {
+								throw (new Err("UnknownFilter", "Encountered unknown filter \"" + tagName + "\""));
+							}
+							tagNode.filters.push(new TagNode(tagName, "", args, "", false, false));
+						}
 					}
-					if (typeof(Filters[tagName]) !== "function") throw(new Err("UnknownFilter", "Encountered unknown filter \"" + tagName + "\""));
-					tagNode.filters.push(new TagNode(tagName, "", args, "", false, false));
-
+					// move the cursor forward
+					lastTagEnd = lastTagStart + tag.length;
 				}
-				// move the cursor forward
-				lastTagEnd = lastTagStart + tag.length;
 			}
 		}
 		// Add a raw tag for the last piece to be renderec or if not tag are found
@@ -408,14 +433,14 @@ exports = (typeof exports === "object") ? exports : null;
 			tagNodePointer.children.push(new TagNode("raw", "", '"' + escape(before) + '"', before, false, false));
 		}
 		return compileNode(tree[0]);
-	}
+	};
 
 	/**
 	 * Tag object used to populate the tagTree
 	 * @param name
 	 * @param argString
 	 */
-	function TagNode(name, nameExtension, argString, raw, ignoreTag, ignoreBlock) {
+	TagNode = function (name, nameExtension, argString, raw, ignoreTag, ignoreBlock) {
 		this.name = name;
 		this.nameExtension = nameExtension;
 		this.argString = argString;
@@ -426,7 +451,7 @@ exports = (typeof exports === "object") ? exports : null;
 		this.rawEnd = "";
 		this.ignoreBlock = ignoreBlock;
 		this.ignoreTag = ignoreTag;
-	}
+	};
 
 	/**
 	 * Compile a tagNode and all its children into a javascript function
@@ -434,7 +459,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 */
 	function compileNode(node) {
 		var i,
-				i2,
+			i2,
 			stream = [],
 			block,
 			filtersHandler,
@@ -442,12 +467,11 @@ exports = (typeof exports === "object") ? exports : null;
 			alternateBlocks,
 			tag,
 			tagName,
-				child,
-				child2,
+			child,
+			child2,
 			nextChild, // used to peek ahead for alternate tags
 			args,
-			blockHandler,
-			filtersHandler;
+			blockHandler;
 
 		// Apply tags
 		for (i = 0; i < node.children.length; i = i + 1) {
@@ -484,7 +508,7 @@ exports = (typeof exports === "object") ? exports : null;
 					alternateBlock =
 						"{\nname: '" + nextChild.nameExtension + "',\n" +
 						"args: '[" + args + "]',\n" +
-						"handler: "+ alternateBlock + "\n" +
+						"handler: " + alternateBlock + "\n" +
 						"}";
 					alternateBlocks = alternateBlocks + ", " + alternateBlock;
 
@@ -526,11 +550,17 @@ exports = (typeof exports === "object") ? exports : null;
 		var i,
 			stream = [],
 			child;
-		for (i in node.children) {
-			child = node.children[i];
-			stream.push(child.raw);
-			if (child.children) stream.push(compileInnertNode(child));
-			stream.push(child.rawEnd);
+		if (node.children) {
+			for (i in node.children) {
+				if (node.children.hasOwnProperty(i)) {
+					child = node.children[i];
+					stream.push(child.raw);
+					if (child.children) {
+						stream.push(compileInnertNode(child));
+					}
+					stream.push(child.rawEnd);
+				}
+			}
 		}
 		return stream.join("");
 	}
@@ -544,11 +574,17 @@ exports = (typeof exports === "object") ? exports : null;
 		var iBlock, block;
 		var obj = {};
 		extend(obj, _obj);
-		for (iBlock in blocks) {
-			block = blocks[iBlock];
-			if (obj[block.name]) obj[block.name].push(block);
+		if (blocks) {
+			for (iBlock in blocks) {
+				if (blocks.hasOwnProperty(iBlock)) {
+					block = blocks[iBlock];
+					if (obj[block.name]) {
+						obj[block.name].push(block);
+					}
+				}
+			}
+			return obj;
 		}
-		return obj;
 	}
 
 	/**
@@ -556,12 +592,12 @@ exports = (typeof exports === "object") ? exports : null;
 	 * @param name
 	 * @param message
 	 */
-	function Err(name, message) {
+	Err = function (name, message) {
 		var err = new Error();
 		err.name = name;
 		err.message = message;
 		return err;
-	}
+	};
 
 	/**
 	 * Iterator state object
@@ -574,7 +610,7 @@ exports = (typeof exports === "object") ? exports : null;
 			index,
 			parent = {};
 
-		this.items = function(_items) {
+		this.items = function (_items) {
 			var i;
 			if (_items) {
 				items = _items;
@@ -583,9 +619,13 @@ exports = (typeof exports === "object") ? exports : null;
 				keys = [];
 				key = null;
 				// count how many items there are
-				for (i in items) {
-					length = length + 1;
-					keys.push(i);
+				if (items) {
+					for (i in items) {
+						if (items.hasOwnProperty(i)) {
+							length = length + 1;
+							keys.push(i);
+						}
+					}
 				}
 			}
 			return items;
@@ -593,50 +633,56 @@ exports = (typeof exports === "object") ? exports : null;
 		/**
 		 * Create a new Loop instance with its parent as the current one
 		 */
-		this.iterate = function(items) {
+		this.iterate = function (items) {
 			var loop = new Loop();
 			loop.items(items);
 			return loop;
 		};
-		this.key = function() {
+		this.key = function () {
 			return keys[index];
 		};
-		this.keys = function() {
+		this.keys = function () {
 			return keys;
 		};
-		this.isOdd = function() {
-			return this.isNth(2,0);
+		this.isOdd = function () {
+			return this.isNth(2, 0);
 		};
-		this.isNth = function(nth, offset) {
+		this.isNth = function (nth, offset) {
+			var isNth;
 			offset = offset || 0;
-			return !((index+1-offset) % nth);
+			isNth = ((index + 1 - offset) % nth) === 0;
+			return isNth;
 		};
-		this.first = function() {
+		this.first = function () {
 			return items[0];
 		};
-		this.last = function() {
-			return items[length-1];
+		this.last = function () {
+			return items[length - 1];
 		};
-		this.isFirst = function() {
+		this.isFirst = function () {
 			return index === 0;
 		};
-		this.isLast = function() {
-			return (index + 1) === length;
+		this.isLast = function () {
+			var isLast;
+			isLast = (index + 1) === length;
+			return isLast;
 		};
-		this.length = function() {
+		this.length = function () {
 			return length;
 		};
-		this.counter = function() {
+		this.counter = function () {
 			return index;
 		};
-		this.revCounter = function() {
-			return length - (index+1)
+		this.revCounter = function () {
+			var value;
+			value = length - (index + 1);
+			return value;
 		};
-		this.step = function() {
+		this.step = function () {
 			index = index + 1;
 			key = keys[index];
 			return this;
-		}
+		};
 	}
 
 	function evaluate(expression, _context) {
@@ -646,16 +692,17 @@ exports = (typeof exports === "object") ? exports : null;
 			code,
 			results = null;
 		expression = expression || "";
-		expression = expression.replace(/\n/gm," ");
-		context = {
-		};
+		expression = expression.replace(/\n/gm, " ");
+		context = {};
 		extend(context, _context);
 
 		var argNames = [],
 			argValues = [];
 		for (i in context) {
-			argNames.push(i);
-			argValues.push(context[i]);
+			if (context.hasOwnProperty(i)) {
+				argNames.push(i);
+				argValues.push(context[i]);
+			}
 		}
 
 		code = "return " + expression + ";";
@@ -664,7 +711,7 @@ exports = (typeof exports === "object") ? exports : null;
 			fn = Function.apply(this, argNames);
 		} catch (err) {
 			logError(err);
-			throw(new Err("ExpressionCompilationFailed", "Failed to compile an expression into proper javascript.\n\n" +
+			throw (new Err("ExpressionCompilationFailed", "Failed to compile an expression into proper javascript.\n\n" +
 					"error: " + err.name + "\n" +
 					"message: " + err.message + "\n\n" +
 					"Expression to compile: \n" + expression));
@@ -672,11 +719,11 @@ exports = (typeof exports === "object") ? exports : null;
 
 		try {
 			results = fn.apply(context, argValues);
-		} catch (err) {
-			logError(err);
-			throw(new Err("ExpressionEvaluationFailed", "An exception occured while evaluating a javascript expression.\n\n" +
-					"error: " + err.name + "\n" +
-					"message: " + err.message + "\n\n" +
+		} catch (err2) {
+			logError(err2);
+			throw (new Err("ExpressionEvaluationFailed", "An exception occured while evaluating a javascript expression.\n\n" +
+					"error: " + err2.name + "\n" +
+					"message: " + err2.message + "\n\n" +
 					"Expression to evaluate: \n" + expression));
 		}
 
@@ -689,7 +736,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 */
 	function escape(str) {
 		// Linefeeds
-		str = (str+"").replace(/\n/g, "&#10;");
+		str = String(str).replace(/\n/g, "&#10;");
 //		str = str.replace(/'/g, "&rsquo;");
 		str = str.replace(/"/g, "&rdquo;");
 		return str;
@@ -701,7 +748,7 @@ exports = (typeof exports === "object") ? exports : null;
 	 */
 	function unescape(str) {
 		// Linefeeds
-		str = (str+"").replace(/&#10;/g, "\\n");
+		str = String(str).replace(/&#10;/g, "\\n");
 		// html entities
 		str = str.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
 		return str;
@@ -723,25 +770,36 @@ exports = (typeof exports === "object") ? exports : null;
 	 * @param obj
 	 * @param extObj
 	 */
-	var Utils = Dali.Utils = {};
-	var extend = Utils.extend = function (obj, extObj) {
+	Utils = Dali.Utils = {};
+	extend = Utils.extend = function (obj, extObj) {
+		var i;
 		if (arguments.length > 2) {
-			for (var i = 1; i < arguments.length; i++) {
+			for (i = 1; i < arguments.length; i = i + 1) {
 				extend(obj, arguments[i]);
 			}
 		} else {
-			for (var i in extObj) {
-				obj[i] = extObj[i];
+			for (i in extObj) {
+				if (extObj.hasOwnProperty(i)) {
+					obj[i] = extObj[i];
+				}
 			}
 		}
 		return obj;
 	};
-	var clone = Utils.clone = function (obj){
-		if(obj == null || typeof(obj) != 'object')
+	var clone;
+	clone = Utils.clone = function (obj) {
+		var key;
+		if (obj === null || typeof (obj) !== 'object') {
 			return obj;
+		}
 		var temp = obj.constructor(); // changed
-		for(var key in obj)
-			temp[key] = clone(obj[key]);
+		if (obj) {
+			for (key in obj) {
+				if (obj.hasOwnProperty(key)) {
+					temp[key] = clone(obj[key]);
+				}
+			}
+		}
 		return temp;
 	};
 
@@ -774,14 +832,20 @@ exports = (typeof exports === "object") ? exports : null;
 	 * @param err Error object to throw
 	 */
 	function logError(err) {
-		if (typeof(console)!== "undefined") console.error(err);
+		if (typeof (console) !== "undefined") {
+			console.error(err);
+		}
 	}
 
 	// apply exports
 	global.Dali = Dali;
 	var dali = global.dali = new Dali({});
-	if ($) exportjQuery($);
-	if (exports) exportJSCommons(exports);
+	if ($) {
+		exportjQuery($);
+	}
+	if (exports) {
+		exportJSCommons(exports);
+	}
 
 
 
@@ -791,54 +855,59 @@ exports = (typeof exports === "object") ? exports : null;
 
 	Dali.register({
 		Filters: {
-			"void": function(stream, args) {
+			"void": function (stream, args) {
 				return "";
 			},
-			"trim": function(stream, args) {
+			"trim": function (stream, args) {
 				return (stream).trim();
 			},
-			"uppercase": function(stream, args) {
+			"uppercase": function (stream, args) {
 				return (stream).toUpperCase();
 			},
-			"lowercase": function(stream, args) {
+			"lowercase": function (stream, args) {
 				return (stream).toLowerCase();
 			},
-			"log": function(stream, args) {
-				if (typeof(console) !== "undefined") {
+			"log": function (stream, args) {
+				if (typeof (console) !== "undefined") {
 					console.info(stream);
 				}
 				return stream;
 			},
-			"debug": function(stream, args) {
-				if (typeof(console) !== "undefined") {
-					if (args.length) console.log.apply(args);
+			"debug": function (stream, args) {
+				if (typeof (console) !== "undefined") {
+					if (args.length) {
+						console.log.apply(args);
+					}
 					console.log("stream: ", stream);
 					console.log("args: ", args);
 					console.info("item:");
 					console.dir(this.item || this.parent.item);
-					console.info( "vars: ");
+					console.info("vars: ");
 					console.dir(this.vars);
-					console.info( "env: ");
+					console.info("env: ");
 					console.dir(this);
 				}
 				return stream;
 			},
-			"i18n": function(stream, args) {
+			"i18n": function (stream, args) {
 				return i18n(stream, this.dali.i18n || {});
 			},
-			"json": function(stream, args) {
-				var json = eval("(" + stream + ")");
+			"json": function (stream, args) {
+				var json;
+				json = eval("(" + stream + ")");
 				return json;
 			}
 		}
 	});
 
-	function i18n(content, i18nData) {
+	i18n = function (content, i18nData) {
 		var output = content,
 			i18nItem = i18nData[content];
-		if (typeof(i18nItem) !== "undefined") output = i18nItem;
+		if (typeof (i18nItem) !== "undefined") {
+			output = i18nItem;
+		}
 		return output;
-	}
+	};
 
 	/**
 	 * Register core tags
@@ -846,47 +915,47 @@ exports = (typeof exports === "object") ? exports : null;
 
 	Dali.register({
 		Tags: {
-			"raw" : new Tag("raw", function(data, _args, env, block, alternateBlocks, filters) {
+			"raw" : new Tag("raw", function (data, _args, env, block, alternateBlocks, filters) {
 				var output,
 					args = _args();
 				output = args.join("");
 				return output;
 			}, {}),
-			"log" : new Tag("log", function(data, _args, env, block, alternateBlocks, filters) {
+			"log" : new Tag("log", function (data, _args, env, block, alternateBlocks, filters) {
 				var output,
 					args = _args();
 				output = args.join("");
-				if (typeof(console) !== "undefined") {
+				if (typeof (console) !== "undefined") {
 					console.log(output);
 				}
 				return "";
 			}, {}),
-			"debug" : new Tag("debug", function(data, _args, env, block, alternateBlocks, filters) {
+			"debug" : new Tag("debug", function (data, _args, env, block, alternateBlocks, filters) {
 				var output,
 					args = _args();
 				output = args.join("");
-				if (typeof(console) !== "undefined") {
+				if (typeof (console) !== "undefined") {
 					console.log("output: ", output);
 					console.info("item:");
 					console.dir(env.item || env.parent.item);
-					console.info( "vars: ");
+					console.info("vars: ");
 					console.dir(env.vars);
-					console.info( "env: ");
+					console.info("env: ");
 					console.dir(env);
 				}
 				return "";
 			}, {}),
-			"if" : new Tag("if", function(data, _args, env, block, alternateBlocks, filters) {
+			"if" : new Tag("if", function (data, _args, env, block, alternateBlocks, filters) {
 				//TODO: objectfyAlternateBlocks shouldnt hav to be manual called in each tag
-				var altBlocksObj, elseBlocks, notBlock, args;
+				var i, altBlocksObj, elseBlocks, notBlock, args;
 				args = _args();
 				altBlocksObj = objectfyAlternateBlocks(alternateBlocks, clone(this.alternateBlocks));
 				elseBlocks = altBlocksObj["else"];
-				notBlock = altBlocksObj["not"][0];
+				notBlock = altBlocksObj.not[0];
 
 				if (args[0]) {
 					env.out(args[1] || "");
-					if (typeof(block) === "function") {
+					if (typeof (block) === "function") {
 						//note: data is passed in an array to prevent if from being converted
 						// into a weird "true {}" object
 						//note: UNLESS block.apply is triggered, filters are not applied to the stream
@@ -894,27 +963,33 @@ exports = (typeof exports === "object") ? exports : null;
 					}
 				} else {
 					var isTrue, elseBlock;
-					for (var i in elseBlocks) {
-						elseBlock = elseBlocks[i];
-						if (elseBlock) {
-							if (elseBlock.args[0]) {
-								isTrue = true;
-								env.out(args[1] || "");
-								elseBlock.handler.apply([data], [env, args]);
-								break;
+					for (i in elseBlocks) {
+						if (elseBlocks.hasOwnProperty(i)) {
+							elseBlock = elseBlocks[i];
+							if (elseBlock) {
+								if (elseBlock.args[0]) {
+									isTrue = true;
+									env.out(args[1] || "");
+									elseBlock.handler.apply([data], [env, args]);
+									break;
+								}
 							}
 						}
 					}
 					if (!isTrue) {
 						// If no if-else tag was true, apply any if-not tag and/or
 						// secondary param
-						if (typeof(args[2] !== "undefined")) env.out(args[2] || "");
+						if (typeof (args[2] !== "undefined")) {
+							env.out(args[2] || "");
+						}
 						if (notBlock) {
 							notBlock.handler.apply([data], [env, args]);
 						}
 					}
 				}
-				if (filters) filters.apply([data], [env, args]);
+				if (filters) {
+					filters.apply([data], [env, args]);
+				}
 				return env.stream();
 			}, {
 				"alternateBlocks": {
@@ -924,14 +999,13 @@ exports = (typeof exports === "object") ? exports : null;
 			}),
 			// Empty tag... form comment sytax {{# /}} {{#}}!
 			"" : new Tag("comment",
-				function(data, args, env, block, alternateBlocks, filters) {
+				function (data, args, env, block, alternateBlocks, filters) {
 					return "";
-				},{
+				}, {
 					isInnert: true
-				}
-			),
+				}),
 			"each" : new Tag("each",
-				function(data, _args, env, _block, alternateBlocks, filters) {
+				function (data, _args, env, _block, alternateBlocks, filters) {
 					var key,
 						oldKey,
 						itemCount = 0,
@@ -948,7 +1022,7 @@ exports = (typeof exports === "object") ? exports : null;
 						oldItem = env.item;
 					altBlocksObj = objectfyAlternateBlocks(alternateBlocks, clone(this.alternateBlocks));
 					args = _args();
-					if (typeof(_block) === "function") {
+					if (typeof (_block) === "function") {
 						// Create a new Loop status object
 						items = args[0];
 						varName = args[1];
@@ -958,50 +1032,52 @@ exports = (typeof exports === "object") ? exports : null;
 							altBlocksObj.begin[0].handler.apply([{}], [env, args, loop]);
 						}
 						for (key in items) {
-							itemCount = itemCount + 1;
-							item = items[key];
-							env.item = item;
-							env.key = key;
-							if (typeof(varName) !== "undefined") {
-								env.vars[varName] = item;
-							}
-							loop.step();
-							block = null;
-							if (key==0 && items.length==1) {
-								// Is single item
-								block = altBlocksObj.single[0];
-							} else if (key==0) {
-								// Is first item
-								block = altBlocksObj.first[0];
-							} else if (key==items.length-1) {
-								// Is last item
-								block = altBlocksObj.last[0];
-							} else if (key % 2) {
-								// Is odd item
-								block = altBlocksObj.odd[0];
-							}
-							if (!block) {
-								block = _block;
-							} else {
-								altArgs = _args(block.args);
-								env.out(altArgs.join(""));
-							}
-
-							block = (block.handler || block);
-
-							//args = _args();
-
-							//note: item is passed in an array to prevent if from being converted
-							// into a weird "true {}" object
-							block.apply([item], [env, args, loop]);
-
-							// to insert between each item
-							altBlock = altBlocksObj.between[0];
-							if (altBlock) {
-								if (key < items.length - 1) {
-									altArgs = _args(altBlock.args);
+							if (items.hasOwnProperty(key)) {
+								itemCount = itemCount + 1;
+								item = items[key];
+								env.item = item;
+								env.key = key;
+								if (typeof (varName) !== "undefined") {
+									env.vars[varName] = item;
+								}
+								loop.step();
+								block = null;
+								if (key === 0 && items.length === 1) {
+									// Is single item
+									block = altBlocksObj.single[0];
+								} else if (key === 0) {
+									// Is first item
+									block = altBlocksObj.first[0];
+								} else if (key === items.length - 1) {
+									// Is last item
+									block = altBlocksObj.last[0];
+								} else if (key % 2) {
+									// Is odd item
+									block = altBlocksObj.odd[0];
+								}
+								if (!block) {
+									block = _block;
+								} else {
+									altArgs = _args(block.args);
 									env.out(altArgs.join(""));
-									altBlock.handler.apply([{}], [env, args]);
+								}
+
+								block = (block.handler || block);
+
+								//args = _args();
+
+								//note: item is passed in an array to prevent if from being converted
+								// into a weird "true {}" object
+								block.apply([item], [env, args, loop]);
+
+								// to insert between each item
+								altBlock = altBlocksObj.between[0];
+								if (altBlock) {
+									if (key < items.length - 1) {
+										altArgs = _args(altBlock.args);
+										env.out(altArgs.join(""));
+										altBlock.handler.apply([{}], [env, args]);
+									}
 								}
 							}
 						}
@@ -1028,7 +1104,9 @@ exports = (typeof exports === "object") ? exports : null;
 					env.item = oldItem;
 					env.key = oldKey;
 //					env.loop = loop.parent;
-					if (filters) filters.apply([data], [env, args]);
+					if (filters) {
+						filters.apply([data], [env, args]);
+					}
 					return env.stream();
 				}, {
 					"alternateBlocks": {
@@ -1041,18 +1119,19 @@ exports = (typeof exports === "object") ? exports : null;
 						"between": [],
 						"last": []
 					}
-				}
-			),
-			"out" : new Tag("out", function(data, _args, env, block, alternateBlocks, filters) {
+				}),
+			"out" : new Tag("out", function (data, _args, env, block, alternateBlocks, filters) {
 				var args = _args();
 				env.out(args.join(""));
 				if (block) {
 					block.apply([data], [env, args]);
 				}
-				if (filters) filters.apply([data], [env, args]);
+				if (filters) {
+					filters.apply([data], [env, args]);
+				}
 				return env.stream();
 			}, {}),
-			"template": new Tag("template", function(data, _args, env, block, alternateBlocks, filters) {
+			"template": new Tag("template", function (data, _args, env, block, alternateBlocks, filters) {
 				var args = _args(),
 					template,
 					id = args[0],
@@ -1067,19 +1146,22 @@ exports = (typeof exports === "object") ? exports : null;
 			}, {
 				isInnert: true
 			}),
-			"render" : new Tag("render", function(data, _args, env, block, alternateBlocks, filters) {
+			"render" : new Tag("render", function (data, _args, env, block, alternateBlocks, filters) {
 				var i, output, blockArgs, vars, varName, varBlocks, varBlock, altBlocksObj, args = _args();
 				altBlocksObj = objectfyAlternateBlocks(alternateBlocks, {
 					"var": []
 				});
 				varBlocks = altBlocksObj["var"];
 				for (i in varBlocks) {
-					varBlock = varBlocks[i];
-					blockArgs = evaluate(varBlock.args);
-					varName = blockArgs[0];
-					env.flush();
-					varBlock.handler.apply([{}], [env, args]);
-					env.vars[varName] = env.stream();
+					if (varBlocks.hasOwnProperty(i)) {
+						varBlock = varBlocks[i];
+						blockArgs = evaluate(varBlock.args);
+						varName = blockArgs[0];
+						env.flush();
+						varBlock.handler.apply([{}], [env, args]);
+						env.vars[varName] = env.stream();
+
+					}
 				}
 				if (block) {
 					env.flush();
@@ -1093,8 +1175,12 @@ exports = (typeof exports === "object") ? exports : null;
 					"var": []
 				}
 			}),
-			"load" : new Tag("load", function(data, _args, env, block, alternateBlocks, filters) {
-				var i, output, vars, varName, args=_args();
+			"load" : new Tag("load", function (data, _args, env, block, alternateBlocks, filters) {
+				var i,
+					output,
+					vars,
+					varName,
+					args = _args();
 				if (block) {
 					env.flush();
 					block.apply([data], [env, args]);
@@ -1104,16 +1190,18 @@ exports = (typeof exports === "object") ? exports : null;
 				env.render(args[0], args[1], {}, env);
 				return "";
 			}, {}),
-			"var" : new Tag("var", function(data, _args, env, block, alternateBlocks, filters) {
+			"var" : new Tag("var", function (data, _args, env, block, alternateBlocks, filters) {
 				var val,
 					args = _args();
-				if (typeof(args[1]) !== "undefined") {
+				if (typeof (args[1]) !== "undefined") {
 					env.out(args[1]);
 				}
 				if (block) {
 					block.apply([data], [env, args]);
 				}
-				if (filters) filters.apply([data], [env, args]);
+				if (filters) {
+					filters.apply([data], [env, args]);
+				}
 				val = env.stream();
 				env.vars[args[0]] = val;
 				return "";
@@ -1121,5 +1209,5 @@ exports = (typeof exports === "object") ? exports : null;
 		}
 	});
 
-})(this, this.jQuery, exports);
+}(this, this.jQuery, exports));
 

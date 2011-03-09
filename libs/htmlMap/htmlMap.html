@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="../libs/jquery-1.5.js"></script>
-		<script src="../libs/dali/dali.js"></script>
-		<script src="../libs/dali/dali.mvc.js"></script>
-		<script src="../libs/dali/dali.app.js"></script>
-		<script src="../libs/htmlMap/htmlMap.js"></script>
-		<script src="../libs/htmlMap/episodes.js"></script>
-		<script src="../libs/htmlMap/main.js"></script>
+		<script src="../jquery-1.5.js"></script>
+		<script src="../dali/dali.js"></script>
+		<script src="../dali/dali.mvc.js"></script>
+		<script src="../dali/dali.app.js"></script>
+		<script src="htmlMap.js"></script>
+		<script src="episodes.js"></script>
+		<script src="main.js"></script>
 		<!--
 		The template for the list of episodes
 		-->
@@ -15,7 +15,7 @@
 			<h2>Episodes:</h2>
 			<ul>
 				{{each item.episodes.all() }}
-					<li><a data-episode="{{out item.id /}}" href="#{{out item.id /}}">{{out item.title /}}</a>  ({{out item.videoLength /}})</li>
+					<li><a data-episode="{{out item.id /}}" href="#!/episode?{{out item.id /}}">{{out item.title /}}</a>  ({{out item.videoLength /}})</li>
 				{{endeach}}
 			</ul>
 		</script>

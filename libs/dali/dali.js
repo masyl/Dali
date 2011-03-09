@@ -7,7 +7,8 @@
 */
 /*jslint evil: true, forin: true, maxerr: 100, indent: 4 */
 var exports = (typeof (exports) === "object") ? exports : null;
-(function (global, $, exports) {
+var global = (typeof (window) === "object") ? window : this;
+(function (global, $, exports, undefined) {
 
 	var Filters,
 		lexer,
@@ -50,10 +51,15 @@ var exports = (typeof (exports) === "object") ? exports : null;
 						lexer(template.source) +
 						"return env.stream();\n";
 				} catch (err) {
+					/*
 					throw (new Err("TemplateParsingFailed", "Template parsing failed, with following error:\n" +
 						"error: " + err.name + "\n" +
 						"message: " + err.message + "\n\n" +
 						"Failed Template source: \n" + template.source));
+					*/
+					throw (new Err("TemplateParsingFailed", err.name + "\n" +
+						"m: " + err.message + "\n\n" +
+						"s: \n" + template.source));
 				}
 
 				try {
@@ -196,7 +202,9 @@ var exports = (typeof (exports) === "object") ? exports : null;
 				};
 				tag = Tags[tagName];
 				content = tag.handler(data, args, newEnv, blockHandler, alternateBlocks, filtersHandler);
-				this.out(unescapeQuotes(content));
+				if (content !== undefined) {
+					this.out(unescapeQuotes(content));
+				}
 				return this;
 			};
 
@@ -760,7 +768,7 @@ var exports = (typeof (exports) === "object") ? exports : null;
 	 */
 	function unescapeQuotes(str) {
 		// html entities
-		str = str.replace(/&rdquo;/g, "\"");
+		str = String(str).replace(/&rdquo;/g, "\"");
 		return str;
 	}
 
@@ -832,7 +840,7 @@ var exports = (typeof (exports) === "object") ? exports : null;
 	 * @param err Error object to throw
 	 */
 	function logError(err) {
-		if (typeof (console) !== "undefined") {
+		if (console !== undefined) {
 			console.error(err);
 		}
 	}
@@ -868,13 +876,13 @@ var exports = (typeof (exports) === "object") ? exports : null;
 				return (stream).toLowerCase();
 			},
 			"log": function (stream, args) {
-				if (typeof (console) !== "undefined") {
+				if (console !== undefined) {
 					console.info(stream);
 				}
 				return stream;
 			},
 			"debug": function (stream, args) {
-				if (typeof (console) !== "undefined") {
+				if (console !== undefined) {
 					if (args.length) {
 						console.log.apply(args);
 					}
@@ -903,7 +911,7 @@ var exports = (typeof (exports) === "object") ? exports : null;
 	i18n = function (content, i18nData) {
 		var output = content,
 			i18nItem = i18nData[content];
-		if (typeof (i18nItem) !== "undefined") {
+		if (i18nItem !== undefined) {
 			output = i18nItem;
 		}
 		return output;
@@ -925,7 +933,7 @@ var exports = (typeof (exports) === "object") ? exports : null;
 				var output,
 					args = _args();
 				output = args.join("");
-				if (typeof (console) !== "undefined") {
+				if (console !== undefined) {
 					console.log(output);
 				}
 				return "";
@@ -934,7 +942,7 @@ var exports = (typeof (exports) === "object") ? exports : null;
 				var output,
 					args = _args();
 				output = args.join("");
-				if (typeof (console) !== "undefined") {
+				if (console !== undefined) {
 					console.log("output: ", output);
 					console.info("item:");
 					console.dir(env.item || env.parent.item);
@@ -979,7 +987,7 @@ var exports = (typeof (exports) === "object") ? exports : null;
 					if (!isTrue) {
 						// If no if-else tag was true, apply any if-not tag and/or
 						// secondary param
-						if (typeof (args[2] !== "undefined")) {
+						if (args[2] !== undefined) {
 							env.out(args[2] || "");
 						}
 						if (notBlock) {
@@ -1037,7 +1045,7 @@ var exports = (typeof (exports) === "object") ? exports : null;
 								item = items[key];
 								env.item = item;
 								env.key = key;
-								if (typeof (varName) !== "undefined") {
+								if (varName !== undefined) {
 									env.vars[varName] = item;
 								}
 								loop.step();
@@ -1193,7 +1201,7 @@ var exports = (typeof (exports) === "object") ? exports : null;
 			"var" : new Tag("var", function (data, _args, env, block, alternateBlocks, filters) {
 				var val,
 					args = _args();
-				if (typeof (args[1]) !== "undefined") {
+				if (args[1] !== undefined) {
 					env.out(args[1]);
 				}
 				if (block) {
@@ -1209,5 +1217,11 @@ var exports = (typeof (exports) === "object") ? exports : null;
 		}
 	});
 
-}(this, this.jQuery, exports));
+		
+	String.prototype.trim = function() {
+		return this.replace(/^\s+|\s+$/g,"");
+	};
+
+
+}(global, this.jQuery, exports));
 

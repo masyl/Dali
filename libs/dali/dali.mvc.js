@@ -47,10 +47,16 @@
 			this.template = mvc.dali.add(this.id, this.source);
 		};
 
-		this.Controller = function (id, _handler) {
-			var handler = _handler;
-			this.run = function (model, view, outputHandler) {
-				handler(model, view, callback);
+		// TODO: STATEFULL CONTROLLER
+		this.Controller = function (id, _handler, actions) {
+			var c = this;
+			c.actions = {};
+			c.actions.open = _handler;
+			c.model = {};
+			if (actions) extend(c.actions, actions);
+			c.run = function (model, view, outputHandler) {
+				c.model = model;
+				c.actions.open(this.model, view, callback);
 				function callback (output) {
 					outputHandler(output);
 				}
@@ -64,7 +70,7 @@
 		this.run = function (_model, _view, _controller, outputHandler) {
 			var model, view;
 			model = new mvc.Model(_model);
-			view = new mvc.View(_view);
+			view = (_view) ? new mvc.View(_view) : null;
 			mvc.controllers[_controller].run(model, view, outputHandler);
 		}
 	};

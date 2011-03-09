@@ -117,8 +117,10 @@ TODO:
 
 	function applySample(sample) {
 		pauseRunSample(true);
-		sampleData.getSession().setValue(sample.data+"");
-		sampleTemplate.getSession().setValue(sample.template+"");
+		if (sampleData && sampleTemplate) {
+			sampleData.getSession().setValue(sample.data+"");
+			sampleTemplate.getSession().setValue(sample.template+"");
+		}
 		pauseRunSample(false);
 		$(".descriptionWrapper").html("<h2>" + sample.title + "</h2>" + sample.description);
 	}
@@ -131,8 +133,13 @@ TODO:
 	function runSample() {
 		if (!runSampleIsPaused) {
 			var data, output, template, sampleDataInput, sampleTemplateInput;
-			sampleDataInput = sampleData.getSession().getValue();
-			sampleTemplateInput = sampleTemplate.getSession().getValue();
+			if (sampleDataInput && sampleTemplateInput) {
+				sampleDataInput = sampleData.getSession().getValue();
+				sampleTemplateInput = sampleTemplate.getSession().getValue();
+			} else {
+				sampleDataInput = sampleData.getSession().getValue();
+				sampleTemplateInput = sampleTemplate.getSession().getValue();
+			}
 			newSampleCache = sampleDataInput + sampleTemplateInput;
 			if (sampleCache !== newSampleCache) {
 				sampleCache = newSampleCache;

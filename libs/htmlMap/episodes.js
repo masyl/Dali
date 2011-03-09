@@ -8,7 +8,7 @@
 
 
 	function EpisodesApp() {
-		var App, app, mvc, controllers, Controller;
+		var App, Route, app, mvc, controllers, Controller;
 
 		// Create a new App from the Dali app class
 		App = EpisodesApp;
@@ -18,6 +18,7 @@
 		mvc = app.mvc;
 		controllers = {};
 		Controller = mvc.Controller;
+		Route = Dali.App.Route;
 
 
 		/**
@@ -86,24 +87,49 @@
 		 */
 		// This controlle handler the homepage
 		controllers.home = new Controller("home", function(model, view, callback) {
-
-			//$(".episodeList").html(dali.get("view-episodeList").render(app.environ.episodes));
-
-			callback(view.render(model));
+			this.open = true;
+			if (!controllers.episodeDetails.open) {
+				controllers.episodeDetails.actions.close(open);
+			}
+			model.episodes = app.model.episodes;
+			this.actions.show(callback);
+		}, {
+			show: function(callback) {
+				$(".episodeList").html(dali.get("view-episodeList").render(this.model));
+				//callback(view.render(model));
+				callback("");
+			}
 		});
+
+		// TODO: The controller must have an running instance and be statefull like a widget!!!
 		// Controler to show more details on an episode, when the user clicks on an epidose
 		controllers.episodeDetails = new Controller("episodeDetails", function(model, view, callback) {
-
-			//$(".episodeDetails").html(dali.get("view-episodeDetails").render(data));
-
-			callback(view.render(model));
+			this.open = true;
+			if (!controllers.home.open) {
+				// todo: this should be done on the already initialized instance ?
+				controllers.home.actions.open({}, "", open);
+			}
+			this.actions.show(callback);
+		}, {
+			show: function(callback) {
+				var episodeId = model.location.search.substring(1);
+				model.episodes = app.model.episodes;
+				model.episode = model.episodes.get(episodeId);
+				$(".episodeDetails").html(dali.get("view-episodeDetails").render(model));
+				//callback(view.render(model));
+				callback("");
+			},
+			close: function(callback) {
+				$(".episodeDetails").fadeOut(1000);
+				callback();
+			}
 		});
 
 		// Define all the routes and match them to controllers
-		app.routes = {
-			"/": controllers.home,
-			"/episode": controllers.episodeDetails
-		};
+		app.routes.push(
+				Route("/", "home"),
+				Route("/episode", "episodeDetails")
+		);
 
 
 		/**
@@ -119,18 +145,45 @@
 			app.model.episodes = $("#allEpisodes").htmlMap()[0];
 
 			// Add the templates
-			dali.add("episodeList", $("#view-episodeList").html());
-			dali.add("episodeDetails", $("#view-episodeDetails").html());
+			// todo: refactor as app.views.push(View("..."));
+			dali.add("view-episodeList", $("#view-episodeList").html());
+			dali.add("view-episodeDetails", $("#view-episodeDetails").html());
 
+			function go(location) {
+				var hash = location.hash;
+				var _location = (hash[1] === "!") ? Location(hash.substring(2)) : location;
+				console.log(hash);
+				console.log("location: ", _location);
+				app.route(_location);
+
+			}
+
+			$(window).bind( 'hashchange', function() {
+				go(window.location);
+			});
+			go(window.location);
 
 //			app.render();
 //			app.bind();
-
-			// Attach jqm pages to the mvc
 			//attach();
 		};
 
 		return app;
+	}
+
+	// TODO: move to dali.app
+	function Location(path) {
+		var a = document.createElement("a");
+		a.href = path;
+		return {
+			hash: a.hash,
+			host: a.host,
+			hostname: a.hostname,
+			pathname: a.pathname,
+			protocol: a.protocol,
+			port: a.port,
+			search: a.search
+		};
 	}
 
 	/**

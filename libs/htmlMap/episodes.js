@@ -87,41 +87,42 @@
 		 */
 		// This controlle handler the homepage
 		controllers.home = new Controller("home", function(model, view, callback) {
-			this.open = true;
-			if (!controllers.episodeDetails.open) {
-				controllers.episodeDetails.actions.close(open);
-			}
+			this.isOpen = true;
 			model.episodes = app.model.episodes;
-			this.actions.show(callback);
+			var episodeDetails = controllers.episodeDetails;
+			if (episodeDetails.isOpen) {
+				episodeDetails.act("close");
+			} else {
+				this.act("show", callback);
+			}
 		}, {
 			show: function(callback) {
 				$(".episodeList").html(dali.get("view-episodeList").render(this.model));
-				//callback(view.render(model));
-				callback("");
 			}
 		});
 
 		// TODO: The controller must have an running instance and be statefull like a widget!!!
 		// Controler to show more details on an episode, when the user clicks on an epidose
 		controllers.episodeDetails = new Controller("episodeDetails", function(model, view, callback) {
-			this.open = true;
-			if (!controllers.home.open) {
+			if (!controllers.home.isOpen) {
 				// todo: this should be done on the already initialized instance ?
-				controllers.home.actions.open({}, "", open);
+				controllers.home.run({}, "", function() {});
 			}
-			this.actions.show(callback);
+			this.isOpen = true;
+			this.act("show", callback);
 		}, {
 			show: function(callback) {
-				var episodeId = model.location.search.substring(1);
+				var model = this.model,
+					episodeId = model.location.search.substring(1);
 				model.episodes = app.model.episodes;
 				model.episode = model.episodes.get(episodeId);
-				$(".episodeDetails").html(dali.get("view-episodeDetails").render(model));
-				//callback(view.render(model));
-				callback("");
+				$(".episodeDetails")
+						.hide()
+						.html(dali.get("view-episodeDetails").render(model))
+						.fadeIn(300);
 			},
 			close: function(callback) {
-				$(".episodeDetails").fadeOut(1000);
-				callback();
+				$(".episodeDetails").fadeOut(200);
 			}
 		});
 

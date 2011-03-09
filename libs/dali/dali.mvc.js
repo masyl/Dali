@@ -51,12 +51,20 @@
 		this.Controller = function (id, _handler, actions) {
 			var c = this;
 			c.actions = {};
-			c.actions.open = _handler;
+			c.open = _handler;
 			c.model = {};
-			if (actions) extend(c.actions, actions);
+			if (actions) {
+				extend(c.actions, actions);
+			}
+			c.act = function (action, callback) {
+				c.actions[action].call(c);
+				if (callback) {
+					callback.call(c);
+				}
+			};
 			c.run = function (model, view, outputHandler) {
 				c.model = model;
-				c.actions.open(this.model, view, callback);
+				c.open(this.model, view, callback);
 				function callback (output) {
 					outputHandler(output);
 				}

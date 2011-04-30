@@ -49,6 +49,7 @@ var global = (typeof (window) === "object") ? window : this;
 						"var data = this;\n" +
 						lexer(template.source) +
 						"return env.stream();\n";
+						source = source.replace(/[\n\r]+/gm, ''); // Patch required for IE which doesn't handler carriage returns correctly
 				} catch (err) {
 					/*
 					throw (new Err("TemplateParsingFailed", "Template parsing failed, with following error:\n" +
@@ -744,7 +745,7 @@ var global = (typeof (window) === "object") ? window : this;
 		// Linefeeds
 		str = String(str).replace(/\n/g, "&#10;");
 //		str = str.replace(/'/g, "&rsquo;");
-		str = str.replace(/"/g, "&rdquo;");
+		str = str.replace(/"/g, "[[::rdquo::]]");
 		return str;
 	}
 
@@ -754,7 +755,7 @@ var global = (typeof (window) === "object") ? window : this;
 	 */
 	function unescape(str) {
 		// Linefeeds
-		str = String(str).replace(/&#10;/g, "\\n");
+		str = String(str).replace(/\[\[\:\:rdquo\:\:\]\]/g, "\"");
 		// html entities
 		str = str.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
 		return str;

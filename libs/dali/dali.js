@@ -6,9 +6,8 @@
 
 */
 /*jslint evil: true, forin: true, maxerr: 100, indent: 4 */
-var exports = (typeof (exports) === "object") ? exports : null;
 var global = (typeof (window) === "object") ? window : this;
-(function (global, $, exports, undefined) {
+(function (global, $, undefined) {
 
 	var Filters,
 		lexer,
@@ -92,7 +91,6 @@ var global = (typeof (window) === "object") ? window : this;
 					// Create new environment
 					env = new Env(newVars);
 				}
-
 				try {
 					output = this.handler.call(data, env);
 				} catch (err) {
@@ -830,9 +828,17 @@ var global = (typeof (window) === "object") ? window : this;
 	 * Export Dali as a JSCommons module
 	 * @param exports Export object from the JSCommons api
 	 */
-	function exportJSCommons(exports) {
-		exports.Dali = Dali;
-		exports.dali = dali;
+	function exportJSCommons() {
+		if (module) {
+			exports.Dali = Dali;
+			exports.dali = dali;
+			exports.compile = function(str, options) {
+				var mainTmpl = new dali.Template("main", str, {}, options)
+				return function(locals) {
+					return mainTmpl.render(locals, {});
+				}
+			}
+		}
 	}
 
 	/**
@@ -851,9 +857,7 @@ var global = (typeof (window) === "object") ? window : this;
 	if ($) {
 		exportjQuery($);
 	}
-	if (exports) {
-		exportJSCommons(exports);
-	}
+	exportJSCommons();
 
 
 
@@ -1223,5 +1227,5 @@ var global = (typeof (window) === "object") ? window : this;
 	};
 
 
-}(global, this.jQuery, exports));
+}(global, this.jQuery));
 

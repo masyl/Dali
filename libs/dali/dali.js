@@ -831,9 +831,9 @@ var global = (typeof (window) === "object") ? window : this;
 	 */
 	function exportJSCommons() {
 		if (module) {
-			exports.Dali = Dali;
-			exports.dali = dali;
-			exports.compile = function(str, options) {
+			module.exports.Dali = Dali;
+			module.exports.dali = dali;
+			module.exports.compile = function(str, options) {
 				var mainTmpl = new dali.Template("main", str, {}, options)
 				return function(locals) {
 					return mainTmpl.render(locals, {});

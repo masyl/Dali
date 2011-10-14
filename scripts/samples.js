@@ -89,7 +89,10 @@ TODO:
 			$.ajax({
 				url: url,
 				dataType: "html",
-				complete: function(data) {
+				error: function () {
+					alert("OUPS!\n\nIn order to view these samples, you must run this code on a web server. You can use the server of your choice, or use node along with the 'server.js' found in this project");
+				},
+				success: function(data) {
 					var id,
 						root = $(data.responseText);
 					id = sample.id = root.attr("id");

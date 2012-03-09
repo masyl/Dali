@@ -1,0 +1,30 @@
+{
+	"name":"dali",
+	"description":"Surreal templating for server and browser",
+	"version":"1.0.3",
+	"homepage":"https://github.com/masyl/Dali",
+	"keywords":["dali", "templating", "engine", "mustache"],
+	"repository":{
+		"type":"git",
+		"url":"git://github.com/masyl/Dali.git"
+	},
+	"author":"Mathieu Sylvain <mathieu@ti-coco.com> (https://github.com/masyl)",
+	"main":"src/index.js",
+	"directories":{
+		"lib":"lib",
+		"test":"test"
+	},
+	"scripts":{
+		"test":"vows"
+	},
+	"engines":{
+		"node":">= v0.6.0"
+	},
+	"dependencies":{
+	},
+	"devDependencies":{
+		"vows":">= v0.6.2",
+		"http-proxy":">= v0.8.0",
+		"node-static":">= v0.5.0"
+	}
+}

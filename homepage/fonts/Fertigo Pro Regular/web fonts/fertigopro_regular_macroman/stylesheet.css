@@ -24,7 +24,7 @@
 
 @font-face {
     font-family: 'FertigoProRegular';
-    src: url('Fertigo_PRO-webfont.eot?') format('eot'),
+    src: url('Fertigo_PRO-webfont.eot') format('eot'),
          url('Fertigo_PRO-webfont.woff') format('woff'),
          url('Fertigo_PRO-webfont.ttf') format('truetype'),
          url('Fertigo_PRO-webfont.svg#webfontY9w9K15v') format('svg');

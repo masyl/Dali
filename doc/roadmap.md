@@ -3,6 +3,15 @@
 
 ## Planned version
 
+
+
+### Bugfix & Samples
+
+- Set of sampel with express.js
+- Log should log object, not object parsed as string
+- Rendering partials in Express should work correctly
+- Fix failed "raw rendering" test
+
 ### VERSIONS 1.X
 
 Completed for next release:

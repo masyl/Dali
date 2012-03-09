@@ -1,0 +1,3 @@
+<div>
+	{{render "menuItems", item.menu /}}
+</div>

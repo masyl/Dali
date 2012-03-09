@@ -1,0 +1,12 @@
+<ul>
+	{{each item.value }}
+		<li>
+			{{if item.items }}
+				{{out loop.key() /}}
+				{{render "menuItems", item.items /}}
+			{{if-not}}
+				{{out item.label /}}
+			{{endif}}
+		</li>
+	{{endeach}}
+</ul>

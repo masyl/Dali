@@ -1,19 +1,31 @@
 
 # Dali Roadmap
 
-## Planned version
+## Dali 2.0
 
+### Features:
+- Use expression parser instead of Function constructor
+- Uniform usage between client and server
+- Render without having to rely on a "env" environment var (didnt mix well with express). Instead take a single object in argument.
+- An event API for onTag, onFilter, onWhatever, onError, etc
+- Support for either plugins or middleware
+- Better/simpler tag syntax?  single stash?
 
-
-### Bugfix & Samples
-
-- Set of sampel with express.js
-- Log should log object, not object parsed as string
-- Rendering partials in Express should work correctly
-- Fix failed "raw rendering" test
+### Housekeeping:
+- More comments in the code
+- Simplified codebase (reduce cyclomatic complexity)
+- More detailed unit tests
+- More integration tests in node
+- Simple codebase
+- Tests and samples with express and other popular frameworks
+- Tests and samples with jquery, mootools, yui and other popular frameworks
+- Performance benchmark
+- Complete documentation
+- Easier to browse samples
 
 ### VERSIONS 1.X
 
+TO BE DOCUMENTED  >>>>
 Completed for next release:
 * Multiple bug fixes
 * i18n tags and filters
@@ -65,12 +77,6 @@ Various housekeeping:
 
 * Error messages that behave as a sort of stack-trace
 * Error on "too many recursion" or MaxiumRecursionDepth
-
-
-### API
-
-* An event API for onTag, onFilter, onWhatever, onError, etc
-* Complete and coherent API integration for jQuery, Mootools, Dojo, YUI.
 
 ### Loading and resource Handling
 

@@ -121,10 +121,10 @@ vows.describe("Raw Output").addBatch({
 	},
 	'A template containing no tags on multiple lines': {
 		topic: function() {
-			return dali.add("test", "Just some text\n with no\n templating and some line feeds! (Linefeeds are converted to spaces by default)");
+			return dali.add("test", "Just some text\n with no\n templating and some line feeds!");
 		},
 		'can render raw output correctly': function (template) {
-			assert.equal(template.render(sampleData), "Just some text  with no  templating and some line feeds! (Linefeeds are converted to spaces by default)");
+			assert.equal(template.render(sampleData), "Just some text\n with no\n templating and some line feeds!");
 		}
 	}
 }).export(module);

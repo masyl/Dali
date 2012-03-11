@@ -1,1 +1,1 @@
-module.exports = require("lib/dali");
+module.exports = require("./lib");

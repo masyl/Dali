@@ -4,7 +4,7 @@
  * Usage:  node server.js
  */
 var port = 8011;
-var sys = require('sys');
+var util = require('util');
 var static = require('node-static');
 
 //
@@ -19,14 +19,14 @@ require('http').createServer(function (request, response) {
         //
         file.serve(request, response, function (err, res) {
             if (err) { // An error as occured
-                sys.error("> Error serving " + request.url + " - " + err.message);
+                util.error("> Error serving " + request.url + " - " + err.message);
                 response.writeHead(err.status, err.headers);
                 response.end();
             } else { // The file was served successfully
-                sys.puts("> " + request.url + " - " + res.message);
+                util.puts("> " + request.url + " - " + res.message);
             }
         });
     });
 }).listen(port);
 
-sys.puts("> node-static is listening on http://127.0.0.1:" + port);
+util.puts("> node-static is listening on http://127.0.0.1:" + port);

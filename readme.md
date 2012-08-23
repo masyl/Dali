@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/masyl/Dali.png)](http://travis-ci.org/masyl/Dali)
 Dali - Surreal Templating
 =========================
 
